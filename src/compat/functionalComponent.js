@@ -1,11 +1,9 @@
-import { Component } from './Component';
-import { currentComponent } from './hooks';
+import { Component }  from './Component';
+import { withHooks, renderQueue } from './hooks';
 
 class FunctionalComponent extends Component
 {
-    hookIndex;
-    hooks = [];
-    hookDeps = [];
+    hookCallback = null;
 
     constructor(render, props)
     {
@@ -16,21 +14,14 @@ class FunctionalComponent extends Component
 
     render()
     {
-        const prevContext = currentComponent;
+        renderQueue.current = this;
 
-        try
+        if (!this.hookCallback)
         {
-            currentComponent = this;
-
-            this.hookIndex = 0;
-
-            return this.__internals._fn(this.props);
-
+            this.hookCallback = withHooks(this.__internals._fn);
         }
-        finally
-        {
-            currentComponent = prevContext;
-        }
+
+        return this.hookCallback.call(this, this.props);
     }
 }
 

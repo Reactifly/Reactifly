@@ -1,8 +1,8 @@
-import { render, Component, createElement, Fragment, jsx, useState } from './src/index';
+import Reactify, { render, Component, createElement, Fragment, jsx, useState } from './src/index';
 
 (function()
 {
-    class Nest2 extends Component
+    class Nest2 extends Reactify.Component
     {
         constructor(props)
         {
@@ -21,7 +21,7 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
         }
     }
 
-    class Nest1 extends Component
+    class Nest1 extends Reactify.Component
     {
         Nest2 = Nest2;
 
@@ -43,7 +43,7 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
         }
     }
 
-    class Bar extends Component
+    class Bar extends Reactify.Component
     {
         constructor(props)
         {
@@ -75,7 +75,7 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
         }
     }
 
-    class FragmentNest2 extends Component
+    class FragmentNest2 extends Reactify.Component
     {
         Fragment = Fragment;
 
@@ -102,7 +102,7 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
         }
     }
 
-    class FragmentNest1 extends Component
+    class FragmentNest1 extends Reactify.Component
     {
         FragmentNest2 = FragmentNest2;
         Fragment = Fragment;
@@ -117,7 +117,7 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
         }
     }
 
-    class Foo extends Component
+    class Foo extends Reactify.Component
     {
         constructor(props)
         {
@@ -293,7 +293,7 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
 
     const ThemeContext = createContext(themes.dark);
 
-    class ThemedButton extends Component
+    class ThemedButton extends Reactify.Component
     {
         static contextType = ThemeContext;
 
@@ -305,7 +305,7 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
         }
     }
 
-    class ThunkNest1 extends Component
+    class ThunkNest1 extends Reactify.Component
     {
         ThemedButton = ThemedButton;
         
@@ -345,27 +345,29 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
         return jsx(`<div>{greeting}</div>`, vars);
     };
 
-    function genCar()
-    {
+    const car_brands = ['Holden', 'Ford', 'Kia'];
+    const car_models = ['Commodore', 'Mustang', 'i500'];
+    const car_colors = ['Yellow', 'Green', 'Red'];
+    const car_years  = ['1999', '1998', '1995'];
 
-    }
-
-    /*function Car()
+    function Car1()
     {
-        const [brand, setBrand] = useState("Ford");
-        const [model, setModel] = useState("Mustang");
-        const [year, setYear]   = useState("1964");
-        const [color, setColor] = useState("red");
+        console.log('rending car');
+        
+        const [brand, setBrand] = useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+        const [model, setModel] = useState(car_models[Math.floor(Math.random()*car_models.length)]);
+        const [year, setYear]   = useState(car_years[Math.floor(Math.random()*car_years.length)]);
+        const [color, setColor] = useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
 
         const genCar = function()
         {
-            setBrand('Holden');
-            setModel('Commodore');
-            setYear('1999');
-            setColor('yellow');
+            setBrand(car_brands[Math.floor(Math.random()*car_brands.length)]);
+            setModel(car_models[Math.floor(Math.random()*car_models.length)]);
+            setYear(car_years[Math.floor(Math.random()*car_years.length)]);
+            setColor(car_colors[Math.floor(Math.random()*car_colors.length)]);
         };
 
-        const vars = 
+        let vars = 
         {
             brand  : brand,
             model  : model,
@@ -376,21 +378,61 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
 
         return jsx(`
             <div>
-                <h1>My {brand}</h1>
+                <h1>Car 2 My {brand}</h1>
                 <p>
                     It is a {color} {model} from {year}.
                 </p>
                 <button onClick={() => genCar()}>Generate Car</button>
             </div>`,
         vars);
-    }*/
+    }
+
+    function Car2()
+    {
+        console.log('rending car');
+        
+        const [brand, setBrand] = useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+        const [model, setModel] = useState(car_models[Math.floor(Math.random()*car_models.length)]);
+        const [year, setYear]   = useState(car_years[Math.floor(Math.random()*car_years.length)]);
+        const [color, setColor] = useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
+
+        const genCar = function()
+        {
+            setBrand(car_brands[Math.floor(Math.random()*car_brands.length)]);
+            setModel(car_models[Math.floor(Math.random()*car_models.length)]);
+            setYear(car_years[Math.floor(Math.random()*car_years.length)]);
+            setColor(car_colors[Math.floor(Math.random()*car_colors.length)]);
+        };
+
+        let vars = 
+        {
+            brand  : brand,
+            model  : model,
+            year   : year,
+            color  : color,
+            genCar : genCar 
+        };
+
+        return jsx(`
+            <div>
+                <h1>Car 1 My {brand}</h1>
+                <p>
+                    It is a {color} {model} from {year}.
+                </p>
+                <button onClick={() => genCar()}>Generate Car</button>
+            </div>`,
+        vars);
+    }
 
 
-    class App extends Component
+    class App extends Reactify.Component
     {
         ArrowFunc = FunctionalCompArrow;
         FuncFunc  = FunctionalCompVar;
         passProp  = 'Hello';
+        variable  = 'Variables!';
+        Car1      = Car1;
+        Car2      = Car2;
 
         constructor(props)
         {
@@ -398,21 +440,26 @@ import { render, Component, createElement, Fragment, jsx, useState } from './src
 
             let _this = this;
 
-            setTimeout(function()
+            /*setTimeout(function()
             {            
                 _this.passProp = 'Updated!';
 
                 _this.forceUpdate();
 
-            }, 2000);
+            }, 2000);*/
+        }
+
+        returnJsx()
+        {
+            return this.jsx('<div><h1>Returned JSX! with <i>{variable}</i></h1></div>');
         }
 
         render()
         {
-             return `
+            return `
                 <div>
-                    <ArrowFunc testProp={this.passProp} />
-                    <FuncFunc testProp={this.passProp} />
+                    <Car1 />
+                    <Car2 />
                 </div>
             `;
         }

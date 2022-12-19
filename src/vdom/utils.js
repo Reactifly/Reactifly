@@ -232,7 +232,7 @@ export let nodeAttributes = (node, attrs) =>
 }
 
 /**
- * Get/set a nodes component
+ * Get/set a node's component
  */
 
 export let nodeComponent = (node, component) =>
@@ -243,6 +243,20 @@ export let nodeComponent = (node, component) =>
     }
 
     return node.__internals._component;
+}
+
+/**
+ * Get/set a component's node
+ */
+
+export let componentNode = (component, node) =>
+{
+    if (!_.is_undefined(node))
+    {
+        component.__internals.vnode = node;
+    }
+
+    return component.__internals.vnode;
 }
 
 // Recursively traverse down tree until either a DOM node is found

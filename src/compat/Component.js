@@ -63,6 +63,7 @@ export class Component
         vnode     : null,
         prevState : {},
         prevProps : {},
+        _hook     : []
     };
 
     /**

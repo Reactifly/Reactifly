@@ -1,14 +1,9 @@
 import Parser  from './Parser';
-import { createElement } from '../vdom/index';
+import { JsxSyntaxError } from './error';
 
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS   = {};
 const CACHE_STR   = {};
-const __scope     = {};
-
-window.__scope    = __scope;
-
-__scope.createElement = createElement;
 
 export default function evaluate(str, obj, config)
 {
@@ -21,9 +16,9 @@ export default function evaluate(str, obj, config)
         obj = {};
     }
     
-    if (typeof __scope === 'function')
+    if (typeof Reactify === 'function')
     {
-        obj.__scope = __scope;
+        obj.Reactify = Reactify;
     }
     
     var args = 'var args0 = arguments[0];'
@@ -37,9 +32,11 @@ export default function evaluate(str, obj, config)
     }
 
     args += 'return ' + output;
+
     try
     {
-        var fn
+        var fn;
+
         if (CACHE_FNS[args])
         {
             fn = CACHE_FNS[args]
@@ -55,16 +52,14 @@ export default function evaluate(str, obj, config)
     }
     catch (e)
     {
-        console.log(fn);
-        console.log(CACHE_FNS);
-        console.log(e)
+        throw new JsxSyntaxError(e);
     }
 }
 
 function innerClass(str, config)
 {
     config      = config || {};
-    config.ns   = '__scope';
+    config.ns   = 'Reactify';
     this.input  = str;
     this.ns     = config.ns
     this.type   = config.type

@@ -238,7 +238,6 @@ function createThunkElement(fn, props, children, key, ref)
             _component: null,
             _name : _.callable_name(fn),
             _fn : null,
-            _hooks : [],
         }
     }
 }
@@ -263,7 +262,6 @@ function createFunctionalThunk(fn, props, children, key, ref)
             _component: null,
             _name : _.callable_name(fn),
             _fn : fn,
-            _hooks : [],
         }
     }
 }

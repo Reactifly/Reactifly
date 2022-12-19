@@ -1,5 +1,22 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
+/******/ 	// The require scope
+/******/ 	var __webpack_require__ = {};
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/global */
+/******/ 	(() => {
+/******/ 		__webpack_require__.g = (function() {
+/******/ 			if (typeof globalThis === 'object') return globalThis;
+/******/ 			try {
+/******/ 				return this || new Function('return this')();
+/******/ 			} catch (e) {
+/******/ 				if (typeof window === 'object') return window;
+/******/ 			}
+/******/ 		})();
+/******/ 	})();
+/******/ 	
+/************************************************************************/
 var __webpack_exports__ = {};
 
 ;// CONCATENATED MODULE: ./src/dom/factory.js
@@ -1436,7 +1453,7 @@ let nodeAttributes = (node, attrs) =>
 }
 
 /**
- * Get/set a nodes component
+ * Get/set a node's component
  */
 
 let nodeComponent = (node, component) =>
@@ -1447,6 +1464,20 @@ let nodeComponent = (node, component) =>
     }
 
     return node.__internals._component;
+}
+
+/**
+ * Get/set a component's node
+ */
+
+let componentNode = (component, node) =>
+{
+    if (!utils.is_undefined(node))
+    {
+        component.__internals.vnode = node;
+    }
+
+    return component.__internals.vnode;
 }
 
 // Recursively traverse down tree until either a DOM node is found
@@ -2008,6 +2039,16 @@ function makeJSX(JSXNode)
 }
 
 /* harmony default export */ const jsx_Parser = (Parser);
+;// CONCATENATED MODULE: ./src/jsx/error.js
+class JsxSyntaxError extends Error
+{
+    constructor(error)
+    {
+        super('JSX syntax error');
+        
+        this.name = 'JsxSyntaxError';
+    }
+}
 ;// CONCATENATED MODULE: ./src/jsx/evaluate.js
 
 
@@ -2015,11 +2056,6 @@ function makeJSX(JSXNode)
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS   = {};
 const CACHE_STR   = {};
-const __scope     = {};
-
-window.__scope    = __scope;
-
-__scope.createElement = createElement;
 
 function evaluate(str, obj, config)
 {
@@ -2032,9 +2068,9 @@ function evaluate(str, obj, config)
         obj = {};
     }
     
-    if (typeof __scope === 'function')
+    if (typeof Reactify === 'function')
     {
-        obj.__scope = __scope;
+        obj.Reactify = Reactify;
     }
     
     var args = 'var args0 = arguments[0];'
@@ -2048,9 +2084,11 @@ function evaluate(str, obj, config)
     }
 
     args += 'return ' + output;
+
     try
     {
-        var fn
+        var fn;
+
         if (CACHE_FNS[args])
         {
             fn = CACHE_FNS[args]
@@ -2066,16 +2104,14 @@ function evaluate(str, obj, config)
     }
     catch (e)
     {
-        console.log(fn);
-        console.log(CACHE_FNS);
-        console.log(e)
+        throw new JsxSyntaxError(e);
     }
 }
 
 function innerClass(str, config)
 {
     config      = config || {};
-    config.ns   = '__scope';
+    config.ns   = 'Reactify';
     this.input  = str;
     this.ns     = config.ns
     this.type   = config.type
@@ -2281,6 +2317,7 @@ class Component
         vnode     : null,
         prevState : {},
         prevProps : {},
+        _hook     : []
     };
 
     /**
@@ -2364,90 +2401,100 @@ class Fragment extends Component
 }
 ;// CONCATENATED MODULE: ./src/compat/hooks.js
 
-let currentComponent;
 
-function useState(initial)
+const renderQueue = 
 {
-    const i = currentComponent.hookIndex++;
-    
-    if (!currentComponent.hooks[i])
+    current: null
+};
+
+let buckets = new WeakMap();
+let stack = [];
+
+function withHooks(callback)
+{
+    return (props) =>
     {
-        currentComponent.hooks[i] =
-        {
-            state: transformState(initial)
-        };
-    }
-    
-    const thisHookContext = currentComponent;
-    
-    return [
-        currentComponent.hooks[i].state,
+        stack.push(callback);
         
-        useCallback(newState =>
+        let bucket = __getCurrentBucket();
+        
+        bucket.nextStateSlotId = 0;
+
+        try
         {
-            thisHookContext.hooks[i].state = transformState(newState, thisHookContext.hooks[i].state);
-
-            thisHookContext.setState();
-
-        }, [])
-    ];
-}
-
-function useCallback(cb, deps)
-{
-    return useMemo(() => cb, deps);
-}
-
-function useMemo(factory, deps)
-{
-    const i = currentComponent.hookIndex++;
-    
-    if ( !currentComponent.hooks[i] || !deps || !sameArray(deps, currentComponent.hookDeps[i]))
-    {
-        currentComponent.hooks[i] = factory();
-
-        currentComponent.hookDeps[i] = deps;
-    }
-    
-    return currentComponent.hooks[i];
-}
-
-function transformState(state, prevState)
-{
-    if (typeof state === "function")
-    {
-        return state(prevState);
-    }
-
-    return state;
-}
-
-function sameArray(arr1, arr2)
-{
-    if (arr1.length !== arr2.length)
-    {
-        return false;
-    }
-
-    for (let i = 0; i < arr1.length; ++i)
-    {
-        if (arr1[i] !== arr2[i])
+            return callback.apply(null, props);
+        }
+        finally
         {
-            return false;
+            stack.pop();
         }
     }
-
-    return true;
 }
+
+function __getCurrentBucket()
+{
+    if (!stack)
+    {
+        return;
+    }
+
+    let fn = stack[stack.length - 1];
+    
+    if (!fn)
+    {
+        throw new Error('Wrap your callback by using withHooks().');
+    }
+
+    if (!buckets.has(fn))
+    {
+        buckets.set(fn, {
+            nextStateSlotId: 0,
+            stateSlots: [],
+        });
+    }
+
+    return buckets.get(fn);
+}
+
+function useState(initialVal)
+{
+    var bucket = __getCurrentBucket();
+
+    if (bucket)
+    {
+        if (!(bucket.nextStateSlotId in bucket.stateSlots))
+        {
+            let slot = 
+            [
+                initialVal,
+
+                function updateSLot(valueOrFn)
+                {                                        
+                    slot[0] = typeof valueOrFn == 'function' ? valueOrFn(slot[0]) : valueOrFn;
+
+                    thunkUpdate(componentNode(renderQueue.current));
+                }
+            ];
+            
+            bucket.stateSlots[bucket.nextStateSlotId] = slot;
+        }
+
+        return [...bucket.stateSlots[bucket.nextStateSlotId++]];
+    }
+    else
+    {
+        throw new Error('useState() only valid inside Hook Function.');
+    }
+
+}
+
 ;// CONCATENATED MODULE: ./src/compat/functionalComponent.js
 
 
 
 class FunctionalComponent extends Component
 {
-    hookIndex;
-    hooks = [];
-    hookDeps = [];
+    hookCallback = null;
 
     constructor(render, props)
     {
@@ -2458,21 +2505,14 @@ class FunctionalComponent extends Component
 
     render()
     {
-        const prevContext = currentComponent;
+        renderQueue.current = this;
 
-        try
+        if (!this.hookCallback)
         {
-            currentComponent = this;
-
-            this.hookIndex = 0;
-
-            return this.__internals._fn(this.props);
-
+            this.hookCallback = withHooks(this.__internals._fn);
         }
-        finally
-        {
-            currentComponent = prevContext;
-        }
+
+        return this.hookCallback.call(this, this.props);
     }
 }
 
@@ -2739,7 +2779,6 @@ function createThunkElement(fn, props, children, key, ref)
             _component: null,
             _name : utils.callable_name(fn),
             _fn : null,
-            _hooks : [],
         }
     }
 }
@@ -2764,7 +2803,6 @@ function createFunctionalThunk(fn, props, children, key, ref)
             _component: null,
             _name : utils.callable_name(fn),
             _fn : fn,
-            _hooks : [],
         }
     }
 }
@@ -3297,8 +3335,6 @@ function thunkUpdate(vnode)
     {
         commit(actions.current);
     }
-
-    console.log(vnode);
 }
 
 function thunkRender(component)
@@ -4457,12 +4493,28 @@ function mount(DOMElement, parent)
 
 
 
+
+const src_Reactify = 
+{
+	render: render,
+	Component: Component, Fragment: Fragment, useState: useState,
+	jsx: jsx,
+	createElement: createElement,
+	h: createElement
+};
+
+let win = window || __webpack_require__.g;
+
+win.Reactify = src_Reactify;
+
+/* harmony default export */ const src = (src_Reactify);
+
 ;// CONCATENATED MODULE: ./index.js
 
 
 (function()
 {
-    class Nest2 extends Component
+    class Nest2 extends src.Component
     {
         constructor(props)
         {
@@ -4481,7 +4533,7 @@ function mount(DOMElement, parent)
         }
     }
 
-    class Nest1 extends Component
+    class Nest1 extends src.Component
     {
         Nest2 = Nest2;
 
@@ -4503,7 +4555,7 @@ function mount(DOMElement, parent)
         }
     }
 
-    class Bar extends Component
+    class Bar extends src.Component
     {
         constructor(props)
         {
@@ -4535,7 +4587,7 @@ function mount(DOMElement, parent)
         }
     }
 
-    class FragmentNest2 extends Component
+    class FragmentNest2 extends src.Component
     {
         Fragment = Fragment;
 
@@ -4562,7 +4614,7 @@ function mount(DOMElement, parent)
         }
     }
 
-    class FragmentNest1 extends Component
+    class FragmentNest1 extends src.Component
     {
         FragmentNest2 = FragmentNest2;
         Fragment = Fragment;
@@ -4577,7 +4629,7 @@ function mount(DOMElement, parent)
         }
     }
 
-    class Foo extends Component
+    class Foo extends src.Component
     {
         constructor(props)
         {
@@ -4753,7 +4805,7 @@ function mount(DOMElement, parent)
 
     const ThemeContext = createContext(themes.dark);
 
-    class ThemedButton extends Component
+    class ThemedButton extends Reactify.Component
     {
         static contextType = ThemeContext;
 
@@ -4765,7 +4817,7 @@ function mount(DOMElement, parent)
         }
     }
 
-    class ThunkNest1 extends Component
+    class ThunkNest1 extends Reactify.Component
     {
         ThemedButton = ThemedButton;
         
@@ -4805,27 +4857,29 @@ function mount(DOMElement, parent)
         return jsx(`<div>{greeting}</div>`, vars);
     };
 
-    function genCar()
-    {
+    const car_brands = ['Holden', 'Ford', 'Kia'];
+    const car_models = ['Commodore', 'Mustang', 'i500'];
+    const car_colors = ['Yellow', 'Green', 'Red'];
+    const car_years  = ['1999', '1998', '1995'];
 
-    }
-
-    /*function Car()
+    function Car1()
     {
-        const [brand, setBrand] = useState("Ford");
-        const [model, setModel] = useState("Mustang");
-        const [year, setYear]   = useState("1964");
-        const [color, setColor] = useState("red");
+        console.log('rending car');
+        
+        const [brand, setBrand] = useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+        const [model, setModel] = useState(car_models[Math.floor(Math.random()*car_models.length)]);
+        const [year, setYear]   = useState(car_years[Math.floor(Math.random()*car_years.length)]);
+        const [color, setColor] = useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
 
         const genCar = function()
         {
-            setBrand('Holden');
-            setModel('Commodore');
-            setYear('1999');
-            setColor('yellow');
+            setBrand(car_brands[Math.floor(Math.random()*car_brands.length)]);
+            setModel(car_models[Math.floor(Math.random()*car_models.length)]);
+            setYear(car_years[Math.floor(Math.random()*car_years.length)]);
+            setColor(car_colors[Math.floor(Math.random()*car_colors.length)]);
         };
 
-        const vars = 
+        let vars = 
         {
             brand  : brand,
             model  : model,
@@ -4836,21 +4890,61 @@ function mount(DOMElement, parent)
 
         return jsx(`
             <div>
-                <h1>My {brand}</h1>
+                <h1>Car 2 My {brand}</h1>
                 <p>
                     It is a {color} {model} from {year}.
                 </p>
                 <button onClick={() => genCar()}>Generate Car</button>
             </div>`,
         vars);
-    }*/
+    }
+
+    function Car2()
+    {
+        console.log('rending car');
+        
+        const [brand, setBrand] = useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+        const [model, setModel] = useState(car_models[Math.floor(Math.random()*car_models.length)]);
+        const [year, setYear]   = useState(car_years[Math.floor(Math.random()*car_years.length)]);
+        const [color, setColor] = useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
+
+        const genCar = function()
+        {
+            setBrand(car_brands[Math.floor(Math.random()*car_brands.length)]);
+            setModel(car_models[Math.floor(Math.random()*car_models.length)]);
+            setYear(car_years[Math.floor(Math.random()*car_years.length)]);
+            setColor(car_colors[Math.floor(Math.random()*car_colors.length)]);
+        };
+
+        let vars = 
+        {
+            brand  : brand,
+            model  : model,
+            year   : year,
+            color  : color,
+            genCar : genCar 
+        };
+
+        return jsx(`
+            <div>
+                <h1>Car 1 My {brand}</h1>
+                <p>
+                    It is a {color} {model} from {year}.
+                </p>
+                <button onClick={() => genCar()}>Generate Car</button>
+            </div>`,
+        vars);
+    }
 
 
-    class App extends Component
+    class App extends src.Component
     {
         ArrowFunc = FunctionalCompArrow;
         FuncFunc  = FunctionalCompVar;
         passProp  = 'Hello';
+        variable  = 'Variables!';
+        Car1      = Car1;
+        Car2      = Car2;
 
         constructor(props)
         {
@@ -4858,21 +4952,26 @@ function mount(DOMElement, parent)
 
             let _this = this;
 
-            setTimeout(function()
+            /*setTimeout(function()
             {            
                 _this.passProp = 'Updated!';
 
                 _this.forceUpdate();
 
-            }, 2000);
+            }, 2000);*/
+        }
+
+        returnJsx()
+        {
+            return this.jsx('<div><h1>Returned JSX! with <i>{variable}</i></h1></div>');
         }
 
         render()
         {
-             return `
+            return `
                 <div>
-                    <ArrowFunc testProp={this.passProp} />
-                    <FuncFunc testProp={this.passProp} />
+                    <Car1 />
+                    <Car2 />
                 </div>
             `;
         }
