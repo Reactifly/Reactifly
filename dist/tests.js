@@ -1,8 +1,8 @@
-import Reactify, { render, Component, createElement, Fragment, jsx, useState } from './src/index';
+import Reactifly, { createRoot, Component, createElement, Fragment, jsx, useState } from './src/index';
 
 (function()
 {
-    class Nest2 extends Reactify.Component
+    class Nest2 extends Reactifly.Component
     {
         constructor(props)
         {
@@ -21,7 +21,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         }
     }
 
-    class Nest1 extends Reactify.Component
+    class Nest1 extends Reactifly.Component
     {
         Nest2 = Nest2;
 
@@ -43,7 +43,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         }
     }
 
-    class Bar extends Reactify.Component
+    class Bar extends Reactifly.Component
     {
         constructor(props)
         {
@@ -75,7 +75,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         }
     }
 
-    class FragmentNest2 extends Reactify.Component
+    class FragmentNest2 extends Reactifly.Component
     {
         Fragment = Fragment;
 
@@ -102,7 +102,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         }
     }
 
-    class FragmentNest1 extends Reactify.Component
+    class FragmentNest1 extends Reactifly.Component
     {
         FragmentNest2 = FragmentNest2;
         Fragment = Fragment;
@@ -117,7 +117,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         }
     }
 
-    class Foo extends Reactify.Component
+    class Foo extends Reactifly.Component
     {
         constructor(props)
         {
@@ -293,7 +293,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
 
     const ThemeContext = createContext(themes.dark);
 
-    class ThemedButton extends Reactify.Component
+    class ThemedButton extends Reactifly.Component
     {
         static contextType = ThemeContext;
 
@@ -305,7 +305,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         }
     }
 
-    class ThunkNest1 extends Reactify.Component
+    class ThunkNest1 extends Reactifly.Component
     {
         ThemedButton = ThemedButton;
         
@@ -425,7 +425,7 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
     }
 
 
-    class App extends Reactify.Component
+    class App extends Reactifly.Component
     {
         ArrowFunc = FunctionalCompArrow;
         FuncFunc  = FunctionalCompVar;
@@ -440,13 +440,13 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
 
             let _this = this;
 
-            /*setTimeout(function()
+            setTimeout(function()
             {            
                 _this.passProp = 'Updated!';
 
                 _this.forceUpdate();
 
-            }, 2000);*/
+            }, 2000);
         }
 
         returnJsx()
@@ -458,6 +458,9 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         {
             return `
                 <div>
+                    <ArrowFunc testProp={this.passProp} />
+                    <FuncFunc testProp={this.passProp} />
+                    { this.returnJsx() }
                     <Car1 />
                     <Car2 />
                 </div>
@@ -465,6 +468,11 @@ import Reactify, { render, Component, createElement, Fragment, jsx, useState } f
         }
     }
 
-    render(App, document.getElementById('app'));
+    let root = createRoot(document.getElementById('app'));
+
+    root.render('<div>Test</div><div>Test</div>');
+
+    root.render('<div>Test</div><div>Changed</div>');
+
 
 })();

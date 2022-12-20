@@ -4,7 +4,7 @@
   "license": "MIT",
   "repository": "bReact/bReactJS",
   "description": "Render interfaces using pure functions and virtual DOM",
-  "main": "/index.js",
+  "main": "./src/index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "test": "mocha --require @babel/register -require jsdom-global/register test/index.js"

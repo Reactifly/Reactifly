@@ -1,5 +1,6 @@
 import Parser  from './Parser';
 import { JsxSyntaxError } from './error';
+import { createElement } from '../vdom/index';
 
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS   = {};
@@ -16,12 +17,9 @@ export default function evaluate(str, obj, config)
         obj = {};
     }
     
-    if (typeof Reactify === 'function')
-    {
-        obj.Reactify = Reactify;
-    }
+    obj.Reactifly = {createElement: createElement};
     
-    var args = 'var args0 = arguments[0];'
+    var args = 'var args0 = arguments[0];';
     
     for (var i in obj)
     {
@@ -59,7 +57,7 @@ export default function evaluate(str, obj, config)
 function innerClass(str, config)
 {
     config      = config || {};
-    config.ns   = 'Reactify';
+    config.ns   = 'Reactifly';
     this.input  = str;
     this.ns     = config.ns
     this.type   = config.type

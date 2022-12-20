@@ -1,9 +1,13 @@
 import { Component }  from './Component';
-import { withHooks, renderQueue } from './hooks';
+import { renderQueue } from './hooks';
 
 class FunctionalComponent extends Component
 {
-    hookCallback = null;
+    hookIndex;
+    hooks = [];
+    hooksCleanups = [];
+    hookDeps = [];
+    layoutEffects = [];
 
     constructor(render, props)
     {
@@ -12,16 +16,77 @@ class FunctionalComponent extends Component
         this.__internals._fn = render;
     }
 
-    render()
+    componentDidMount()
     {
-        renderQueue.current = this;
-
-        if (!this.hookCallback)
+        for (let i = 0; i < this.hooks.length; ++i)
         {
-            this.hookCallback = withHooks(this.__internals._fn);
+            const effect = this.layoutEffects[i];
+
+            if (effect)
+            {
+                try
+                {
+                    effect();
+                }
+                catch (e) {}
+            }
         }
 
-        return this.hookCallback.call(this, this.props);
+        this.layoutEffects = [];
+    }
+
+    componentDidUpdate()
+    {
+        for (let i = 0; i < this.hooks.length; ++i)
+        {
+            const effect = this.layoutEffects[i];
+            
+            if (effect)
+            {
+                try
+                {
+                    effect();
+                }
+                catch (e) {}
+            }
+        }
+
+        this.layoutEffects = [];
+    }
+
+    componentWillUnmount()
+    {
+        for (let i = 0; i < this.hooks.length; ++i)
+        {
+            const cleanup = this.hooksCleanups[i];
+            
+            if (cleanup)
+            {
+                try
+                {
+                    cleanup();
+                }
+                catch (e) {}
+            }
+        }
+    }
+
+    render()
+    {
+        const prevContext = renderQueue.current;
+
+        try
+        {
+            renderQueue.current = this;
+            
+            this.hookIndex = 0;
+            
+            return this.__internals._fn(this.props);
+        }
+        finally
+        {
+            renderQueue.current = prevContext;
+        }
     }
 }
 

@@ -5,5 +5,7 @@ export class JsxSyntaxError extends Error
         super('JSX syntax error');
         
         this.name = 'JsxSyntaxError';
+
+        console.error(error);
     }
 }

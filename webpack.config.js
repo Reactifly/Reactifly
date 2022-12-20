@@ -13,7 +13,7 @@ module.exports =
   },
 
   // Path to your entry point. From this file Webpack will begin its work
-  entry: './index.js',
+  entry: './src/index.js',
 
   // Path and filename of your result bundle.
   // Webpack will bundle all JavaScript into this file
@@ -27,13 +27,6 @@ module.exports =
   // Depending on mode Webpack will apply different things
   // on the final bundle. For now, we don't need production's JavaScript 
   // minifying and other things, so let's set mode to development
-  mode: 'production',
-
-  resolve:
-  {
-    alias: {
-     "@f": path.resolve(__dirname, "src/js/dom/@f")
-    }
-  }
+  mode: 'production'
 
 };

@@ -118,7 +118,7 @@ function createThunk(vnode, parentDOMElement)
 {
     // Skip this it's already been rendered if it's coming from a patch
     if (vDOM.isThunkInstantiated(vnode))
-    {
+    {        
         console.log('already instantiated');
 
         let DOMElement = createDomElement(vnode.children[0]);

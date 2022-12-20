@@ -153,10 +153,10 @@ export let nodeElemParent = (parent) =>
  * 
  */
 
-export let parentElem = (node) =>
+export let parentElem = (vnode) =>
 {
     // Native node
-    if (isNative(node) || isText(node) || isEmpty(node))
+    if (isNative(vnode) || isText(vnode) || isEmpty(vnode))
     {
         return nodeElem(node).parentNode;
     }

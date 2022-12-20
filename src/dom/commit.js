@@ -12,7 +12,7 @@ import * as events from './events';
  */
 export function commit(actions)
 {
-    console.log(actions);
+    //console.log(actions);
 
     _.foreach(actions, function(i, action)
     {

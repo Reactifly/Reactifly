@@ -9,6 +9,8 @@ import _ from '../utils/index';
 */
 export function patch(prevNode, nextNode, actions)
 {       
+    actions = _.is_undefined(actions) ? [] : actions;
+    
     // Same nothing to do
     if (prevNode === nextNode)
     {

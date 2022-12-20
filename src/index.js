@@ -1,10 +1,13 @@
-import { render }  from './render/index';
+import { createRoot, render }  from './render/index';
 import { Component, Fragment, useState } from './compat/index';
 import { jsx } from './jsx/index';
 import { createElement, createElement as h } from './vdom/index';
-export { render, Component, Fragment, useState, jsx, createElement, h };
-const Reactify = 
+
+export { createRoot, render, Component, Fragment, useState, jsx, createElement, h };
+
+const Reactifly = 
 {
+	createRoot,
 	render,
 	Component, Fragment, useState,
 	jsx,
@@ -14,6 +17,6 @@ const Reactify =
 
 let win = window || global;
 
-win.Reactify = Reactify;
+win.Reactifly = Reactifly;
 
-export default Reactify;
+export default Reactifly;
