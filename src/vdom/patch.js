@@ -1,4 +1,4 @@
-import { action } from './actions';
+import { action } from '../dom/index';
 import * as vElem from './utils';
 import * as thunk from './thunk';
 import _ from '../utils/index';

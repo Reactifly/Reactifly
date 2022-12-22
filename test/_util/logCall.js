@@ -28,9 +28,11 @@ export function logCall(obj, method)
 	obj[method] = function(...args)
 	{
 		let c = '';
+
 		for (let i = 0; i < args.length; i++)
 		{
 			if (c) c += ', ';
+			
 			c += serialize(args[i]);
 		}
 

@@ -1,6 +1,7 @@
 import Parser  from './Parser';
 import { JsxSyntaxError } from './error';
 import { createElement } from '../vdom/index';
+import { Fragment } from '../compat/index';
 
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS   = {};
@@ -18,6 +19,7 @@ export default function evaluate(str, obj, config)
     }
     
     obj.Reactifly = {createElement: createElement};
+    obj.Fragment  = Fragment;
     
     var args = 'var args0 = arguments[0];';
     

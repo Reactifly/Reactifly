@@ -12,8 +12,6 @@ import * as events from './events';
  */
 export function commit(actions)
 {
-    //console.log(actions);
-
     _.foreach(actions, function(i, action)
     {
         let {callback, args } = action;
@@ -349,4 +347,26 @@ export function setAttribute(vnode, name, value, previousValue)
 export function removeAttribute(vnode, name, previousValue)
 {
     removeDomAttribute(vDOM.nodeElem(vnode), name, previousValue)
+}
+
+const ACTION_MAP =
+{
+    replaceNode,
+    appendChild,
+    removeChild,
+    insertAtIndex,
+    moveToIndex,
+    replaceText,
+    setAttribute,
+    removeAttribute
+};
+
+export function action(name, args)
+{   
+    let callback = ACTION_MAP[name];
+
+    return {
+        callback,
+        args
+    };
 }

@@ -2080,10 +2080,10 @@ class JsxSyntaxError extends Error
 
 
 
+
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS   = {};
 const CACHE_STR   = {};
-const NS_OBJ      = { createElement: createElement };
 
 function evaluate(str, obj, config)
 {
@@ -2096,9 +2096,10 @@ function evaluate(str, obj, config)
         obj = {};
     }
     
-    obj.Reactifly = NS_OBJ;
+    obj.Reactifly = {createElement: createElement};
+    obj.Fragment  = Fragment;
     
-    var args = 'var args0 = arguments[0];'
+    var args = 'var args0 = arguments[0];';
     
     for (var i in obj)
     {
@@ -2880,30 +2881,6 @@ function createFunctionalThunk(fn, props, children, key, ref)
 }
 
 /* harmony default export */ const vdom_element = ((/* unused pure expression or super */ null && (createElement)));
-;// CONCATENATED MODULE: ./src/vdom/actions.js
-
-
-const ACTION_MAP =
-{
-	replaceNode: commit_replaceNode,
-	appendChild: appendChild,
-	removeChild: removeChild,
-	insertAtIndex: insertAtIndex,
-	moveToIndex: moveToIndex,
-	replaceText: replaceText,
-	setAttribute: setAttribute,
-	removeAttribute: removeAttribute
-};
-
-function action(name, args)
-{ 	
-	let callback = ACTION_MAP[name];
-
-	return {
-		callback,
-		args
-	};
-}
 ;// CONCATENATED MODULE: ./src/vdom/patch.js
 
 
@@ -4179,8 +4156,6 @@ function createFragment(vnode, parentDOMElement)
  */
 function commit(actions)
 {
-    console.log(actions);
-
     utils.foreach(actions, function(i, action)
     {
         let {callback, args } = action;
@@ -4518,11 +4493,33 @@ function removeAttribute(vnode, name, previousValue)
     removeDomAttribute(nodeElem(vnode), name, previousValue)
 }
 
+const ACTION_MAP =
+{
+    replaceNode: commit_replaceNode,
+    appendChild,
+    removeChild,
+    insertAtIndex,
+    moveToIndex,
+    replaceText,
+    setAttribute,
+    removeAttribute
+};
+
+function action(name, args)
+{   
+    let callback = ACTION_MAP[name];
+
+    return {
+        callback,
+        args
+    };
+}
+
 ;// CONCATENATED MODULE: ./src/dom/index.js
 
 
-;// CONCATENATED MODULE: ./src/render/index.js
 
+;// CONCATENATED MODULE: ./src/render/root.js
 
 
 
@@ -4536,63 +4533,54 @@ class Root
         this.htmlRootEl = htmlRootEl;
 
         this.options = options;
+
+        this.component = null;
     }
 
-    componentFactory(str)
+    render(componentOrJSX, rootProps)
     {
-        const FunctionalComp = function(props)
-        {
-            let vars = 
-            {
-                Fragment : Fragment
-            };
+        this.component = !utils.is_callable(componentOrJSX) ? this.__componentFactory(componentOrJSX, rootProps) : componentOrJSX;
 
-            return jsx('<Fragment>' + str + '</Fragment>', vars);
+        this.htmlRootEl._reactiflyRoot ? this.__patchRoot() : this.__renderRoot()
+    }
+
+    __componentFactory(mixed_var, rootProps)
+    {
+        const FunctionalComp = function()
+        {
+            return jsx('<Fragment>' + mixed_var + '</Fragment>', rootProps);
         };
 
         return FunctionalComp;
     }
 
-    render(componentOrJSX)
+    __patchRoot()
     {
-        componentOrJSX = utils.is_string(componentOrJSX) ? this.componentFactory(componentOrJSX) : componentOrJSX;
+        let actions =  { current : [] };
 
-        let vnode = this.htmlRootEl._reactiflyRoot;
-        
-        if (vnode)
+        patch(this.htmlRootEl._reactiflyRoot, createElement(this.component), actions.current);
+
+        if (!utils.is_empty(actions.current))
         {
-            let actions = 
-            {
-                current : []
-            };
-
-            patch(vnode, createElement(componentOrJSX), actions.current);
-
-            console.log(actions.current);
-
-            if (!utils.is_empty(actions.current))
-            {
-                commit(actions.current);
-            }
-
-            return;
-        }
-        else
-        {
-            vnode = createElement(componentOrJSX);
-
-            let DOMElement = createDomElement(vnode, this.htmlRootEl);
-
-            this.mount(DOMElement, this.htmlRootEl);
-
-            this.htmlRootEl._reactiflyRoot = vnode;
-
-            console.log(vnode);
+            commit(actions.current);
         }
     }
 
-    mount(DOMElement, parent)
+    __renderRoot()
+    {
+        let vnode = createElement(this.component);
+
+        let DOMElement = createDomElement(vnode, this.htmlRootEl);
+
+        this.__mount(DOMElement, this.htmlRootEl);
+
+        this.htmlRootEl._reactiflyRoot = vnode;
+    }
+
+    __mount(DOMElement, parent)
     {        
+        let _this = this;
+
         // Edge case where root renders a fragment
         if (utils.is_array(DOMElement))
         {
@@ -4600,7 +4588,7 @@ class Root
             {
                 if (utils.is_array(childDomElement))
                 {
-                    mount(childDomElement, parent);
+                   _this.__mount(childDomElement, parent);
                 }
                 else
                 {
@@ -4618,18 +4606,20 @@ class Root
     }
 }
 
+;// CONCATENATED MODULE: ./src/render/index.js
+
+
 function createRoot(htmlRootEl, options)
 {
     return new Root(htmlRootEl, options);
 }
 
-function render(component, parent)
+function render(component, parent, rootProps)
 {       
     let root = createRoot(parent);
 
-    root.render(component);
+    root.render(component, rootProps);
 }
-
 ;// CONCATENATED MODULE: ./src/index.js
 
 
