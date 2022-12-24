@@ -1,11 +1,24 @@
 import { createDomElement, commit } from '../dom/index';
 import { createElement } from '../vdom/index';
 import { patch } from '../vdom/patch';
-import { jsx } from '../index';
+import { jsx } from '../jsx/index';
 import _ from '../utils/index';
 
+/**
+ * Root class.
+ *  
+ * @property {HTMLElement}         htmlRootEl  Root html element
+ * @property {function}            component   Root component
+ * @property {object | undefined}  options     Root options
+ */
 export class Root
 {
+    /**
+     * Constructor.
+     *  
+     * @param {HTMLElement}         htmlRootEl  Root html element
+     * @param {object | undefined}  options     Options (optional)
+     */
     constructor(htmlRootEl, options)
     {        
         this.htmlRootEl = htmlRootEl;
@@ -15,6 +28,12 @@ export class Root
         this.component = null;
     }
 
+    /**
+     * Render root component.
+     *  
+     * @param function | string}   component   Component to render
+     * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+     */
     render(componentOrJSX, rootProps)
     {
         this.component = !_.is_callable(componentOrJSX) ? this.__componentFactory(componentOrJSX, rootProps) : componentOrJSX;
@@ -22,16 +41,26 @@ export class Root
         this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot()
     }
 
-    __componentFactory(mixed_var, rootProps)
+    /**
+     * Creates wrapper function when passed as JSX string.
+     *  
+     * @param {string}              jsxStr      Root JSX to render
+     * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+     */
+    __componentFactory(jsxStr, rootProps)
     {
         const FunctionalComp = function()
         {
-            return jsx('<Fragment>' + mixed_var + '</Fragment>', rootProps);
+            return jsx('<Fragment>' + jsxStr + '</Fragment>', rootProps);
         };
 
         return FunctionalComp;
     }
 
+    /**
+     * Patches the root Vnode/component when re-rending root or state change.
+     *
+     */
     __patchRoot()
     {
         let actions =  { current : [] };
@@ -44,22 +73,34 @@ export class Root
         }
     }
 
+    /**
+     * Render the root component.
+     *
+     */
     __renderRoot()
     {
         let vnode = createElement(this.component);
 
         let DOMElement = createDomElement(vnode, this.htmlRootEl);
 
-        this.__mount(DOMElement, this.htmlRootEl);
+        this.__mount(DOMElement);
 
         this.htmlRootEl._reactiflyRootVnode = vnode;
     }
 
-    __mount(DOMElement, parent)
+    /**
+     * Mount root element
+     * 
+     * @param {HTMLElement | array } DOMElement  HTMLElement(s) returned from root component
+     *
+     */
+    __mount(DOMElement)
     {        
         let _this = this;
 
-        // Edge case where root renders a fragment
+        let parent = this.htmlRootEl;
+
+        // Where root renders a fragment or returns a thunk that renders a fragment
         if (_.is_array(DOMElement))
         {
             _.foreach(DOMElement, function(i, childDomElement)

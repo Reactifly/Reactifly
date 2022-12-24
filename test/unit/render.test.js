@@ -99,7 +99,7 @@ describe('render()', () =>
 		expect(scratch.firstChild).to.have.property('nodeName', 'X-BAR');
 	});
 
-	it('should support the form attribute', () => 
+	/*it('should support the form attribute', () => 
 	{
 		render(
 			`<div>
@@ -136,7 +136,7 @@ describe('render()', () =>
 		);
 		
 		console.log(serializeHtml(scratch));
-	});
+	});*/
 
 });
 

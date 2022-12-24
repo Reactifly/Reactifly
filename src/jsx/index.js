@@ -1,5 +1,5 @@
-import evaluate from './evaluate';
-import { is_object, is_undefined } from '../utils/index';
+import evaluate, {COMPONENT_CACHE} from './evaluate';
+import { is_object, is_undefined, callable_name } from '../utils/index';
 
 export function parseJSX(jsx, obj, config)
 {
@@ -14,4 +14,11 @@ export function jsx(str, vars)
 	}
 
 	return evaluate(str, vars);
+}
+
+export function register(component, key)
+{
+	key = is_undefined(key) ? callable_name(component) : key;
+
+	COMPONENT_CACHE[key] = component;
 }

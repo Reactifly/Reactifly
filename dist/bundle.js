@@ -41,7 +41,7 @@ __webpack_require__.d(__webpack_exports__, {
   "jsx": () => (/* reexport */ jsx)
 });
 
-// UNUSED EXPORTS: Component, Fragment, createElement, createRoot, default, h, render, useState
+// UNUSED EXPORTS: Component, Fragment, createElement, createRoot, default, h, register, render, useState
 
 ;// CONCATENATED MODULE: ./src/dom/factory.js
 const SVG_ELEMENTS = 'animate circle clipPath defs ellipse g line linearGradient mask path pattern polygon polyline radialGradient rect stop svg text tspan use'.split(' ');
@@ -2081,23 +2081,20 @@ class JsxSyntaxError extends Error
 
 
 
+
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS   = {};
 const CACHE_STR   = {};
+const COMPONENT_CACHE = {};
+
 
 function evaluate(str, obj, config)
-{
+{    
     var jsx = new innerClass(str, config);
 
     var output = jsx.init();
     
-    if (!obj)
-    {
-        obj = {};
-    }
-    
-    obj.Reactifly = {createElement: createElement};
-    obj.Fragment  = Fragment;
+    obj = genDepencies(obj);
     
     var args = 'var args0 = arguments[0];';
     
@@ -2132,6 +2129,26 @@ function evaluate(str, obj, config)
     {
         throw new JsxSyntaxError(e);
     }
+}
+
+function genDepencies(obj)
+{
+    obj = !obj ? {} : obj;
+    
+    obj.Reactifly = {createElement: createElement};
+    obj.Fragment  = Fragment;
+
+    for (let key in COMPONENT_CACHE)
+    {
+        obj[key] = COMPONENT_CACHE[key];
+    }
+
+    if (renderQueue.current && renderQueue.current.props && !obj.props)
+    {
+        obj.props = renderQueue.current.props;
+    }
+
+    return obj;
 }
 
 function innerClass(str, config)
@@ -2276,6 +2293,13 @@ function jsx(str, vars)
 	}
 
 	return evaluate(str, vars);
+}
+
+function register(component, key)
+{
+	key = is_undefined(key) ? callable_name(component) : key;
+
+	COMPONENT_CACHE[key] = component;
 }
 ;// CONCATENATED MODULE: ./src/compat/Component.js
 
@@ -4541,7 +4565,7 @@ class Root
     {
         this.component = !utils.is_callable(componentOrJSX) ? this.__componentFactory(componentOrJSX, rootProps) : componentOrJSX;
 
-        this.htmlRootEl._reactiflyRoot ? this.__patchRoot() : this.__renderRoot()
+        this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot()
     }
 
     __componentFactory(mixed_var, rootProps)
@@ -4558,7 +4582,7 @@ class Root
     {
         let actions =  { current : [] };
 
-        patch(this.htmlRootEl._reactiflyRoot, createElement(this.component), actions.current);
+        patch(this.htmlRootEl._reactiflyRootVnode, createElement(this.component), actions.current);
 
         if (!utils.is_empty(actions.current))
         {
@@ -4574,7 +4598,7 @@ class Root
 
         this.__mount(DOMElement, this.htmlRootEl);
 
-        this.htmlRootEl._reactiflyRoot = vnode;
+        this.htmlRootEl._reactiflyRootVnode = vnode;
     }
 
     __mount(DOMElement, parent)
@@ -4632,6 +4656,7 @@ const Reactifly =
 {
 	createRoot: createRoot,
 	render: render,
+	register: register,
 	Component: Component, Fragment: Fragment, useState: useState,
 	jsx: jsx,
 	createElement: createElement,
