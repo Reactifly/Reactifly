@@ -150,7 +150,7 @@ export function collectGarbage()
     for (var eventName in events)
     {
         var eventObj = events[eventName];
-        
+
         var i = eventObj.length;
 
         while (i--)
@@ -162,11 +162,11 @@ export function collectGarbage()
             {
                 continue;
             }
-            
+
             if (!_.in_dom(el))
             {
                 _removeListener(eventObj[i]['element'], eventName, eventObj[i]['handler'], eventObj[i]['useCapture']);
-                
+
                 _events[eventName].splice(i, 1);
             }
         }
@@ -194,7 +194,7 @@ function _removeElementListeners(element)
             if (eventObj[i]['element'] === element)
             {
                 _removeListener(eventObj[i]['element'], eventName, eventObj[i]['handler'], eventObj[i]['useCapture']);
-                
+
                 _events[eventName].splice(i, 1);
             }
         }
@@ -219,7 +219,7 @@ function _removeElementTypeListeners(element, type)
         if (eventObj[i]['element'] === element)
         {
             _removeListener(eventObj[i]['element'], type, eventObj[i]['handler'], eventObj[i]['useCapture']);
-            
+
             _events[type].splice(i, 1);
         }
     }

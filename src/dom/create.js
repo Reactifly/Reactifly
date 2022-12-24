@@ -10,21 +10,21 @@ import _ from '../utils/index';
  */
 
 export function createDomElement(vnode, parentDOMElement)
-{        
+{
     switch (vnode.type)
     {
         case 'text':
             return createTextNode(vnode, vnode.nodeValue);
-        
+
         case 'empty':
             return createTextNode(vnode, '');
-        
+
         case 'thunk':
             return flatten(createThunk(vnode, parentDOMElement));
-        
+
         case 'fragment':
             return flatten(createFragment(vnode, parentDOMElement));
-        
+
         case 'native':
             return flatten(createHTMLElement(vnode));
     }
@@ -79,7 +79,7 @@ function createHTMLElement(vnode)
     _.foreach(children, function(i, child)
     {
         if (!_.is_empty(child))
-        {                        
+        {
             let childDOMElem = createDomElement(child, DOMElement);
 
             // Returns a fragment
@@ -99,7 +99,7 @@ function createHTMLElement(vnode)
 
 /* Handles nested fragments */
 function appendFragment(parentDOMElement, children)
-{    
+{
     if (_.is_array(children))
     {
         _.foreach(children, function(i, child)
@@ -118,7 +118,7 @@ function createThunk(vnode, parentDOMElement)
 {
     // Skip this it's already been rendered if it's coming from a patch
     if (vDOM.isThunkInstantiated(vnode))
-    {        
+    {
         console.log('already instantiated');
 
         let DOMElement = createDomElement(vnode.children[0]);
@@ -140,7 +140,7 @@ function createThunk(vnode, parentDOMElement)
 }
 
 function createFragment(vnode, parentDOMElement)
-{    
+{
     let ret = [];
 
     _.foreach(vnode.children, function(i, child)

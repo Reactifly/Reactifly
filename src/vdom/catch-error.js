@@ -7,34 +7,44 @@
  * @param {import('../internal').VNode} [oldVNode]
  * @param {import('../internal').ErrorInfo} [errorInfo]
  */
-export function _catchError(error, vnode, oldVNode, errorInfo) {
-	/** @type {import('../internal').Component} */
-	let component, ctor, handled;
+export function _catchError(error, vnode, oldVNode, errorInfo)
+{
+    /** @type {import('../internal').Component} */
+    let component, ctor, handled;
 
-	for (; (vnode = vnode._parent); ) {
-		if ((component = vnode._component) && !component._processingException) {
-			try {
-				ctor = component.constructor;
+    for (;
+        (vnode = vnode._parent);)
+    {
+        if ((component = vnode._component) && !component._processingException)
+        {
+            try
+            {
+                ctor = component.constructor;
 
-				if (ctor && ctor.getDerivedStateFromError != null) {
-					component.setState(ctor.getDerivedStateFromError(error));
-					handled = component._dirty;
-				}
+                if (ctor && ctor.getDerivedStateFromError != null)
+                {
+                    component.setState(ctor.getDerivedStateFromError(error));
+                    handled = component._dirty;
+                }
 
-				if (component.componentDidCatch != null) {
-					component.componentDidCatch(error, errorInfo || {});
-					handled = component._dirty;
-				}
+                if (component.componentDidCatch != null)
+                {
+                    component.componentDidCatch(error, errorInfo || {});
+                    handled = component._dirty;
+                }
 
-				// This is an error boundary. Mark it as having bailed out, and whether it was mid-hydration.
-				if (handled) {
-					return (component._pendingError = component);
-				}
-			} catch (e) {
-				error = e;
-			}
-		}
-	}
+                // This is an error boundary. Mark it as having bailed out, and whether it was mid-hydration.
+                if (handled)
+                {
+                    return (component._pendingError = component);
+                }
+            }
+            catch (e)
+            {
+                error = e;
+            }
+        }
+    }
 
-	throw error;
+    throw error;
 }

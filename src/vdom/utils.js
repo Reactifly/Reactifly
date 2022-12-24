@@ -160,7 +160,7 @@ export let parentElem = (vnode) =>
     {
         return nodeElem(node).parentNode;
     }
-    
+
     // Thunks / fragments with a direct child
     let child = vnode.children[0];
 
@@ -277,12 +277,12 @@ function findThunkDomEl(vnode)
         child = child.children[0];
     }
 
-    return isFragment(vnode) ? 
+    return isFragment(vnode) ?
         _.map(vnode.children, function(i, child)
-        { 
-            return nodeElem(child); 
-        }) 
-        : nodeElem(vnode);
+        {
+            return nodeElem(child);
+        }) :
+        nodeElem(vnode);
 }
 
 // Recursively traverse down tree until either a DOM node is found

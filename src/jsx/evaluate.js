@@ -1,25 +1,25 @@
-import Parser  from './Parser';
+import Parser from './Parser';
 import { JsxSyntaxError } from './error';
 import { createElement } from '../vdom/index';
 import { Fragment } from '../compat/index';
 import { renderQueue } from '../compat/index';
 
 const R_COMPONENT = /^(this|[A-Z])/;
-const CACHE_FNS   = {};
-const CACHE_STR   = {};
+const CACHE_FNS = {};
+const CACHE_STR = {};
 export const COMPONENT_CACHE = {};
 
 
 export default function evaluate(str, obj, config)
-{    
+{
     var jsx = new innerClass(str, config);
 
     var output = jsx.init();
-    
+
     obj = genDepencies(obj);
-    
+
     var args = 'var args0 = arguments[0];';
-    
+
     for (var i in obj)
     {
         if (i !== 'this')
@@ -42,9 +42,9 @@ export default function evaluate(str, obj, config)
         {
             fn = CACHE_FNS[args] = Function(args)
         }
-        
+
         var a = fn.call(obj.this, obj)
-        
+
         return a;
     }
     catch (e)
@@ -56,9 +56,9 @@ export default function evaluate(str, obj, config)
 function genDepencies(obj)
 {
     obj = !obj ? {} : obj;
-    
-    obj.Reactifly = {createElement: createElement};
-    obj.Fragment  = Fragment;
+
+    obj.Reactifly = { createElement: createElement };
+    obj.Fragment = Fragment;
 
     for (let key in COMPONENT_CACHE)
     {
@@ -75,15 +75,14 @@ function genDepencies(obj)
 
 function innerClass(str, config)
 {
-    config      = config || {};
-    config.ns   = 'Reactifly';
-    this.input  = str;
-    this.ns     = config.ns
-    this.type   = config.type
+    config = config || {};
+    config.ns = 'Reactifly';
+    this.input = str;
+    this.ns = config.ns
+    this.type = config.type
 }
 
-innerClass.prototype =
-{
+innerClass.prototype = {
     init: function()
     {
         if (typeof Parser === 'function')
@@ -110,9 +109,9 @@ innerClass.prototype =
     genTag: function(el)
     {
         var children = this.genChildren(el.children, el);
-        var ns       = this.ns;
-        var type     = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
-        
+        var ns = this.ns;
+        var type = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
+
         return ns + '.createElement(' + type +
             ',' + this.genProps(el.props, el) +
             ',' + children + ')'
@@ -132,7 +131,7 @@ innerClass.prototype =
         }
 
         ret = ret.replace(/\,\n$/, '') + '}';
-        
+
         if (el.spreadAttribute)
         {
             return 'Object.assign({},' + el.spreadAttribute + ',' + ret + ')';
@@ -170,7 +169,7 @@ innerClass.prototype =
         }
 
         var ret = [];
-        
+
         for (var i = 0, el; el = children[i++];)
         {
             if (el.type === '#jsx')

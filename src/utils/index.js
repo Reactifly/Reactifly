@@ -47,7 +47,7 @@ export function isset(mixed_var, keys)
     {
         return;
     }
-    
+
     keys = keys.split('.');
 
     let len = keys.length;
@@ -87,7 +87,7 @@ export function triggerEvent(el, type)
     }
 }
 
- /**
+/**
  * Set a key using dot/bracket notation on an object or array
  *
  * @param  string       path   Path to set
@@ -149,7 +149,7 @@ export function array_delete(path, object)
 export function array_filter(arr)
 {
     let isArr = is_array(arr);
-    let ret   = isArr ? [] : {};
+    let ret = isArr ? [] : {};
 
     foreach(arr, function(i, val)
     {
@@ -271,8 +271,8 @@ function _arrayGetRecursive(keys, object)
  */
 function _arraySetRecursive(keys, value, object, nextKey)
 {
-    var key     = keys.shift();
-    var islast  = keys.length === 0;
+    var key = keys.shift();
+    var islast = keys.length === 0;
     var lastObj = object;
     object = !nextKey ? object : object[nextKey];
 
@@ -371,7 +371,7 @@ export function dotify(obj)
         {
             var value = obj[key];
             var newKey = (current ? current + '.' + key : key); // joined key with dot
-            
+
             if (value && typeof value === 'object' && !(value instanceof Date))
             {
                 recurse(value, newKey); // it's a nested object, so do it again
@@ -406,7 +406,7 @@ export function in_dom(element)
         return true;
     }
 
-    while(element)
+    while (element)
     {
         if (element === document.documentElement)
         {
@@ -505,7 +505,7 @@ export function is_class(mixed_var, classname, strict)
             {
                 return regRet;
             }
-            
+
             return is_constructable(mixed_var) && mixed_var.name === classname;
         }
 
@@ -559,11 +559,11 @@ export function size(mixed_var)
     {
         return mixed_var;
     }
-     else if (is_bool(mixed_var))
+    else if (is_bool(mixed_var))
     {
         return mixed_var === true ? 1 : 0;
     }
-    else (is_object(mixed_var))
+    else(is_object(mixed_var))
     {
         return Object.keys(mixed_var).length;
     }
@@ -754,9 +754,9 @@ export function object_props(mixed_var)
 
     // If prototype is empty 
     let excludes = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf'];
-    let funcs    = Object.getOwnPropertyNames(Object.getPrototypeOf(mixed_var));
-    let props    = Object.keys(mixed_var);
-    let keys     = [...funcs, ...props];
+    let funcs = Object.getOwnPropertyNames(Object.getPrototypeOf(mixed_var));
+    let props = Object.keys(mixed_var);
+    let keys = [...funcs, ...props];
 
     return keys.filter(function(key)
     {
@@ -797,7 +797,7 @@ export function is_empty(mixed_var)
 }
 
 function equalTraverseable(a, b)
-{   
+{
     if (size(a) !== size(b))
     {
         return false;
@@ -859,7 +859,7 @@ function cloneObj(obj)
         let r = new Date();
 
         r.setTime(obj.getTime());
-        
+
         return r;
     }
 
@@ -871,13 +871,13 @@ function cloneObj(obj)
 
     // Loop
     let keys = object_props(obj);
-    let ret  = {};
+    let ret = {};
 
     foreach(keys, function(i, key)
     {
-        ret[key] = cloneDeep(obj[key], ret);     
+        ret[key] = cloneDeep(obj[key], ret);
     });
-    
+
     return ret;
 }
 
@@ -907,7 +907,7 @@ function cloneFunc(func, context)
 function cloneArray(arr)
 {
     let ret = [];
-   
+
     foreach(arr, function(i, val)
     {
         ret[i] = cloneDeep(val);
@@ -967,7 +967,7 @@ export function cloneDeep(mixed_var, context)
 export function mergeDeep(target, ...sources)
 {
     if (!sources.length) return target;
-    
+
     const source = sources.shift();
 
     if (is_object(target) && is_object(source))
@@ -978,8 +978,7 @@ export function mergeDeep(target, ...sources)
             {
                 if (!target[key]) Object.assign(target,
                 {
-                    [key]:
-                    {}
+                    [key]: {}
                 });
 
                 mergeDeep(target[key], source[key]);
@@ -1079,12 +1078,12 @@ export function foreach(obj, callback, args)
 export function map(obj, callback, args)
 {
     let arrType = is_array(obj) ? 'array' : 'obj';
-    let ret     = arrType === 'array' ? [] : {};
-    let keys    = arrType === 'array' ? Array.from(obj.keys()) : Object.keys(obj);
-    let len     = keys.length;
+    let ret = arrType === 'array' ? [] : {};
+    let keys = arrType === 'array' ? Array.from(obj.keys()) : Object.keys(obj);
+    let len = keys.length;
 
     var thisArg = !is_undefined(args) && !is_array(args) ? args : obj;
-    
+
     // This arg gets set to array/object, unless a single arg is provided...
 
     if (is_array(args))
@@ -1093,7 +1092,7 @@ export function map(obj, callback, args)
         {
             let key = keys[i];
 
-            let value = callback.apply(thisArg, array_merge([ key, obj[key] ], args));
+            let value = callback.apply(thisArg, array_merge([key, obj[key]], args));
 
             if (value === false)
             {

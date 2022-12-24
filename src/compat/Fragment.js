@@ -6,7 +6,7 @@ import { Component } from './Component';
  * @class
  */
 export class Fragment extends Component
-{    
+{
     constructor(props)
     {
         super(props);

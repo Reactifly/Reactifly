@@ -20,7 +20,7 @@ export function createRoot(htmlRootEl, options)
  * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
  */
 export function render(component, htmlRootEl, rootProps)
-{       
+{
     let root = createRoot(htmlRootEl);
 
     root.render(component, rootProps);

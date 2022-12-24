@@ -1,8 +1,7 @@
 import { thunkUpdate, componentNode } from '../vdom/index';
 import { is_equal } from '../utils/index';
 
-export const renderQueue = 
-{
+export const renderQueue = {
     current: null
 };
 
@@ -12,22 +11,21 @@ export function useState(initial)
 
     if (!renderQueue.current.hooks[i])
     {
-        renderQueue.current.hooks[i] =
-        {
+        renderQueue.current.hooks[i] = {
             state: transformState(initial)
         };
     }
 
     const thisHookContext = renderQueue.current;
-    
+
     return [
-        
+
         renderQueue.current.hooks[i].state,
-        
+
         useCallback(newState =>
         {
-            thisHookContext.hooks[i].state = transformState(newState, thisHookContext.hooks[i].state );
-            
+            thisHookContext.hooks[i].state = transformState(newState, thisHookContext.hooks[i].state);
+
             thisHookContext.forceUpdate();
 
         }, [])
@@ -46,12 +44,12 @@ function useMemo(factory, deps)
         !renderQueue.current.hooks[i] ||
         !deps ||
         !is_equal(deps, renderQueue.current.hookDeps[i])
-        )
+    )
     {
         renderQueue.current.hooks[i] = factory();
         renderQueue.current.hookDeps[i] = deps;
     }
-    
+
     return renderQueue.current.hooks[i];
 }
 

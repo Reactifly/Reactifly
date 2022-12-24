@@ -4,56 +4,55 @@ export let i = 0;
 
 export function createContext(defaultValue, contextId)
 {
-	contextId = '__cC' + i++;
+    contextId = '__cC' + i++;
 
-	const context =
-	{
-		_id: contextId,
-		_defaultValue: defaultValue,
-		
-		/** @type {import('./internal').FunctionComponent} */
-		Consumer(props, contextValue)
-		{
-			return props.children(contextValue);
-		},
-		
-		/** @type {import('./internal').FunctionComponent} */
-		Provider(props)
-		{
-			if (!this.getChildContext)
-			{
-				let subs = [];
-				let ctx  = {};
-				ctx[contextId] = this;
+    const context = {
+        _id: contextId,
+        _defaultValue: defaultValue,
 
-				this.getChildContext = () => ctx;
+        /** @type {import('./internal').FunctionComponent} */
+        Consumer(props, contextValue)
+        {
+            return props.children(contextValue);
+        },
 
-				this.shouldComponentUpdate = function(_props)
-				{
-					if (this.props.value !== _props.value)
-					{
-						subs.some(thunkUpdate);
-					}
-				};
+        /** @type {import('./internal').FunctionComponent} */
+        Provider(props)
+        {
+            if (!this.getChildContext)
+            {
+                let subs = [];
+                let ctx = {};
+                ctx[contextId] = this;
 
-				this.sub = c =>
-				{
-					subs.push(c);
-					
-					let old = c.componentWillUnmount;
-					
-					c.componentWillUnmount = () =>
-					{
-						subs.splice(subs.indexOf(c), 1);
+                this.getChildContext = () => ctx;
 
-						if (old) old.call(c);
-					};
-				};
-			}
+                this.shouldComponentUpdate = function(_props)
+                {
+                    if (this.props.value !== _props.value)
+                    {
+                        subs.some(thunkUpdate);
+                    }
+                };
 
-			return props.children;
-		}
-	};
+                this.sub = c =>
+                {
+                    subs.push(c);
 
-	return (context.Provider._contextRef = context.Consumer.contextType = context);
+                    let old = c.componentWillUnmount;
+
+                    c.componentWillUnmount = () =>
+                    {
+                        subs.splice(subs.indexOf(c), 1);
+
+                        if (old) old.call(c);
+                    };
+                };
+            }
+
+            return props.children;
+        }
+    };
+
+    return (context.Provider._contextRef = context.Consumer.contextType = context);
 }

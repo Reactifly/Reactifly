@@ -10,7 +10,7 @@ import _ from '../utils/index';
  * @returns {import('./root').Root}
  */
 export function createElement(tag, props, ...children)
-{        
+{
     if (arguments.length === 0)
     {
         return createEmptyElement();
@@ -23,7 +23,7 @@ export function createElement(tag, props, ...children)
 
     for (i in props)
     {
-        if (i == 'key') 
+        if (i == 'key')
         {
             key = props[i];
         }
@@ -97,7 +97,7 @@ export function createElement(tag, props, ...children)
  */
 
 function normaliseChildren(children, checkKeys)
-{    
+{
     checkKeys = _.is_undefined(checkKeys) ? false : checkKeys;
 
     let fragmentcount = 0;
@@ -121,13 +121,13 @@ function normaliseChildren(children, checkKeys)
                 ret.push(createTextElement(vnode, null));
             }
             else if (_.is_array(vnode))
-            {                
+            {
                 let _children = normaliseChildren(vnode, true);
-                
+
                 _.array_merge(ret, _children);
             }
             else if (isFragment(vnode))
-            {       
+            {
                 squashFragment(vnode, ret, fragmentcount);
 
                 fragmentcount++;
@@ -152,7 +152,7 @@ function squashFragment(fragment, ret, fCount)
     {
         vnode.key = `${basekey}|${i}`;
     });
-    
+
     _.array_merge(ret, _children);
 }
 
@@ -183,13 +183,13 @@ function filterChildren(children)
  */
 
 function createTextElement(text, key)
-{    
+{
     text = _.is_string(text) ? text : text + '';
 
     return {
         type: 'text',
         nodeValue: text + '',
-        key : key,
+        key: key,
         __internals:
         {
             _domEl: null
@@ -231,8 +231,8 @@ function createThunkElement(fn, props, children, key, ref)
         {
             _domEl: null,
             _component: null,
-            _name : _.callable_name(fn),
-            _fn : null,
+            _name: _.callable_name(fn),
+            _fn: null,
         }
     }
 }
@@ -247,16 +247,16 @@ function createFunctionalThunk(fn, props, children, key, ref)
 
     return {
         type: 'thunk',
-        fn : func,
-        children : null,
+        fn: func,
+        children: null,
         props,
         key,
         __internals:
         {
             _domEl: null,
             _component: null,
-            _name : _.callable_name(fn),
-            _fn : fn,
+            _name: _.callable_name(fn),
+            _fn: fn,
         }
     }
 }

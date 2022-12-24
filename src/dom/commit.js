@@ -14,8 +14,8 @@ export function commit(actions)
 {
     _.foreach(actions, function(i, action)
     {
-        let {callback, args } = action;
-        
+        let { callback, args } = action;
+
         callback.apply(null, args);
     });
 }
@@ -45,8 +45,8 @@ export function replaceNode(left, right)
 
     removeEvents(left);
 
-    let rDOMElement      = createDomElement(right);
-    let lDOMElement      = vDOM.nodeElem(left);
+    let rDOMElement = createDomElement(right);
+    let lDOMElement = vDOM.nodeElem(left);
     let parentDOMElement = vDOM.parentElem(left);
 
     // We don't care if left or right is a thunk or fragment here
@@ -135,7 +135,7 @@ export function appendChild(parentVnode, vnode)
     if (_.is_array(DOMElement))
     {
         _.foreach(DOMElement, function(i, child)
-        {                
+        {
             parentDOMElement.appendChild(child);
         });
     }
@@ -215,13 +215,13 @@ function removeEvents(vnode)
 
 export function insertAtIndex(parentVnode, vnode, index)
 {
-    let vIndex           = index;
-    let dIndex           = vDOM.childDomIndex(parentVnode, index);
-    let DOMElement       = createDomElement(vnode);
+    let vIndex = index;
+    let dIndex = vDOM.childDomIndex(parentVnode, index);
+    let DOMElement = createDomElement(vnode);
     let parentDOMElement = vDOM.nodeElemParent(parentVnode);
 
     if (_.is_array(DOMElement))
-    {        
+    {
         _.foreach(DOMElement, function(i, child)
         {
             if (dIndex >= parentDOMElement.children.length)
@@ -229,7 +229,7 @@ export function insertAtIndex(parentVnode, vnode, index)
                 parentDOMElement.appendChild(child);
             }
             else
-            {                
+            {
                 parentDOMElement.insertBefore(child, parentDOMElement.children[dIndex]);
             }
 
@@ -253,13 +253,13 @@ export function insertAtIndex(parentVnode, vnode, index)
 
 export function moveToIndex(parentVnode, vnode, index)
 {
-    let vIndex           = index;
-    let dIndex           = vDOM.childDomIndex(parentVnode, index);
-    let DOMElement       = vDOM.nodeElem(vnode);
-    let isFragment       = _.is_array(DOMElement);
+    let vIndex = index;
+    let dIndex = vDOM.childDomIndex(parentVnode, index);
+    let DOMElement = vDOM.nodeElem(vnode);
+    let isFragment = _.is_array(DOMElement);
     let parentDOMElement = vDOM.nodeElemParent(parentVnode);
-    let currIndex        = isFragment ? Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement[0]) : Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement);
-    
+    let currIndex = isFragment ? Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement[0]) : Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement);
+
     if (isFragment)
     {
         moveFragmentDomEls(parentDOMElement, DOMElement, dIndex, currIndex);
@@ -270,7 +270,7 @@ export function moveToIndex(parentVnode, vnode, index)
     // Nothing to do
     if (currIndex === dIndex || (dIndex === 0 && parentDOMElement.children.length === 0))
     {
-        
+
     }
     // Move to start
     else if (dIndex === 0)
@@ -279,7 +279,7 @@ export function moveToIndex(parentVnode, vnode, index)
     }
     // Move to end
     else if (dIndex >= parentDOMElement.children.length)
-    { 
+    {
         parentDOMElement.removeChild(DOMElement);
         parentDOMElement.appendChild(DOMElement);
     }
@@ -289,7 +289,7 @@ export function moveToIndex(parentVnode, vnode, index)
     }
 
     // Move vnode
-    let vChildren  = parentVnode.children;
+    let vChildren = parentVnode.children;
     let vCurrIndex = vChildren.indexOf(vnode);
 
     // Do nothing
@@ -304,13 +304,13 @@ export function moveToIndex(parentVnode, vnode, index)
 }
 
 function moveFragmentDomEls(parentDOMElement, DOMElements, index, currIndex)
-{    
+{
     // Nothing to do
     if (currIndex === index || (index === 0 && parentDOMElement.children.length === 0))
     {
         return;
     }
-    
+
     // Move to start
     if (index === 0)
     {
@@ -321,7 +321,7 @@ function moveFragmentDomEls(parentDOMElement, DOMElements, index, currIndex)
     }
     // Move to end
     else if (index >= parentDOMElement.children.length)
-    { 
+    {
         _.foreach(DOMElements, function(i, child)
         {
             parentDOMElement.removeChild(child);
@@ -349,8 +349,7 @@ export function removeAttribute(vnode, name, previousValue)
     removeDomAttribute(vDOM.nodeElem(vnode), name, previousValue)
 }
 
-const ACTION_MAP =
-{
+const ACTION_MAP = {
     replaceNode,
     appendChild,
     removeChild,
@@ -362,7 +361,7 @@ const ACTION_MAP =
 };
 
 export function action(name, args)
-{   
+{
     let callback = ACTION_MAP[name];
 
     return {

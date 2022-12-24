@@ -6,11 +6,11 @@ import _ from '../utils/index';
 /**
  * Patch left to right
  * 
-*/
+ */
 export function patch(prevNode, nextNode, actions)
-{       
+{
     actions = _.is_undefined(actions) ? [] : actions;
-    
+
     // Same nothing to do
     if (prevNode === nextNode)
     {
@@ -43,7 +43,7 @@ export function patch(prevNode, nextNode, actions)
 }
 
 function patchText(left, right, actions)
-{ 
+{
     if (right.nodeValue !== left.nodeValue)
     {
         let text = right.nodeValue.slice();
@@ -54,7 +54,7 @@ function patchText(left, right, actions)
 
 // Replacing one node with another
 function replaceNode(left, right, actions)
-{        
+{
     if (vElem.isThunk(right))
     {
         if (vElem.isThunkInstantiated(right))
@@ -87,10 +87,10 @@ function patchNative(left, right, actions)
 }
 
 function patchThunk(left, right, actions)
-{ 
+{
     // Same component 
     if (vElem.isSameThunk(left, right))
-    {        
+    {
         patchThunkProps(left, right.props);
 
         diffThunk(left, right, actions);
@@ -107,7 +107,7 @@ function patchThunk(left, right, actions)
 }
 
 function patchThunkProps(vnode, newProps)
-{    
+{
     let component = vElem.nodeComponent(vnode);
 
     component.__internals.prevProps = _.cloneDeep(vnode.props);
@@ -118,8 +118,8 @@ function patchThunkProps(vnode, newProps)
 }
 
 function diffThunk(left, right, actions)
-{    
-    let component  = vElem.nodeComponent(left);
+{
+    let component = vElem.nodeComponent(left);
     let rightchild = thunk.thunkRender(component);
     right.children = [rightchild];
 
@@ -134,7 +134,7 @@ function patchFragment(left, right, actions)
 /**
  * Less expensive patch before diff if possible
  * 
-*/
+ */
 function patchChildren(left, right, actions)
 {
     let lChildren = left.children;
@@ -169,10 +169,10 @@ function patchChildren(left, right, actions)
     }
     // There's only a single child in previous tree
     else if (vElem.singleChild(left))
-    {        
+    {
         // Both have a single node
         if (vElem.singleChild(right))
-        {                    
+        {
             // left and right could be the same / different type, so we need to patch them
             patch(lChildren[0], rChildren[0], actions);
         }
@@ -186,7 +186,7 @@ function patchChildren(left, right, actions)
         else
         {
             // Keys and positions haven't changed
-            if (lChildren[0].key === rChildren[0].key) 
+            if (lChildren[0].key === rChildren[0].key)
             {
                 patch(lChildren[0], rChildren[0], actions);
 
@@ -215,7 +215,7 @@ function patchChildren(left, right, actions)
             _.foreach(lChildren, function(i, lChild)
             {
                 if (lChild.key === rChildren[0].key)
-                {                    
+                {
                     patch(lChild, rChildren[0], actions);
 
                     matchedKey = true;
@@ -253,11 +253,11 @@ function patchChildren(left, right, actions)
 }
 
 function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
-{        
+{
     // We need to compare keys and check if one
-    let lKey      = lChild.key;
-    let rChild    = null;
-    let newIndex  = 0;
+    let lKey = lChild.key;
+    let rChild = null;
+    let newIndex = 0;
 
     // Append remaining children
     _.foreach(rChildren, function(i, child)
@@ -270,7 +270,7 @@ function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
             if (i !== 0)
             {
                 rChild = child;
-                newIndex  = i;
+                newIndex = i;
             }
             // Otherwise we just patch it now
             else
@@ -308,7 +308,7 @@ function diffChildren(left, right, actions)
     let rKeys = Object.keys(rGroup);
 
     if (_.is_equal(lKeys, rKeys))
-    {        
+    {
         _.foreach(right.children, function(i, rChild)
         {
             patch(left.children[i], rChild, actions);
@@ -316,7 +316,7 @@ function diffChildren(left, right, actions)
 
         return;
     }
-   
+
     // Loop right children
     // Note insertAtIndex & removeChild to be executed before moveToIndex
     // otherwise moveToIndex will be incorrect
@@ -329,7 +329,7 @@ function diffChildren(left, right, actions)
         let rIndex = entry.index;
         let rChild = entry.child;
         let lEntry = lGroup[_key];
-        
+
         // New node either by key or > index
         if (_.is_undefined(lEntry))
         {
@@ -343,7 +343,7 @@ function diffChildren(left, right, actions)
             {
                 subActions.splice(inserted, 0, _insert);
             }
-            
+
             inserted++;
         }
         // Same key, check index
@@ -356,7 +356,7 @@ function diffChildren(left, right, actions)
             // Different indexes
             // move then patch
             if (lEntry.index !== rIndex)
-            {    
+            {
                 subActions.push(action('moveToIndex', [left, lChild, rIndex]));
 
                 patch(lChild, rChild, actions);
@@ -394,7 +394,7 @@ function diffChildren(left, right, actions)
 
 function groupByKey(children)
 {
-    let ret   = {};
+    let ret = {};
     let thunks = {};
 
     _.foreach(children, function(i, child)
@@ -424,8 +424,7 @@ function groupByKey(children)
             key = !key ? ('|' + i) : key;
         }
 
-        ret[key] =
-        {
+        ret[key] = {
             index: i,
             child,
         };
@@ -444,7 +443,7 @@ function diffAttributes(left, right, actions)
     {
         return;
     }
-    
+
     _.foreach(nAttrs, function(prop, value)
     {
         if (!_.is_equal(value, pAttrs[prop]))

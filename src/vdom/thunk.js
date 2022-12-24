@@ -26,9 +26,9 @@ export function thunkInstantiate(vnode)
 export function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
-    let left      = vnode.children[0];
-    let right     = jsxFactory(component);
-    let actions   = tree(left, right);
+    let left = vnode.children[0];
+    let right = jsxFactory(component);
+    let actions = tree(left, right);
 
     if (!_.is_empty(actions.current))
     {
@@ -42,10 +42,9 @@ export function thunkRender(component)
 }
 
 function tree(left, right)
-{ 
-    let actions = 
-    {
-        current : []
+{
+    let actions = {
+        current: []
     };
 
     patch(left, right, actions.current);
@@ -54,7 +53,7 @@ function tree(left, right)
 }
 
 function jsxFactory(component)
-{    
+{
     if (component.__internals._fn)
     {
         return component.render();
@@ -69,7 +68,7 @@ function jsxFactory(component)
 
     const context = renderContext(component);
 
-    const result = parseJSX(jsx, {...context, this: component });
+    const result = parseJSX(jsx, { ...context, this: component });
 
     if (_.is_array(result))
     {
@@ -81,7 +80,7 @@ function jsxFactory(component)
 
 export function renderContext(component)
 {
-    let ret   = {};
+    let ret = {};
     let props = _.object_props(component);
 
     _.foreach(props, function(i, prop)

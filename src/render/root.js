@@ -20,7 +20,7 @@ export class Root
      * @param {object | undefined}  options     Options (optional)
      */
     constructor(htmlRootEl, options)
-    {        
+    {
         this.htmlRootEl = htmlRootEl;
 
         this.options = options;
@@ -63,7 +63,7 @@ export class Root
      */
     __patchRoot()
     {
-        let actions =  { current : [] };
+        let actions = { current: [] };
 
         patch(this.htmlRootEl._reactiflyRootVnode, createElement(this.component), actions.current);
 
@@ -95,7 +95,7 @@ export class Root
      *
      */
     __mount(DOMElement)
-    {        
+    {
         let _this = this;
 
         let parent = this.htmlRootEl;
@@ -107,7 +107,7 @@ export class Root
             {
                 if (_.is_array(childDomElement))
                 {
-                   _this.__mount(childDomElement, parent);
+                    _this.__mount(childDomElement, parent);
                 }
                 else
                 {

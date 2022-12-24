@@ -1,9 +1,9 @@
 const SVG_ELEMENTS = 'animate circle clipPath defs ellipse g line linearGradient mask path pattern polygon polyline radialGradient rect stop svg text tspan use'.split(' ');
 
-const SVG_MAP = SVG_ELEMENTS.reduce(function (acc, name)
+const SVG_MAP = SVG_ELEMENTS.reduce(function(acc, name)
 {
     acc[name] = true;
-    
+
     return acc;
 
 }, {});

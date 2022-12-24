@@ -58,11 +58,10 @@ export class Component
      *
      * @var {object}
      */
-    __internals = 
-    {
-        vnode     : null,
-        prevState : {},
-        prevProps : {},
+    __internals = {
+        vnode: null,
+        prevState: {},
+        prevProps: {},
     };
 
     /**
@@ -103,7 +102,7 @@ export class Component
         _.foreach(stateChanges, function(key, value)
         {
             _.array_set(key, value, this.state);
-            
+
         }, this);
 
         if (!_.is_equal(this.state, this.__internals.prevState))
@@ -121,7 +120,7 @@ export class Component
     {
         const context = renderContext(this);
 
-        return parseJSX(jsx, {...context, this: this});
+        return parseJSX(jsx, { ...context, this: this });
     }
 
     forceUpdate()

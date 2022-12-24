@@ -1,4 +1,4 @@
-import { Component }  from './Component';
+import { Component } from './Component';
 import { renderQueue } from './hooks';
 
 class FunctionalComponent extends Component
@@ -40,7 +40,7 @@ class FunctionalComponent extends Component
         for (let i = 0; i < this.hooks.length; ++i)
         {
             const effect = this.layoutEffects[i];
-            
+
             if (effect)
             {
                 try
@@ -59,7 +59,7 @@ class FunctionalComponent extends Component
         for (let i = 0; i < this.hooks.length; ++i)
         {
             const cleanup = this.hooksCleanups[i];
-            
+
             if (cleanup)
             {
                 try
@@ -78,9 +78,9 @@ class FunctionalComponent extends Component
         try
         {
             renderQueue.current = this;
-            
+
             this.hookIndex = 0;
-            
+
             return this.__internals._fn(this.props);
         }
         finally
@@ -96,7 +96,7 @@ class FunctionalComponent extends Component
  * @class
  */
 export function functionalComponent(fn)
-{   
+{
     const factory = function(props)
     {
         let component = new FunctionalComponent(fn, props);

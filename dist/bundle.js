@@ -4,18 +4,6 @@
 /******/ 	var __webpack_require__ = {};
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/global */
 /******/ 	(() => {
 /******/ 		__webpack_require__.g = (function() {
@@ -28,20 +16,10 @@
 /******/ 		})();
 /******/ 	})();
 /******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
 
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  "jsx": () => (/* reexport */ jsx)
-});
-
-// UNUSED EXPORTS: Component, Fragment, createElement, createRoot, default, h, register, render, useState
+// UNUSED EXPORTS: Component, Fragment, createElement, createRoot, default, h, jsx, register, render, useState
 
 ;// CONCATENATED MODULE: ./src/dom/factory.js
 const SVG_ELEMENTS = 'animate circle clipPath defs ellipse g line linearGradient mask path pattern polygon polyline radialGradient rect stop svg text tspan use'.split(' ');
@@ -2641,19 +2619,14 @@ function functionalComponent(fn)
 
 
 /**
- * This function lets us create virtual nodes using a simple
- * syntax. It is compatible with JSX transforms so you can use
- * JSX to write nodes that will compile to this function.
- *
- * let node = element('div', { id: 'foo' }, [
- *   element('a', { href: 'http://google.com' },
- *     element('span', {}, 'Google'),
- *     element('b', {}, 'Link')
- *   )
- * ])
+ * JSX create element.
+ *  
+ * @param   {HTMLElement}         htmlRootEl  Root html element
+ * @param   {object | undefined}  options     Options (optional)
+ * @returns {import('./root').Root}
  */
 function createElement(tag, props, ...children)
-{        
+{
     if (arguments.length === 0)
     {
         return createEmptyElement();
@@ -2666,7 +2639,7 @@ function createElement(tag, props, ...children)
 
     for (i in props)
     {
-        if (i == 'key') 
+        if (i == 'key')
         {
             key = props[i];
         }
@@ -2740,7 +2713,7 @@ function createElement(tag, props, ...children)
  */
 
 function normaliseChildren(children, checkKeys)
-{    
+{
     checkKeys = utils.is_undefined(checkKeys) ? false : checkKeys;
 
     let fragmentcount = 0;
@@ -2764,13 +2737,13 @@ function normaliseChildren(children, checkKeys)
                 ret.push(createTextElement(vnode, null));
             }
             else if (utils.is_array(vnode))
-            {                
+            {
                 let _children = normaliseChildren(vnode, true);
-                
+
                 utils.array_merge(ret, _children);
             }
             else if (isFragment(vnode))
-            {       
+            {
                 squashFragment(vnode, ret, fragmentcount);
 
                 fragmentcount++;
@@ -2795,7 +2768,7 @@ function squashFragment(fragment, ret, fCount)
     {
         vnode.key = `${basekey}|${i}`;
     });
-    
+
     utils.array_merge(ret, _children);
 }
 
@@ -2826,13 +2799,13 @@ function filterChildren(children)
  */
 
 function createTextElement(text, key)
-{    
+{
     text = utils.is_string(text) ? text : text + '';
 
     return {
         type: 'text',
         nodeValue: text + '',
-        key : key,
+        key: key,
         __internals:
         {
             _domEl: null
@@ -2874,8 +2847,8 @@ function createThunkElement(fn, props, children, key, ref)
         {
             _domEl: null,
             _component: null,
-            _name : utils.callable_name(fn),
-            _fn : null,
+            _name: utils.callable_name(fn),
+            _fn: null,
         }
     }
 }
@@ -2890,16 +2863,16 @@ function createFunctionalThunk(fn, props, children, key, ref)
 
     return {
         type: 'thunk',
-        fn : func,
-        children : null,
+        fn: func,
+        children: null,
         props,
         key,
         __internals:
         {
             _domEl: null,
             _component: null,
-            _name : utils.callable_name(fn),
-            _fn : fn,
+            _name: utils.callable_name(fn),
+            _fn: fn,
         }
     }
 }
@@ -4550,8 +4523,21 @@ function action(name, args)
 
 
 
+/**
+ * Root class.
+ *  
+ * @property {HTMLElement}         htmlRootEl  Root html element
+ * @property {function}            component   Root component
+ * @property {object | undefined}  options     Root options
+ */
 class Root
 {
+    /**
+     * Constructor.
+     *  
+     * @param {HTMLElement}         htmlRootEl  Root html element
+     * @param {object | undefined}  options     Options (optional)
+     */
     constructor(htmlRootEl, options)
     {        
         this.htmlRootEl = htmlRootEl;
@@ -4561,6 +4547,12 @@ class Root
         this.component = null;
     }
 
+    /**
+     * Render root component.
+     *  
+     * @param function | string}   component   Component to render
+     * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+     */
     render(componentOrJSX, rootProps)
     {
         this.component = !utils.is_callable(componentOrJSX) ? this.__componentFactory(componentOrJSX, rootProps) : componentOrJSX;
@@ -4568,16 +4560,26 @@ class Root
         this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot()
     }
 
-    __componentFactory(mixed_var, rootProps)
+    /**
+     * Creates wrapper function when passed as JSX string.
+     *  
+     * @param {string}              jsxStr      Root JSX to render
+     * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+     */
+    __componentFactory(jsxStr, rootProps)
     {
         const FunctionalComp = function()
         {
-            return jsx('<Fragment>' + mixed_var + '</Fragment>', rootProps);
+            return jsx('<Fragment>' + jsxStr + '</Fragment>', rootProps);
         };
 
         return FunctionalComp;
     }
 
+    /**
+     * Patches the root Vnode/component when re-rending root or state change.
+     *
+     */
     __patchRoot()
     {
         let actions =  { current : [] };
@@ -4590,22 +4592,34 @@ class Root
         }
     }
 
+    /**
+     * Render the root component.
+     *
+     */
     __renderRoot()
     {
         let vnode = createElement(this.component);
 
         let DOMElement = createDomElement(vnode, this.htmlRootEl);
 
-        this.__mount(DOMElement, this.htmlRootEl);
+        this.__mount(DOMElement);
 
         this.htmlRootEl._reactiflyRootVnode = vnode;
     }
 
-    __mount(DOMElement, parent)
+    /**
+     * Mount root element
+     * 
+     * @param {HTMLElement | array } DOMElement  HTMLElement(s) returned from root component
+     *
+     */
+    __mount(DOMElement)
     {        
         let _this = this;
 
-        // Edge case where root renders a fragment
+        let parent = this.htmlRootEl;
+
+        // Where root renders a fragment or returns a thunk that renders a fragment
         if (utils.is_array(DOMElement))
         {
             utils.foreach(DOMElement, function(i, childDomElement)
@@ -4633,17 +4647,32 @@ class Root
 ;// CONCATENATED MODULE: ./src/render/index.js
 
 
+/**
+ * Create root tree
+ *  
+ * @param   {HTMLElement}         htmlRootEl  Root html element
+ * @param   {object | undefined}  options     Options (optional)
+ * @returns {import('./root').Root}
+ */
 function createRoot(htmlRootEl, options)
 {
     return new Root(htmlRootEl, options);
 }
 
-function render(component, parent, rootProps)
+/**
+ * Render a component to an HTMLElement
+ *  
+ * @param {function | string}   component   Component to render
+ * @param {HTMLElement}         htmlRootEl  Root html element
+ * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+ */
+function render(component, htmlRootEl, rootProps)
 {       
-    let root = createRoot(parent);
+    let root = createRoot(htmlRootEl);
 
     root.render(component, rootProps);
 }
+
 ;// CONCATENATED MODULE: ./src/index.js
 
 

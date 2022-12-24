@@ -6,8 +6,7 @@ import * as events from './events';
  *
  * @var array
  */
-const CSS_PREFIXES =
-[
+const CSS_PREFIXES = [
     'webkit',
     'Moz',
     'ms',
@@ -19,8 +18,7 @@ const CSS_PREFIXES =
  *
  * @var array
  */
-const CSS_PREFIXABLE =
-[
+const CSS_PREFIXABLE = [
     // transitions
     'transition',
     'transition-delay',
@@ -43,7 +41,7 @@ const CSS_PREFIXABLE =
 ];
 
 export function setDomAttribute(DOMElement, name, value, previousValue)
-{    
+{
     switch (name)
     {
         // Skip
@@ -51,9 +49,9 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
         case 'ref':
             break;
 
-        // Style
+            // Style
         case 'style':
-            
+
             if (_.is_empty(value))
             {
                 // remove all styles completely
@@ -82,16 +80,16 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
                     css(DOMElement, prop, value);
                 });
             }
-            
+
             break;
-        
-        // Class
+
+            // Class
         case 'class':
         case 'className':
             DOMElement.className = value;
             break;
 
-        // Events / attributes
+            // Events / attributes
         default:
             if (name[0] === 'o' && name[1] === 'n')
             {
@@ -103,7 +101,7 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
                 {
                     events.addEventListener(DOMElement, name.slice(2).toLowerCase(), value);
                 }
-             }
+            }
             else
             {
                 switch (name)
@@ -123,7 +121,7 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
                         break;
                 }
             }
-        break;
+            break;
     }
 }
 
@@ -136,18 +134,18 @@ export function removeDomAttribute(DOMElement, name, previousValue)
         case 'ref':
             break;
 
-        // Class
+            // Class
         case 'class':
         case 'className':
             DOMElement.className = '';
             break;
 
-        // Events / attributes
+            // Events / attributes
         default:
             if (name[0] === 'o' && name[1] === 'n')
             {
                 if (previousValue)
-                {       
+                {
                     events.removeEventListener(DOMElement, name.slice(2).toLowerCase(), previousValue);
                 }
             }
@@ -164,13 +162,13 @@ export function removeDomAttribute(DOMElement, name, previousValue)
                     case 'nodeValue':
                     case 'value':
                         DOMElement[name] = ''
-                      break
+                        break
                     default:
                         DOMElement.removeAttribute(name)
-                    break;
+                        break;
                 }
             }
-        break;
+            break;
     }
 
 }
