@@ -491,7 +491,7 @@ export function is_class(mixed_var, classname, strict)
     // ES6 class declaration depending on strict
     if (strict)
     {
-        
+
         return typeof mixed_var === 'function' && /^\s*class\s+/.test(mixed_var.toString());
     }
 
@@ -778,6 +778,13 @@ export function is_empty(mixed_var)
     return false;
 }
 
+/**
+ * Checks if traversable's are equal
+ * 
+ * @param   {array | object}  a
+ * @param   {array | object}  b
+ * @returns {boolean}
+ */
 function equalTraverseable(a, b)
 {
     if (size(a) !== size(b))
@@ -801,9 +808,10 @@ function equalTraverseable(a, b)
 }
 
 /**
- * Check if two vars are equal
+ * Deep check for equal
  * 
- * @param   {mixed}  mixed_var  Variable to test
+ * @param   {mixed}  a
+ * @param   {mixed}  b
  * @returns {boolean}
  */
 export function is_equal(a, b)
@@ -833,6 +841,12 @@ export function is_equal(a, b)
     return true;
 }
 
+/**
+ * Clones an object
+ * 
+ * @param   {object}  obj
+ * @returns {object}
+ */
 function cloneObj(obj)
 {
     // Handle date objects
@@ -845,15 +859,14 @@ function cloneObj(obj)
         return r;
     }
 
-    // Handle empty 
-    if (is_empty(obj))
-    {
-        return {};
-    }
-
-    // Loop
+    // Loop keys and functions
     let keys = object_props(obj);
     let ret = {};
+
+    if (keys.length === 0)
+    {
+        return ret;
+    }
 
     foreach(keys, function(i, key)
     {
@@ -863,22 +876,13 @@ function cloneObj(obj)
     return ret;
 }
 
-function constructorClone(obj)
-{
-    let name = callable_name(obj);
-
-    if (name === 'Object')
-    {
-        return {};
-    }
-
-    let ret = {};
-
-    ret.constructor = obj.constructor;
-
-    return ret;
-}
-
+/**
+ * Clones a function
+ * 
+ * @param   {function}  function
+ * @param   {mixed}     context   Context to bind function
+ * @returns {function}
+ */
 function cloneFunc(func, context)
 {
     context = typeof context === 'undefined' ? func : window;
@@ -886,6 +890,12 @@ function cloneFunc(func, context)
     return func.bind(context);
 }
 
+/**
+ * Clones an array
+ * 
+ * @param   {array}  arr
+ * @returns {array}
+ */
 function cloneArray(arr)
 {
     let ret = [];
@@ -898,6 +908,13 @@ function cloneArray(arr)
     return ret;
 }
 
+/**
+ * Clones any variables
+ * 
+ * @param   {mixed}  mixed_var
+ * @param   {mixed}  context   Context to bind functions
+ * @returns {mixed}
+ */
 export function cloneDeep(mixed_var, context)
 {
     if (is_object(mixed_var))
@@ -943,8 +960,9 @@ export function cloneDeep(mixed_var, context)
 /**
  * Deep merge two objects.
  * 
- * @param target
- * @param ...sources
+ * @param   {object} target
+ * @param   {object} ...sources
+ * @returns {object}
  */
 export function mergeDeep(target, ...sources)
 {
@@ -978,6 +996,14 @@ export function mergeDeep(target, ...sources)
     return mergeDeep(target, ...sources);
 }
 
+/**
+ * Foreach.
+ *  
+ * @param   {array|object}  obj
+ * @param   {function}      callback
+ * @param   {array|mixed}   args      If single arg provided gets apllied as this to callback, otherwise args apllied to callback
+ * @returns {array|object}
+ */
 export function foreach(obj, callback, args)
 {
     var value, i = 0,
@@ -1047,15 +1073,14 @@ export function foreach(obj, callback, args)
 }
 
 /**
- * Map with break
- * 
+ * Map.
+ *  
  * return undefined to break loop, true to keep, false to reject
  * 
- * @param [{Array}|{Objet}]     arrayOrObj Object or array
- * @param {Function}            callback   Callback
- * @param {{Array}|{undefined}} context    Args to apply to callback
- * 
- * // callback(value, keyOrIndex) this = context 
+ * @param   {array|object}  obj
+ * @param   {function}      callback
+ * @param   {array|mixed}   args      If single arg provided gets apllied as this to callback, otherwise args apllied to callback
+ * @returns {array|object}
  */
 export function map(obj, callback, args)
 {
@@ -1117,37 +1142,38 @@ export function map(obj, callback, args)
     return ret;
 }
 
-
 const _ = {
-    obj,
-    isset,
-    triggerEvent,
-    foreach,
-    array_set,
-    array_get,
-    array_has,
-    array_delete,
-    array_merge,
-    dotify,
-    size,
-    bool,
-    cloneDeep,
-    in_dom,
-    is_equal,
+    is_object,
+    is_array,
+    is_string,
+    is_number,
+    is_numeric,
+    is_undefined,
+    is_null,
+    is_bool,
     is_htmlElement,
     is_callable,
     is_constructable,
     is_class,
+    is_empty,
+    is_equal,
+    in_dom,
+    size,
+    bool,
     object_props,
     callable_name,
-    is_null,
-    is_undefined,
-    is_empty,
-    is_object,
-    is_array,
-    is_number,
-    is_string,
+    triggerEvent,
+    obj,
+    array_set,
+    array_get,
+    array_has,
+    array_delete,
+    array_filter,
+    array_merge,
+    dotify,
+    cloneDeep,
     mergeDeep,
+    foreach,
     map,
 };
 
