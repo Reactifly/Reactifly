@@ -1,75 +1,50 @@
-const _wMap = function()
+/**
+ * Object with built in "dot.notation" set,get,isset,delete methods.
+ *
+ * @return {object}
+ */
+const _map = function()
 {
     return this;
 }
 
-_wMap.prototype = {};
+_map.prototype = {};
 
-_wMap.prototype.set = function(key, value)
+_map.prototype.set = function(key, value)
 {
     array_set(key, value, this);
 };
 
-_wMap.prototype.get = function(key)
+_map.prototype.get = function(key)
 {
     return array_get(key, this);
 };
 
-_wMap.prototype.delete = function(key)
+_map.prototype.delete = function(key)
 {
     array_delete(key, this);
 };
 
-_wMap.prototype.isset = function(key)
+_map.prototype.isset = function(key)
 {
     return array_has(key, this);
 };
 
 /**
- * Returns an immutable object with set,get,isset, delete methods that accept dot.notation
+ * Returns an immutable object with set,get,isset,delete methods that accept dot.notation.
  *
- * @return {_wMap}
+ * @returns {object}
  */
-export function wMap()
+export function obj()
 {
-    return new _wMap;
+    return new _map;
 }
 
 /**
- * Returns var if set
+ * Triggers a native event on an element.
  *
- * @param  node   el   Target element
- * @param  string type Valid event name
- */
-export function isset(mixed_var, keys)
-{
-    if (!mixed_var)
-    {
-        return;
-    }
-
-    keys = keys.split('.');
-
-    let len = keys.length;
-
-    for (var i = 0; i < len; i++)
-    {
-        mixed_var = mixed_var[keys[i]];
-
-        if (!mixed_var)
-        {
-            return;
-        }
-    }
-
-    return mixed_var;
-}
-
-/**
- * Triggers a native event on an element
- *
- * @param  node   el   Target element
- * @param  string type Valid event name
+ * @param  {HTMLElement}  el    Target element
+ * @param  {string}       type  Valid event name
  */
 export function triggerEvent(el, type)
 {
@@ -88,12 +63,12 @@ export function triggerEvent(el, type)
 }
 
 /**
- * Set a key using dot/bracket notation on an object or array
+ * Set a key using dot/bracket notation on an object or array.
  *
- * @param  string       path   Path to set
- * @param  mixed        value  Value to set
- * @param  object|array object Object to set into
- * @return object|array
+ * @param   {string}       path   Path to set
+ * @param   {mixed}        value  Value to set
+ * @param   {object|array} object Object to set into
+ * @returns {object|array}
  */
 export function array_set(path, value, object)
 {
@@ -103,11 +78,11 @@ export function array_set(path, value, object)
 }
 
 /**
- * Gets an from an array/object using dot/bracket notation
+ * Gets an from an array/object using dot/bracket notation.
  *
- * @param  string       path   Path to get
- * @param  object|array object Object to get from
- * @return mixed
+ * @param   {string}        path    Path to get
+ * @param   {object|array}  object  Object to get from
+ * @returns {mixed}
  */
 export function array_get(path, object)
 {
@@ -115,11 +90,11 @@ export function array_get(path, object)
 }
 
 /**
- * Checks if array/object contains path using dot/bracket notation
+ * Checks if array/object contains path using dot/bracket notation.
  *
- * @param  string       path   Path to check
- * @param  object|array object Object to check on
- * @return bool
+ * @param   {string}        path   Path to check
+ * @param   {object|array}  object Object to check on
+ * @returns {boolean}
  */
 export function array_has(path, object)
 {
@@ -127,11 +102,11 @@ export function array_has(path, object)
 }
 
 /**
- * Deletes from an array/object using dot/bracket notation
+ * Deletes from an array/object using dot/bracket notation.
  *
- * @param  string       path   Path to delete
- * @param  object|array object Object to delete from
- * @return object|array
+ * @param   {string}        path   Path to delete
+ * @param   {object|array}  object Object to delete from
+ * @returns {object|array}
  */
 export function array_delete(path, object)
 {
@@ -143,12 +118,13 @@ export function array_delete(path, object)
 /**
  * Filters empty array entries and returns new array
  *
- * @param  object|array object Object to delete from
- * @return object|array
+ * @param   {object|array}  object Object to delete from
+ * @returns {object|array}
  */
 export function array_filter(arr)
 {
     let isArr = is_array(arr);
+
     let ret = isArr ? [] : {};
 
     foreach(arr, function(i, val)
@@ -163,10 +139,10 @@ export function array_filter(arr)
 }
 
 /**
- * Merges multiple objects or arrays into the original
+ * Merges multiple objects or arrays into the original.
  *
- * @param  object|array object Object to delete from
- * @return object|array
+ * @param   {object|array} First array then any number of array or objects to merge into
+ * @returns {object|array}
  */
 export function array_merge()
 {
@@ -201,12 +177,11 @@ export function array_merge()
 }
 
 /**
- * Recursively delete from array/object
+ * Recursively delete from array/object.
  *
- * @access private
- * @param  array        keys   Keys in search order
- * @param  object|array object Object to get from
- * @return mixed
+ * @param   {array}        keys    Keys in search order
+ * @param   {object|array} object  Object to get from
+ * @returns {mixed}
  */
 function _arrayDeleteRecursive(keys, object)
 {
@@ -235,12 +210,11 @@ function _arrayDeleteRecursive(keys, object)
 }
 
 /**
- * Recursively search array/object
+ * Recursively search from array/object.
  *
- * @access private
- * @param  array        keys   Keys in search order
- * @param  object|array object Object to get from
- * @return mixed
+ * @param   {array}        keys    Keys in search order
+ * @param   {object|array} object  Object to get from
+ * @returns {mixed}
  */
 function _arrayGetRecursive(keys, object)
 {
@@ -261,13 +235,12 @@ function _arrayGetRecursive(keys, object)
 }
 
 /**
- * Recursively set array/object
+ * Recursively set array/object.
  *
- * @access private
- * @param  array        keys   Keys in search order
- * @param  mixed        value  Value to set
- * @param  parent       object|array or null
- * @param  object|array object Object to set on
+ * @param {array}          keys     Keys in search order
+ * @param {mixed}          value    Value to set
+ * @param {object|array}   object   Object to get from
+ * @param {string|number}  nextKey  Next key to set
  */
 function _arraySetRecursive(keys, value, object, nextKey)
 {
@@ -315,11 +288,10 @@ function _arraySetRecursive(keys, value, object, nextKey)
 }
 
 /**
- * Segments an array/object path using dot notation
+ * Segments an array/object path using from "dot.notation" into an array of keys in order.
  *
- * @access private
- * @param  string  path Path to parse
- * @return array
+ * @param   {string}  path Path to parse
+ * @returns {array}
  */
 function _arrayKeySegment(path)
 {
@@ -358,8 +330,8 @@ function _arrayKeySegment(path)
 /**
  * Creates a new object in 'dot.notation'
  * 
- * @param  {Object} obj Object
- * @return {Object} 
+ * @param   {Object} obj Object
+ * @returns {Object} 
  */
 export function dotify(obj)
 {
@@ -391,8 +363,8 @@ export function dotify(obj)
 /**
  * Checks if HtmlElement is in current DOM
  *
- * @param  mixed  mixed_var Variable to evaluate
- * @return bool
+ * @param   {HTMLElement}  element  Element to check
+ * @returns {boolean}
  */
 export function in_dom(element)
 {
@@ -420,10 +392,10 @@ export function in_dom(element)
 }
 
 /**
- * Checks if variable is node.
+ * Checks if variable is HTMLElement.
  *
- * @param  mixed  mixed_var Variable to evaluate
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to evaluate
+ * @returns {boolean}
  */
 export function is_htmlElement(mixed_var)
 {
@@ -431,10 +403,10 @@ export function is_htmlElement(mixed_var)
 }
 
 /**
- * Is callable ?
+ * Is variable a function / constructor.
  *
- * @param  mixed  mixed_var Variable to check
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to check
+ * @returns {boolean}
  */
 export function is_callable(mixed_var)
 {
@@ -442,10 +414,10 @@ export function is_callable(mixed_var)
 }
 
 /**
- * Checks if variable is a class declaration.
+ * Checks if variable is construable.
  *
- * @param  mixed  mixed_var Variable to evaluate
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to evaluate
+ * @returns {boolean}
  */
 export function is_constructable(mixed_var)
 {
@@ -461,7 +433,7 @@ export function is_constructable(mixed_var)
         return false;
     }
 
-    // ES6 class
+    // Strict ES6 class
     if (is_class(mixed_var, true))
     {
         return true;
@@ -474,10 +446,12 @@ export function is_constructable(mixed_var)
 }
 
 /**
- * Checks if variable is a class declaration.
+ * Checks if variable is a class declaration or extends a class and/or constructable function.
  *
- * @param  mixed  mixed_var Variable to evaluate
- * @return bool
+ * @param   {mixed}                        mixed_var  Variable to evaluate
+ * @oaram   {string | undefined | boolean} classname  Classname or strict if boolean provided
+ * @param   {boolean}                      strict     If "true" only returns true on ES6 classes (default "false")
+ * @returns {boolean}
  */
 export function is_class(mixed_var, classname, strict)
 {
@@ -497,6 +471,7 @@ export function is_class(mixed_var, classname, strict)
     {
         if (typeof mixed_var === 'function')
         {
+            // Check for ES6 class decleration
             let re = new RegExp('^\\s*class\\s+(' + classname + '(\\s+|\\{)|\\w+\\s+extends\\s+' + classname + ')', 'i');
 
             let regRet = re.test(mixed_var.toString());
@@ -506,25 +481,29 @@ export function is_class(mixed_var, classname, strict)
                 return regRet;
             }
 
+            // Constructable or ES6 class declaration depending on strict
             return is_constructable(mixed_var) && mixed_var.name === classname;
         }
 
         return false;
     }
 
+    // ES6 class declaration depending on strict
     if (strict)
     {
+        
         return typeof mixed_var === 'function' && /^\s*class\s+/.test(mixed_var.toString());
     }
 
+    // Constructable
     return is_constructable(mixed_var);
 }
 
 /**
- * Checks if variable is a class declaration.
+ * Returns function / class name
  *
- * @param  mixed  mixed_var Variable to evaluate
- * @return bool
+ * @param   {mixed}  mixed_var Variable to evaluate
+ * @returns {string}
  */
 export function callable_name(mixed_var)
 {
@@ -544,10 +523,10 @@ export function callable_name(mixed_var)
 }
 
 /**
- * Gets variable size 
+ * Returns array/object/string/number size.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {number}
  */
 export function size(mixed_var)
 {
@@ -561,7 +540,7 @@ export function size(mixed_var)
     }
     else if (is_bool(mixed_var))
     {
-        return mixed_var === true ? 1 : 0;
+        return mixed_var === true ? 1 : -1;
     }
     else(is_object(mixed_var))
     {
@@ -572,10 +551,10 @@ export function size(mixed_var)
 }
 
 /**
- * Check if two vars are equal
+ * Checks if variable should be considered "true" or "false" using "common sense".
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed} mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function bool(mixed_var)
 {
@@ -601,7 +580,7 @@ export function bool(mixed_var)
         return Object.keys(mixed_var).length > 0;
     }
 
-    if (typeof mixed_var === 'string')
+    if (is_string(mixed_var))
     {
         mixed_var = mixed_var.toLowerCase().trim();
 
@@ -639,10 +618,10 @@ export function bool(mixed_var)
 }
 
 /**
- * Checks if variable is an object
+ * Checks if variable is an object.
  *
- * @param  mixed  mixed_var Variable to evaluate
- * @return bool
+ * @param   {mixed}  mixed_var Variable to evaluate
+ * @returns {boolean}
  */
 export function is_object(mixed_var)
 {
@@ -650,10 +629,10 @@ export function is_object(mixed_var)
 }
 
 /**
- * Is array
+ * Is array.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_array(mixed_var, strict)
 {
@@ -665,10 +644,10 @@ export function is_array(mixed_var, strict)
 }
 
 /**
- * Is string
+ * Is string.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_string(mixed_var)
 {
@@ -676,10 +655,10 @@ export function is_string(mixed_var)
 }
 
 /**
- * Is number
+ * Is number.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_number(mixed_var)
 {
@@ -687,10 +666,10 @@ export function is_number(mixed_var)
 }
 
 /**
- * Is string
+ * Is string.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_numeric(mixed_var)
 {
@@ -707,10 +686,10 @@ export function is_numeric(mixed_var)
 }
 
 /**
- * Is undefined
+ * Is undefined.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_undefined(mixed_var)
 {
@@ -718,10 +697,10 @@ export function is_undefined(mixed_var)
 }
 
 /**
- * Is null
+ * Is null.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_null(mixed_var)
 {
@@ -729,10 +708,10 @@ export function is_null(mixed_var)
 }
 
 /**
- * Is bool
+ * Is bool.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_bool(mixed_var)
 {
@@ -740,13 +719,16 @@ export function is_bool(mixed_var)
 }
 
 /**
- * Returns object properties as array of keys
+ * Returns object properties and methods as array of keys.
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}    mixed_var    Variable to test
+ * @param   {boolean}  withMethods  Return methods and props (optional) (default "true")
+ * @returns {array}
  */
-export function object_props(mixed_var)
+export function object_props(mixed_var, withMethods)
 {
+    withMethods = is_undefined(withMethods) ? true : false;
+
     if (!is_object(mixed_var))
     {
         return [];
@@ -756,7 +738,7 @@ export function object_props(mixed_var)
     let excludes = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf'];
     let funcs = Object.getOwnPropertyNames(Object.getPrototypeOf(mixed_var));
     let props = Object.keys(mixed_var);
-    let keys = [...funcs, ...props];
+    let keys = withMethods ? [...funcs, ...props] : props;
 
     return keys.filter(function(key)
     {
@@ -767,8 +749,8 @@ export function object_props(mixed_var)
 /**
  * Is empty
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_empty(mixed_var)
 {
@@ -821,8 +803,8 @@ function equalTraverseable(a, b)
 /**
  * Check if two vars are equal
  * 
- * @param  mixed mixed_var Variable to test
- * @return bool
+ * @param   {mixed}  mixed_var  Variable to test
+ * @returns {boolean}
  */
 export function is_equal(a, b)
 {
@@ -1137,7 +1119,7 @@ export function map(obj, callback, args)
 
 
 const _ = {
-    wMap,
+    obj,
     isset,
     triggerEvent,
     foreach,
