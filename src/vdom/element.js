@@ -3,16 +3,11 @@ import { functionalComponent } from '../compat/index';
 import _ from '../utils/index';
 
 /**
- * This function lets us create virtual nodes using a simple
- * syntax. It is compatible with JSX transforms so you can use
- * JSX to write nodes that will compile to this function.
- *
- * let node = element('div', { id: 'foo' }, [
- *   element('a', { href: 'http://google.com' },
- *     element('span', {}, 'Google'),
- *     element('b', {}, 'Link')
- *   )
- * ])
+ * JSX create element.
+ *  
+ * @param   {HTMLElement}         htmlRootEl  Root html element
+ * @param   {object | undefined}  options     Options (optional)
+ * @returns {import('./root').Root}
  */
 export function createElement(tag, props, ...children)
 {        

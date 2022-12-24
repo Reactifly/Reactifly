@@ -6,7 +6,8 @@
   "description": "Render interfaces using pure functions and virtual DOM",
   "main": "./src/index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack --config webpack.config.js && npm run beautify:source",
+    "beautify:source" : "js-beautify --replace --file src/**/*.js ",
     "test": "mocha --require @babel/register -require jsdom-global/register test/index.js"
   },
   "devDependencies": {
@@ -19,6 +20,7 @@
     "@babel/runtime": "^7.20.6",
     "chai": "^4.3.7",
     "chai-spies": "^1.0.0",
+    "js-beautify": "^1.14.7",
     "jsdom-global": "^3.0.2",
     "mocha": "^10.2.0",
     "nodemon": "^2.0.20",
