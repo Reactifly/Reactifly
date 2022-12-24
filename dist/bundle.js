@@ -24,10 +24,10 @@ var __webpack_exports__ = {};
 ;// CONCATENATED MODULE: ./src/dom/factory.js
 const SVG_ELEMENTS = 'animate circle clipPath defs ellipse g line linearGradient mask path pattern polygon polyline radialGradient rect stop svg text tspan use'.split(' ');
 
-const SVG_MAP = SVG_ELEMENTS.reduce(function (acc, name)
+const SVG_MAP = SVG_ELEMENTS.reduce(function(acc, name)
 {
     acc[name] = true;
-    
+
     return acc;
 
 }, {});
@@ -96,7 +96,7 @@ function isset(mixed_var, keys)
     {
         return;
     }
-    
+
     keys = keys.split('.');
 
     let len = keys.length;
@@ -136,7 +136,7 @@ function triggerEvent(el, type)
     }
 }
 
- /**
+/**
  * Set a key using dot/bracket notation on an object or array
  *
  * @param  string       path   Path to set
@@ -198,7 +198,7 @@ function array_delete(path, object)
 function array_filter(arr)
 {
     let isArr = is_array(arr);
-    let ret   = isArr ? [] : {};
+    let ret = isArr ? [] : {};
 
     foreach(arr, function(i, val)
     {
@@ -320,8 +320,8 @@ function _arrayGetRecursive(keys, object)
  */
 function _arraySetRecursive(keys, value, object, nextKey)
 {
-    var key     = keys.shift();
-    var islast  = keys.length === 0;
+    var key = keys.shift();
+    var islast = keys.length === 0;
     var lastObj = object;
     object = !nextKey ? object : object[nextKey];
 
@@ -420,7 +420,7 @@ function dotify(obj)
         {
             var value = obj[key];
             var newKey = (current ? current + '.' + key : key); // joined key with dot
-            
+
             if (value && typeof value === 'object' && !(value instanceof Date))
             {
                 recurse(value, newKey); // it's a nested object, so do it again
@@ -455,7 +455,7 @@ function in_dom(element)
         return true;
     }
 
-    while(element)
+    while (element)
     {
         if (element === document.documentElement)
         {
@@ -554,7 +554,7 @@ function is_class(mixed_var, classname, strict)
             {
                 return regRet;
             }
-            
+
             return is_constructable(mixed_var) && mixed_var.name === classname;
         }
 
@@ -608,11 +608,11 @@ function size(mixed_var)
     {
         return mixed_var;
     }
-     else if (is_bool(mixed_var))
+    else if (is_bool(mixed_var))
     {
         return mixed_var === true ? 1 : 0;
     }
-    else (is_object(mixed_var))
+    else(is_object(mixed_var))
     {
         return Object.keys(mixed_var).length;
     }
@@ -803,9 +803,9 @@ function object_props(mixed_var)
 
     // If prototype is empty 
     let excludes = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf'];
-    let funcs    = Object.getOwnPropertyNames(Object.getPrototypeOf(mixed_var));
-    let props    = Object.keys(mixed_var);
-    let keys     = [...funcs, ...props];
+    let funcs = Object.getOwnPropertyNames(Object.getPrototypeOf(mixed_var));
+    let props = Object.keys(mixed_var);
+    let keys = [...funcs, ...props];
 
     return keys.filter(function(key)
     {
@@ -846,7 +846,7 @@ function is_empty(mixed_var)
 }
 
 function equalTraverseable(a, b)
-{   
+{
     if (size(a) !== size(b))
     {
         return false;
@@ -908,7 +908,7 @@ function cloneObj(obj)
         let r = new Date();
 
         r.setTime(obj.getTime());
-        
+
         return r;
     }
 
@@ -920,13 +920,13 @@ function cloneObj(obj)
 
     // Loop
     let keys = object_props(obj);
-    let ret  = {};
+    let ret = {};
 
     foreach(keys, function(i, key)
     {
-        ret[key] = cloneDeep(obj[key], ret);     
+        ret[key] = cloneDeep(obj[key], ret);
     });
-    
+
     return ret;
 }
 
@@ -956,7 +956,7 @@ function cloneFunc(func, context)
 function cloneArray(arr)
 {
     let ret = [];
-   
+
     foreach(arr, function(i, val)
     {
         ret[i] = cloneDeep(val);
@@ -1016,7 +1016,7 @@ function cloneDeep(mixed_var, context)
 function mergeDeep(target, ...sources)
 {
     if (!sources.length) return target;
-    
+
     const source = sources.shift();
 
     if (is_object(target) && is_object(source))
@@ -1027,8 +1027,7 @@ function mergeDeep(target, ...sources)
             {
                 if (!target[key]) Object.assign(target,
                 {
-                    [key]:
-                    {}
+                    [key]: {}
                 });
 
                 mergeDeep(target[key], source[key]);
@@ -1128,12 +1127,12 @@ function foreach(obj, callback, args)
 function map(obj, callback, args)
 {
     let arrType = is_array(obj) ? 'array' : 'obj';
-    let ret     = arrType === 'array' ? [] : {};
-    let keys    = arrType === 'array' ? Array.from(obj.keys()) : Object.keys(obj);
-    let len     = keys.length;
+    let ret = arrType === 'array' ? [] : {};
+    let keys = arrType === 'array' ? Array.from(obj.keys()) : Object.keys(obj);
+    let len = keys.length;
 
     var thisArg = !is_undefined(args) && !is_array(args) ? args : obj;
-    
+
     // This arg gets set to array/object, unless a single arg is provided...
 
     if (is_array(args))
@@ -1142,7 +1141,7 @@ function map(obj, callback, args)
         {
             let key = keys[i];
 
-            let value = callback.apply(thisArg, array_merge([ key, obj[key] ], args));
+            let value = callback.apply(thisArg, array_merge([key, obj[key]], args));
 
             if (value === false)
             {
@@ -1383,7 +1382,7 @@ let parentElem = (vnode) =>
     {
         return nodeElem(node).parentNode;
     }
-    
+
     // Thunks / fragments with a direct child
     let child = vnode.children[0];
 
@@ -1500,12 +1499,12 @@ function findThunkDomEl(vnode)
         child = child.children[0];
     }
 
-    return isFragment(vnode) ? 
+    return isFragment(vnode) ?
         utils.map(vnode.children, function(i, child)
-        { 
-            return nodeElem(child); 
-        }) 
-        : nodeElem(vnode);
+        {
+            return nodeElem(child);
+        }) :
+        nodeElem(vnode);
 }
 
 // Recursively traverse down tree until either a DOM node is found
@@ -1598,7 +1597,8 @@ let nodeWillUnmount = (vnode) =>
     }
 }
 ;// CONCATENATED MODULE: ./src/jsx/Parser.js
-function oneObject(str) {
+function oneObject(str)
+{
     var obj = {}
     str.split(",").forEach(_ => obj[_] = true)
     return obj
@@ -1610,7 +1610,8 @@ var hiddenTag = oneObject('style,script,noscript,template')
 
 const Parser = function(a, f)
 {
-    if (!(this instanceof Parser)) {
+    if (!(this instanceof Parser))
+    {
         return parse(a, f)
     }
     this.input = a
@@ -1618,86 +1619,105 @@ const Parser = function(a, f)
 }
 
 Parser.prototype = {
-    parse: function() {
+    parse: function()
+    {
         return parse(this.input, this.getOne)
     }
 }
 var rsp = /\s/
-    /**
-     * 
-     * 
-     * @param {any} string 
-     * @param {any} getOne 只返回一个节点
-     * @returns 
-     */
-function parse(string, getOne) {
+/**
+ * 
+ * 
+ * @param {any} string 
+ * @param {any} getOne 只返回一个节点
+ * @returns 
+ */
+function parse(string, getOne)
+{
     getOne = (getOne === void 666 || getOne === true)
     var ret = lexer(string, getOne)
-    if (getOne) {
+    if (getOne)
+    {
         return typeof ret[0] === 'string' ? ret[1] : ret[0]
     }
     return ret
 }
 
-function lexer(string, getOne) {
+function lexer(string, getOne)
+{
     var tokens = []
     var breakIndex = 120
     var stack = []
     var origString = string
     var origLength = string.length
 
-    stack.last = function() {
+    stack.last = function()
+    {
         return stack[stack.length - 1]
     }
     var ret = []
 
-    function addNode(node) {
+    function addNode(node)
+    {
         var p = stack.last()
-        if (p && p.children) {
+        if (p && p.children)
+        {
             p.children.push(node)
-        } else {
+        }
+        else
+        {
             ret.push(node)
         }
     }
 
     var lastNode
     do {
-        if (--breakIndex === 0) {
+        if (--breakIndex === 0)
+        {
             break
         }
         var arr = getCloseTag(string)
 
-        if (arr) { //处理关闭标签
+        if (arr)
+        { //处理关闭标签
             string = string.replace(arr[0], '')
             const node = stack.pop()
-                //处理下面两种特殊情况：
-                //1. option会自动移除元素节点，将它们的nodeValue组成新的文本节点
-                //2. table会将没有被thead, tbody, tfoot包起来的tr或文本节点，收集到一个新的tbody元素中
-            if (node.type === 'option') {
-                node.children = [{
+            //处理下面两种特殊情况：
+            //1. option会自动移除元素节点，将它们的nodeValue组成新的文本节点
+            //2. table会将没有被thead, tbody, tfoot包起来的tr或文本节点，收集到一个新的tbody元素中
+            if (node.type === 'option')
+            {
+                node.children = [
+                {
                     type: '#text',
                     nodeValue: getText(node)
                 }]
-            } else if (node.type === 'table') {
+            }
+            else if (node.type === 'table')
+            {
                 insertTbody(node.children)
             }
             lastNode = null
-            if (getOne && ret.length === 1 && !stack.length) {
+            if (getOne && ret.length === 1 && !stack.length)
+            {
                 return [origString.slice(0, origLength - string.length), ret[0]]
             }
             continue
         }
 
         var arr = getOpenTag(string)
-        if (arr) {
+        if (arr)
+        {
             string = string.replace(arr[0], '')
             var node = arr[1]
             addNode(node)
             var selfClose = !!(node.isVoidTag || specalTag[node.type])
-            if (!selfClose) { //放到这里可以添加孩子
+            if (!selfClose)
+            { //放到这里可以添加孩子
                 stack.push(node)
             }
-            if (getOne && selfClose && !stack.length) {
+            if (getOne && selfClose && !stack.length)
+            {
                 return [origString.slice(0, origLength - string.length), node]
             }
             lastNode = node
@@ -1708,11 +1728,14 @@ function lexer(string, getOne) {
         do {
             //处理<div><<<<<<div>的情况
             const index = string.indexOf('<')
-            if (index === 0) {
+            if (index === 0)
+            {
                 text += string.slice(0, 1)
                 string = string.slice(1)
 
-            } else {
+            }
+            else
+            {
                 break
             }
         } while (string.length);
@@ -1722,8 +1745,10 @@ function lexer(string, getOne) {
         const aindex = string.indexOf('}')
 
         let hasJSX = (bindex < aindex) && (index === -1 || bindex < index)
-        if (hasJSX) {
-            if (bindex !== 0) { // 收集jsx之前的文本节点
+        if (hasJSX)
+        {
+            if (bindex !== 0)
+            { // 收集jsx之前的文本节点
                 text += string.slice(0, bindex)
                 string = string.slice(bindex)
             }
@@ -1733,11 +1758,16 @@ function lexer(string, getOne) {
             addNode(makeJSX(arr[1]))
             lastNode = false
             string = string.slice(arr[0].length + 1) //去掉后面的}
-        } else {
-            if (index === -1) {
+        }
+        else
+        {
+            if (index === -1)
+            {
                 text = string
                 string = ''
-            } else {
+            }
+            else
+            {
                 text += string.slice(0, index)
                 string = string.slice(index)
             }
@@ -1749,11 +1779,16 @@ function lexer(string, getOne) {
 }
 
 
-function addText(lastNode, text, addNode) {
-    if (/\S/.test(text)) {
-        if (lastNode && lastNode.type === '#text') {
+function addText(lastNode, text, addNode)
+{
+    if (/\S/.test(text))
+    {
+        if (lastNode && lastNode.type === '#text')
+        {
             lastNode.text += text
-        } else {
+        }
+        else
+        {
             lastNode = {
                 type: '#text',
                 nodeValue: text
@@ -1764,7 +1799,8 @@ function addText(lastNode, text, addNode) {
 }
 
 //它用于解析{}中的内容，如果遇到不匹配的}则返回, 根据标签切割里面的内容 
-function parseCode(string) { // <div id={ function(){<div/>} }>
+function parseCode(string)
+{ // <div id={ function(){<div/>} }>
     var word = '', //用于匹配前面的单词
         braceIndex = 1,
         codeIndex = 0,
@@ -1772,42 +1808,56 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
         quote,
         escape = false,
         state = 'code'
-    for (var i = 0, n = string.length; i < n; i++) {
+    for (var i = 0, n = string.length; i < n; i++)
+    {
         var c = string.charAt(i),
             next = string.charAt(i + 1)
-        switch (state) {
+        switch (state)
+        {
             case 'code':
-                if (c === '"' || c === "'") {
+                if (c === '"' || c === "'")
+                {
                     state = 'string'
                     quote = c
-                } else if (c === '{') {
+                }
+                else if (c === '{')
+                {
                     braceIndex++
-                } else if (c === '}') {
+                }
+                else if (c === '}')
+                {
                     braceIndex--
-                    if (braceIndex === 0) {
+                    if (braceIndex === 0)
+                    {
                         collectJSX(string, codeIndex, i, nodes)
                         return [string.slice(0, i), nodes]
                     }
-                } else if (c === '<') {
+                }
+                else if (c === '<')
+                {
                     var word = '',
-                        empty = true ,
+                        empty = true,
                         index = i - 1
                     do {
                         c = string.charAt(index)
-                        if (empty && rsp.test(c)) {
+                        if (empty && rsp.test(c))
+                        {
                             continue
                         }
-                        if (rsp.test(c)) {
+                        if (rsp.test(c))
+                        {
                             break
                         }
                         empty = false
                         word = c + word
-                        if (word.length > 7) { //性能优化
+                        if (word.length > 7)
+                        { //性能优化
                             break
                         }
                     } while (--index >= 0);
                     var chunkString = string.slice(i)
-                    if (word === '' || /(=>|return|\{|\(|\[|\,)$/.test(word) && /\<\w/.test(chunkString)) {
+                    if (word === '' || /(=>|return|\{|\(|\[|\,)$/.test(word) && /\<\w/.test(chunkString))
+                    {
                         collectJSX(string, codeIndex, i, nodes)
                         var chunk = lexer(chunkString, true)
                         nodes.push(chunk[1])
@@ -1818,9 +1868,12 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                 }
                 break
             case 'string':
-                if (c == '\\' && (next === '"' || next === "'")) {
+                if (c == '\\' && (next === '"' || next === "'"))
+                {
                     escape = !escape
-                } else if (c === quote && !escape) {
+                }
+                else if (c === quote && !escape)
+                {
                     state = 'code'
                 }
                 break
@@ -1829,10 +1882,13 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
     }
 }
 
-function collectJSX(string, codeIndex, i, nodes) {
+function collectJSX(string, codeIndex, i, nodes)
+{
     var nodeValue = string.slice(codeIndex, i)
-    if (/\S/.test(nodeValue)) { //将{前面的东西放进去
-        nodes.push({
+    if (/\S/.test(nodeValue))
+    { //将{前面的东西放进去
+        nodes.push(
+        {
             type: '#jsx',
             nodeValue: nodeValue
         })
@@ -1841,22 +1897,29 @@ function collectJSX(string, codeIndex, i, nodes) {
 
 var rtbody = /^(tbody|thead|tfoot)$/
 
-function insertTbody(nodes) {
+function insertTbody(nodes)
+{
     var tbody = false
-    for (var i = 0, n = nodes.length; i < n; i++) {
+    for (var i = 0, n = nodes.length; i < n; i++)
+    {
         var node = nodes[i]
-        if (rtbody.test(node.nodeName)) {
+        if (rtbody.test(node.nodeName))
+        {
             tbody = false
             continue
         }
 
-        if (node.nodeName === 'tr') {
-            if (tbody) {
+        if (node.nodeName === 'tr')
+        {
+            if (tbody)
+            {
                 nodes.splice(i, 1)
                 tbody.children.push(node)
                 n--
                 i--
-            } else {
+            }
+            else
+            {
                 tbody = {
                     nodeName: 'tbody',
                     props: {},
@@ -1864,8 +1927,11 @@ function insertTbody(nodes) {
                 }
                 nodes.splice(i, 1, tbody)
             }
-        } else {
-            if (tbody) {
+        }
+        else
+        {
+            if (tbody)
+            {
                 nodes.splice(i, 1)
                 tbody.children.push(node)
                 n--
@@ -1876,13 +1942,17 @@ function insertTbody(nodes) {
 }
 
 
-function getCloseTag(string) {
-    if (string.indexOf("</") === 0) {
+function getCloseTag(string)
+{
+    if (string.indexOf("</") === 0)
+    {
         var match = string.match(/\<\/(\w+)>/)
-        if (match) {
+        if (match)
+        {
             var tag = match[1]
             string = string.slice(3 + tag.length)
-            return [match[0], {
+            return [match[0],
+            {
                 type: tag
             }]
         }
@@ -1890,12 +1960,16 @@ function getCloseTag(string) {
     return null
 }
 
-function getOpenTag(string) {
-    if (string.indexOf("<") === 0) {
+function getOpenTag(string)
+{
+    if (string.indexOf("<") === 0)
+    {
         var i = string.indexOf('<!--') //处理注释节点
-        if (i === 0) {
+        if (i === 0)
+        {
             var l = string.indexOf('-->')
-            if (l === -1) {
+            if (l === -1)
+            {
                 thow('注释节点没有闭合 ' + string.slice(0, 100))
             }
             var node = {
@@ -1906,7 +1980,8 @@ function getOpenTag(string) {
             return [string.slice(0, l + 3), node]
         }
         var match = string.match(/\<(\w[^\s\/\>]*)/) //处理元素节点
-        if (match) {
+        if (match)
+        {
             var leftContent = match[0],
                 tag = match[1]
             var node = {
@@ -1917,30 +1992,37 @@ function getOpenTag(string) {
 
             string = string.replace(leftContent, '') //去掉标签名(rightContent)
             var arr = getAttrs(string) //处理属性
-            if (arr) {
+            if (arr)
+            {
                 node.props = arr[1]
                 string = string.replace(arr[0], '')
                 leftContent += arr[0]
             }
 
-            if (string[0] === '>') { //处理开标签的边界符
+            if (string[0] === '>')
+            { //处理开标签的边界符
                 leftContent += '>'
                 string = string.slice(1)
-                if (voidTag[node.type]) {
+                if (voidTag[node.type])
+                {
                     node.isVoidTag = true
                 }
-            } else if (string.slice(0, 2) === '/>') { //处理开标签的边界符
+            }
+            else if (string.slice(0, 2) === '/>')
+            { //处理开标签的边界符
                 leftContent += '/>'
                 string = string.slice(2)
                 node.isVoidTag = true
-            } 
+            }
 
-            if (!node.isVoidTag && specalTag[tag]) { //如果是script, style, xmp等元素
+            if (!node.isVoidTag && specalTag[tag])
+            { //如果是script, style, xmp等元素
                 var closeTag = '</' + tag + '>'
                 var j = string.indexOf(closeTag)
                 var nodeValue = string.slice(0, j)
                 leftContent += nodeValue + closeTag
-                node.children.push({
+                node.children.push(
+                {
                     type: '#text',
                     nodeValue: nodeValue
                 })
@@ -1951,19 +2033,25 @@ function getOpenTag(string) {
     }
 }
 
-function getText(node) {
+function getText(node)
+{
     var ret = ''
-    node.children.forEach(function(el) {
-        if (el.type === '#text') {
+    node.children.forEach(function(el)
+    {
+        if (el.type === '#text')
+        {
             ret += el.nodeValue
-        } else if (el.children && !hiddenTag[el.type]) {
+        }
+        else if (el.children && !hiddenTag[el.type])
+        {
             ret += getText(el)
         }
     })
     return ret
 }
 
-function getAttrs(string) {
+function getAttrs(string)
+{
     var state = 'AttrNameOrJSX',
         attrName = '',
         attrValue = '',
@@ -1971,49 +2059,69 @@ function getAttrs(string) {
         escape,
         props = {}
 
-    for (var i = 0, n = string.length; i < n; i++) {
+    for (var i = 0, n = string.length; i < n; i++)
+    {
         var c = string[i]
-        switch (state) {
+        switch (state)
+        {
             case 'AttrNameOrJSX':
-                if (c === '/' || c === '>') {
+                if (c === '/' || c === '>')
+                {
                     return [string.slice(0, i), props]
                 }
-                if (rsp.test(c)) {
-                    if (attrName) {
+                if (rsp.test(c))
+                {
+                    if (attrName)
+                    {
                         state = 'AttrEqual'
                     }
-                } else if (c === '=') {
-                    if (!attrName) {
+                }
+                else if (c === '=')
+                {
+                    if (!attrName)
+                    {
                         throw '必须指定属性名'
                     }
                     state = 'AttrQuoteOrJSX'
-                } else if (c === '{') {
+                }
+                else if (c === '{')
+                {
                     state = 'SpreadJSX'
-                } else {
+                }
+                else
+                {
                     attrName += c
                 }
                 break
             case 'AttrEqual':
-                if (c === '=') {
+                if (c === '=')
+                {
                     state = 'AttrQuoteOrJSX'
                 }
                 break
             case 'AttrQuoteOrJSX':
-                if (c === '"' || c === "'") {
+                if (c === '"' || c === "'")
+                {
                     quote = c
                     state = 'AttrValue'
                     escape = false
-                } else if (c === '{') {
+                }
+                else if (c === '{')
+                {
                     state = 'JSX'
                 }
                 break
             case 'AttrValue':
-                if (c === '\\') {
+                if (c === '\\')
+                {
                     escape = !escape
                 }
-                if (c !== quote) {
+                if (c !== quote)
+                {
                     attrValue += c
-                } else if (c === quote && !escape) {
+                }
+                else if (c === quote && !escape)
+                {
                     props[attrName] = attrValue
                     attrName = attrValue = ''
                     state = 'AttrNameOrJSX'
@@ -2047,7 +2155,7 @@ class JsxSyntaxError extends Error
     constructor(error)
     {
         super('JSX syntax error');
-        
+
         this.name = 'JsxSyntaxError';
 
         console.error(error);
@@ -2061,21 +2169,21 @@ class JsxSyntaxError extends Error
 
 
 const R_COMPONENT = /^(this|[A-Z])/;
-const CACHE_FNS   = {};
-const CACHE_STR   = {};
+const CACHE_FNS = {};
+const CACHE_STR = {};
 const COMPONENT_CACHE = {};
 
 
 function evaluate(str, obj, config)
-{    
+{
     var jsx = new innerClass(str, config);
 
     var output = jsx.init();
-    
+
     obj = genDepencies(obj);
-    
+
     var args = 'var args0 = arguments[0];';
-    
+
     for (var i in obj)
     {
         if (i !== 'this')
@@ -2098,9 +2206,9 @@ function evaluate(str, obj, config)
         {
             fn = CACHE_FNS[args] = Function(args)
         }
-        
+
         var a = fn.call(obj.this, obj)
-        
+
         return a;
     }
     catch (e)
@@ -2112,9 +2220,9 @@ function evaluate(str, obj, config)
 function genDepencies(obj)
 {
     obj = !obj ? {} : obj;
-    
-    obj.Reactifly = {createElement: createElement};
-    obj.Fragment  = Fragment;
+
+    obj.Reactifly = { createElement: createElement };
+    obj.Fragment = Fragment;
 
     for (let key in COMPONENT_CACHE)
     {
@@ -2131,15 +2239,14 @@ function genDepencies(obj)
 
 function innerClass(str, config)
 {
-    config      = config || {};
-    config.ns   = 'Reactifly';
-    this.input  = str;
-    this.ns     = config.ns
-    this.type   = config.type
+    config = config || {};
+    config.ns = 'Reactifly';
+    this.input = str;
+    this.ns = config.ns
+    this.type = config.type
 }
 
-innerClass.prototype =
-{
+innerClass.prototype = {
     init: function()
     {
         if (typeof jsx_Parser === 'function')
@@ -2166,9 +2273,9 @@ innerClass.prototype =
     genTag: function(el)
     {
         var children = this.genChildren(el.children, el);
-        var ns       = this.ns;
-        var type     = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
-        
+        var ns = this.ns;
+        var type = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
+
         return ns + '.createElement(' + type +
             ',' + this.genProps(el.props, el) +
             ',' + children + ')'
@@ -2188,7 +2295,7 @@ innerClass.prototype =
         }
 
         ret = ret.replace(/\,\n$/, '') + '}';
-        
+
         if (el.spreadAttribute)
         {
             return 'Object.assign({},' + el.spreadAttribute + ',' + ret + ')';
@@ -2226,7 +2333,7 @@ innerClass.prototype =
         }
 
         var ret = [];
-        
+
         for (var i = 0, el; el = children[i++];)
         {
             if (el.type === '#jsx')
@@ -2253,31 +2360,30 @@ innerClass.prototype =
         return ret.join(join || ',')
     }
 };
-
 ;// CONCATENATED MODULE: ./src/jsx/index.js
 
 
 
 function parseJSX(jsx, obj, config)
 {
-	return evaluate(jsx, obj, config);
+    return evaluate(jsx, obj, config);
 }
 
 function jsx(str, vars)
 {
-	if (!is_undefined(vars) && !is_object(vars))
-	{
-		throw new Error('Variables should be supplied to [jsx] as an object e.g [jsx("<div class={name} />", {name: "foo"})]');
-	}
+    if (!is_undefined(vars) && !is_object(vars))
+    {
+        throw new Error('Variables should be supplied to [jsx] as an object e.g [jsx("<div class={name} />", {name: "foo"})]');
+    }
 
-	return evaluate(str, vars);
+    return evaluate(str, vars);
 }
 
 function register(component, key)
 {
-	key = is_undefined(key) ? callable_name(component) : key;
+    key = is_undefined(key) ? callable_name(component) : key;
 
-	COMPONENT_CACHE[key] = component;
+    COMPONENT_CACHE[key] = component;
 }
 ;// CONCATENATED MODULE: ./src/compat/Component.js
 
@@ -2340,11 +2446,10 @@ class Component
      *
      * @var {object}
      */
-    __internals = 
-    {
-        vnode     : null,
-        prevState : {},
-        prevProps : {},
+    __internals = {
+        vnode: null,
+        prevState: {},
+        prevProps: {},
     };
 
     /**
@@ -2385,7 +2490,7 @@ class Component
         utils.foreach(stateChanges, function(key, value)
         {
             utils.array_set(key, value, this.state);
-            
+
         }, this);
 
         if (!utils.is_equal(this.state, this.__internals.prevState))
@@ -2403,7 +2508,7 @@ class Component
     {
         const context = renderContext(this);
 
-        return parseJSX(jsx, {...context, this: this});
+        return parseJSX(jsx, { ...context, this: this });
     }
 
     forceUpdate()
@@ -2420,7 +2525,7 @@ class Component
  * @class
  */
 class Fragment extends Component
-{    
+{
     constructor(props)
     {
         super(props);
@@ -2430,8 +2535,7 @@ class Fragment extends Component
 
 
 
-const renderQueue = 
-{
+const renderQueue = {
     current: null
 };
 
@@ -2441,22 +2545,21 @@ function useState(initial)
 
     if (!renderQueue.current.hooks[i])
     {
-        renderQueue.current.hooks[i] =
-        {
+        renderQueue.current.hooks[i] = {
             state: transformState(initial)
         };
     }
 
     const thisHookContext = renderQueue.current;
-    
+
     return [
-        
+
         renderQueue.current.hooks[i].state,
-        
+
         useCallback(newState =>
         {
-            thisHookContext.hooks[i].state = transformState(newState, thisHookContext.hooks[i].state );
-            
+            thisHookContext.hooks[i].state = transformState(newState, thisHookContext.hooks[i].state);
+
             thisHookContext.forceUpdate();
 
         }, [])
@@ -2475,12 +2578,12 @@ function useMemo(factory, deps)
         !renderQueue.current.hooks[i] ||
         !deps ||
         !is_equal(deps, renderQueue.current.hookDeps[i])
-        )
+    )
     {
         renderQueue.current.hooks[i] = factory();
         renderQueue.current.hookDeps[i] = deps;
     }
-    
+
     return renderQueue.current.hooks[i];
 }
 
@@ -2497,7 +2600,6 @@ function transformState(state, prevState)
 }
 
 // end HOOKS
-
 ;// CONCATENATED MODULE: ./src/compat/functionalComponent.js
 
 
@@ -2541,7 +2643,7 @@ class FunctionalComponent extends Component
         for (let i = 0; i < this.hooks.length; ++i)
         {
             const effect = this.layoutEffects[i];
-            
+
             if (effect)
             {
                 try
@@ -2560,7 +2662,7 @@ class FunctionalComponent extends Component
         for (let i = 0; i < this.hooks.length; ++i)
         {
             const cleanup = this.hooksCleanups[i];
-            
+
             if (cleanup)
             {
                 try
@@ -2579,9 +2681,9 @@ class FunctionalComponent extends Component
         try
         {
             renderQueue.current = this;
-            
+
             this.hookIndex = 0;
-            
+
             return this.__internals._fn(this.props);
         }
         finally
@@ -2597,7 +2699,7 @@ class FunctionalComponent extends Component
  * @class
  */
 function functionalComponent(fn)
-{   
+{
     const factory = function(props)
     {
         let component = new FunctionalComponent(fn, props);
@@ -2607,7 +2709,6 @@ function functionalComponent(fn)
 
     return factory;
 }
-
 ;// CONCATENATED MODULE: ./src/compat/index.js
 
 
@@ -2621,15 +2722,16 @@ function functionalComponent(fn)
 /**
  * JSX create element.
  *  
- * @param   {HTMLElement}         htmlRootEl  Root html element
- * @param   {object | undefined}  options     Options (optional)
- * @returns {import('./root').Root}
+ * @param   {string | function}   tag         Root html element
+ * @param   {object | undefined}  props       Tag props / attributes
+ * @param   {array | undefined}  ...children  Tag children (recursive)
+ * @returns {object}
  */
 function createElement(tag, props, ...children)
 {
     if (arguments.length === 0)
     {
-        return createEmptyElement();
+        return createEmptyVnode();
     }
 
     let normalizedProps = {},
@@ -2682,7 +2784,7 @@ function createElement(tag, props, ...children)
             return createFunctionalThunk(tag, normalizedProps, children, key, ref);
         }
 
-        return createThunkElement(tag, normalizedProps, children, key, ref);
+        return createThunkVnode(tag, normalizedProps, children, key, ref);
     }
 
     return {
@@ -2702,16 +2804,16 @@ function createElement(tag, props, ...children)
 
 /**
  * Cleans up the array of child elements.
+ * 
  * - Flattens nested arrays
  * - Flattens nested fragments
  * - Converts raw strings and numbers into vnodes
  * - Filters out undefined elements
- * - Fragments that are nested inside an normal node
- * - are essentially just array containers, so they get flattened here.
- * - if a component returns a fragment however that gets handled
- * - during the commit/patch/create stages.
+ *  
+ * @param   {array}                children   Child vnodes
+ * @param   {boolean | undefined}  checkKeys  Check keys on child when a fragment is found
+ * @returns {array}
  */
-
 function normaliseChildren(children, checkKeys)
 {
     checkKeys = utils.is_undefined(checkKeys) ? false : checkKeys;
@@ -2726,7 +2828,7 @@ function normaliseChildren(children, checkKeys)
         {
             if (utils.is_null(vnode) || utils.is_undefined(vnode))
             {
-                ret.push(createEmptyElement());
+                ret.push(createEmptyVnode());
             }
             else if (checkKeys && !vnode.key)
             {
@@ -2734,7 +2836,7 @@ function normaliseChildren(children, checkKeys)
             }
             else if (utils.is_string(vnode) || utils.is_number(vnode))
             {
-                ret.push(createTextElement(vnode, null));
+                ret.push(createTextVnode(vnode, null));
             }
             else if (utils.is_array(vnode))
             {
@@ -2755,9 +2857,16 @@ function normaliseChildren(children, checkKeys)
         });
     }
 
-    return utils.is_empty(ret) ? [createEmptyElement()] : filterChildren(ret);
+    return utils.is_empty(ret) ? [createEmptyVnode()] : filterChildren(ret);
 }
 
+/**
+ * Squashes a fragment into stack and applies special fragment keys to it.
+ *  
+ * @param {object}  fragment  Fragment Vnode
+ * @param {array}   ret       Return array to modify
+ * @param {number}  fCount    Number of direct fragment childs in parent
+ */
 function squashFragment(fragment, ret, fCount)
 {
     let basekey = !fragment.key ? `f_${fCount}` : fragment.key;
@@ -2775,6 +2884,14 @@ function squashFragment(fragment, ret, fCount)
 /**
  * If a node comprises of multiple empty children, filter
  * children and return only a single "empty" child
+ */
+
+/**
+ * Ensures we return only a single empty Vnode child (instead of multiple) when
+ * children are empty
+ *  
+ * @param   {array}  children  Child Vnodes
+ * @returns {array}
  */
 function filterChildren(children)
 {
@@ -2795,10 +2912,13 @@ function filterChildren(children)
 }
 
 /**
- * Text nodes are stored as objects to keep things simple
+ * Creates text Vnode.
+ *  
+ * @param   {string}              text Node text 
+ * @param   {string | undefined}  key  Node key   
+ * @returns {object}
  */
-
-function createTextElement(text, key)
+function createTextVnode(text, key)
 {
     text = utils.is_string(text) ? text : text + '';
 
@@ -2814,10 +2934,11 @@ function createTextElement(text, key)
 }
 
 /**
- * Text nodes are stored as objects to keep things simple
+ * Creates empty Vnode.
+ * 
+ * @returns {object}
  */
-
-function createEmptyElement()
+function createEmptyVnode()
 {
     return {
         type: 'empty',
@@ -2830,10 +2951,16 @@ function createEmptyElement()
 }
 
 /**
- * Lazily-rendered virtual nodes
+ * Creates thunk Vnode with component class.
+ * 
+ * @param   {function}            fn        Component function
+ * @param   {object}              props     Component props
+ * @param   {array}               children  Vnode children
+ * @param   {string | undefined}  key       Node key
+ * @param   {object | undefined}  ref       Node ref   
+ * @returns {object}
  */
-
-function createThunkElement(fn, props, children, key, ref)
+function createThunkVnode(fn, props, children, key, ref)
 {
     let _type = utils.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
 
@@ -2854,9 +2981,15 @@ function createThunkElement(fn, props, children, key, ref)
 }
 
 /**
- * Lazily-rendered virtual nodes
+ * Creates thunk Vnode with function.
+ * 
+ * @param   {function}            fn        Component function
+ * @param   {object}              props     Component props
+ * @param   {array}               children  Vnode children
+ * @param   {string | undefined}  key       Node key
+ * @param   {object | undefined}  ref       Node ref   
+ * @returns {object}
  */
-
 function createFunctionalThunk(fn, props, children, key, ref)
 {
     let func = functionalComponent(fn);
@@ -2887,11 +3020,11 @@ function createFunctionalThunk(fn, props, children, key, ref)
 /**
  * Patch left to right
  * 
-*/
+ */
 function patch(prevNode, nextNode, actions)
-{       
+{
     actions = utils.is_undefined(actions) ? [] : actions;
-    
+
     // Same nothing to do
     if (prevNode === nextNode)
     {
@@ -2924,7 +3057,7 @@ function patch(prevNode, nextNode, actions)
 }
 
 function patchText(left, right, actions)
-{ 
+{
     if (right.nodeValue !== left.nodeValue)
     {
         let text = right.nodeValue.slice();
@@ -2935,7 +3068,7 @@ function patchText(left, right, actions)
 
 // Replacing one node with another
 function replaceNode(left, right, actions)
-{        
+{
     if (isThunk(right))
     {
         if (isThunkInstantiated(right))
@@ -2968,10 +3101,10 @@ function patchNative(left, right, actions)
 }
 
 function patchThunk(left, right, actions)
-{ 
+{
     // Same component 
     if (isSameThunk(left, right))
-    {        
+    {
         patchThunkProps(left, right.props);
 
         diffThunk(left, right, actions);
@@ -2988,7 +3121,7 @@ function patchThunk(left, right, actions)
 }
 
 function patchThunkProps(vnode, newProps)
-{    
+{
     let component = nodeComponent(vnode);
 
     component.__internals.prevProps = utils.cloneDeep(vnode.props);
@@ -2999,8 +3132,8 @@ function patchThunkProps(vnode, newProps)
 }
 
 function diffThunk(left, right, actions)
-{    
-    let component  = nodeComponent(left);
+{
+    let component = nodeComponent(left);
     let rightchild = thunkRender(component);
     right.children = [rightchild];
 
@@ -3015,7 +3148,7 @@ function patchFragment(left, right, actions)
 /**
  * Less expensive patch before diff if possible
  * 
-*/
+ */
 function patchChildren(left, right, actions)
 {
     let lChildren = left.children;
@@ -3050,10 +3183,10 @@ function patchChildren(left, right, actions)
     }
     // There's only a single child in previous tree
     else if (singleChild(left))
-    {        
+    {
         // Both have a single node
         if (singleChild(right))
-        {                    
+        {
             // left and right could be the same / different type, so we need to patch them
             patch(lChildren[0], rChildren[0], actions);
         }
@@ -3067,7 +3200,7 @@ function patchChildren(left, right, actions)
         else
         {
             // Keys and positions haven't changed
-            if (lChildren[0].key === rChildren[0].key) 
+            if (lChildren[0].key === rChildren[0].key)
             {
                 patch(lChildren[0], rChildren[0], actions);
 
@@ -3096,7 +3229,7 @@ function patchChildren(left, right, actions)
             utils.foreach(lChildren, function(i, lChild)
             {
                 if (lChild.key === rChildren[0].key)
-                {                    
+                {
                     patch(lChild, rChildren[0], actions);
 
                     matchedKey = true;
@@ -3134,11 +3267,11 @@ function patchChildren(left, right, actions)
 }
 
 function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
-{        
+{
     // We need to compare keys and check if one
-    let lKey      = lChild.key;
-    let rChild    = null;
-    let newIndex  = 0;
+    let lKey = lChild.key;
+    let rChild = null;
+    let newIndex = 0;
 
     // Append remaining children
     utils.foreach(rChildren, function(i, child)
@@ -3151,7 +3284,7 @@ function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
             if (i !== 0)
             {
                 rChild = child;
-                newIndex  = i;
+                newIndex = i;
             }
             // Otherwise we just patch it now
             else
@@ -3189,7 +3322,7 @@ function diffChildren(left, right, actions)
     let rKeys = Object.keys(rGroup);
 
     if (utils.is_equal(lKeys, rKeys))
-    {        
+    {
         utils.foreach(right.children, function(i, rChild)
         {
             patch(left.children[i], rChild, actions);
@@ -3197,7 +3330,7 @@ function diffChildren(left, right, actions)
 
         return;
     }
-   
+
     // Loop right children
     // Note insertAtIndex & removeChild to be executed before moveToIndex
     // otherwise moveToIndex will be incorrect
@@ -3210,7 +3343,7 @@ function diffChildren(left, right, actions)
         let rIndex = entry.index;
         let rChild = entry.child;
         let lEntry = lGroup[_key];
-        
+
         // New node either by key or > index
         if (utils.is_undefined(lEntry))
         {
@@ -3224,7 +3357,7 @@ function diffChildren(left, right, actions)
             {
                 subActions.splice(inserted, 0, _insert);
             }
-            
+
             inserted++;
         }
         // Same key, check index
@@ -3237,7 +3370,7 @@ function diffChildren(left, right, actions)
             // Different indexes
             // move then patch
             if (lEntry.index !== rIndex)
-            {    
+            {
                 subActions.push(action('moveToIndex', [left, lChild, rIndex]));
 
                 patch(lChild, rChild, actions);
@@ -3275,7 +3408,7 @@ function diffChildren(left, right, actions)
 
 function groupByKey(children)
 {
-    let ret   = {};
+    let ret = {};
     let thunks = {};
 
     utils.foreach(children, function(i, child)
@@ -3305,8 +3438,7 @@ function groupByKey(children)
             key = !key ? ('|' + i) : key;
         }
 
-        ret[key] =
-        {
+        ret[key] = {
             index: i,
             child,
         };
@@ -3325,7 +3457,7 @@ function diffAttributes(left, right, actions)
     {
         return;
     }
-    
+
     utils.foreach(nAttrs, function(prop, value)
     {
         if (!utils.is_equal(value, pAttrs[prop]))
@@ -3345,7 +3477,6 @@ function diffAttributes(left, right, actions)
     // Patch in new attributes
     nodeAttributes(left, nAttrs);
 }
-
 ;// CONCATENATED MODULE: ./src/vdom/thunk.js
 
 
@@ -3375,9 +3506,9 @@ function thunkInstantiate(vnode)
 function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
-    let left      = vnode.children[0];
-    let right     = jsxFactory(component);
-    let actions   = tree(left, right);
+    let left = vnode.children[0];
+    let right = jsxFactory(component);
+    let actions = tree(left, right);
 
     if (!utils.is_empty(actions.current))
     {
@@ -3391,10 +3522,9 @@ function thunkRender(component)
 }
 
 function tree(left, right)
-{ 
-    let actions = 
-    {
-        current : []
+{
+    let actions = {
+        current: []
     };
 
     patch(left, right, actions.current);
@@ -3403,7 +3533,7 @@ function tree(left, right)
 }
 
 function jsxFactory(component)
-{    
+{
     if (component.__internals._fn)
     {
         return component.render();
@@ -3418,7 +3548,7 @@ function jsxFactory(component)
 
     const context = renderContext(component);
 
-    const result = parseJSX(jsx, {...context, this: component });
+    const result = parseJSX(jsx, { ...context, this: component });
 
     if (utils.is_array(result))
     {
@@ -3430,7 +3560,7 @@ function jsxFactory(component)
 
 function renderContext(component)
 {
-    let ret   = {};
+    let ret = {};
     let props = utils.object_props(component);
 
     utils.foreach(props, function(i, prop)
@@ -3443,7 +3573,6 @@ function renderContext(component)
 
     return ret;
 }
-
 ;// CONCATENATED MODULE: ./src/vdom/index.js
 
 
@@ -3601,7 +3730,7 @@ function collectGarbage()
     for (var eventName in events)
     {
         var eventObj = events[eventName];
-        
+
         var i = eventObj.length;
 
         while (i--)
@@ -3613,11 +3742,11 @@ function collectGarbage()
             {
                 continue;
             }
-            
+
             if (!_.in_dom(el))
             {
                 _removeListener(eventObj[i]['element'], eventName, eventObj[i]['handler'], eventObj[i]['useCapture']);
-                
+
                 _events[eventName].splice(i, 1);
             }
         }
@@ -3645,7 +3774,7 @@ function _removeElementListeners(element)
             if (eventObj[i]['element'] === element)
             {
                 _removeListener(eventObj[i]['element'], eventName, eventObj[i]['handler'], eventObj[i]['useCapture']);
-                
+
                 _events[eventName].splice(i, 1);
             }
         }
@@ -3670,7 +3799,7 @@ function _removeElementTypeListeners(element, type)
         if (eventObj[i]['element'] === element)
         {
             _removeListener(eventObj[i]['element'], type, eventObj[i]['handler'], eventObj[i]['useCapture']);
-            
+
             _events[type].splice(i, 1);
         }
     }
@@ -3728,8 +3857,7 @@ function _removeListener(el, eventName, handler, useCapture)
  *
  * @var array
  */
-const CSS_PREFIXES =
-[
+const CSS_PREFIXES = [
     'webkit',
     'Moz',
     'ms',
@@ -3741,8 +3869,7 @@ const CSS_PREFIXES =
  *
  * @var array
  */
-const CSS_PREFIXABLE =
-[
+const CSS_PREFIXABLE = [
     // transitions
     'transition',
     'transition-delay',
@@ -3765,7 +3892,7 @@ const CSS_PREFIXABLE =
 ];
 
 function setDomAttribute(DOMElement, name, value, previousValue)
-{    
+{
     switch (name)
     {
         // Skip
@@ -3773,9 +3900,9 @@ function setDomAttribute(DOMElement, name, value, previousValue)
         case 'ref':
             break;
 
-        // Style
+            // Style
         case 'style':
-            
+
             if (utils.is_empty(value))
             {
                 // remove all styles completely
@@ -3804,16 +3931,16 @@ function setDomAttribute(DOMElement, name, value, previousValue)
                     css(DOMElement, prop, value);
                 });
             }
-            
+
             break;
-        
-        // Class
+
+            // Class
         case 'class':
         case 'className':
             DOMElement.className = value;
             break;
 
-        // Events / attributes
+            // Events / attributes
         default:
             if (name[0] === 'o' && name[1] === 'n')
             {
@@ -3825,7 +3952,7 @@ function setDomAttribute(DOMElement, name, value, previousValue)
                 {
                     addEventListener(DOMElement, name.slice(2).toLowerCase(), value);
                 }
-             }
+            }
             else
             {
                 switch (name)
@@ -3845,7 +3972,7 @@ function setDomAttribute(DOMElement, name, value, previousValue)
                         break;
                 }
             }
-        break;
+            break;
     }
 }
 
@@ -3858,18 +3985,18 @@ function removeDomAttribute(DOMElement, name, previousValue)
         case 'ref':
             break;
 
-        // Class
+            // Class
         case 'class':
         case 'className':
             DOMElement.className = '';
             break;
 
-        // Events / attributes
+            // Events / attributes
         default:
             if (name[0] === 'o' && name[1] === 'n')
             {
                 if (previousValue)
-                {       
+                {
                     removeEventListener(DOMElement, name.slice(2).toLowerCase(), previousValue);
                 }
             }
@@ -3886,13 +4013,13 @@ function removeDomAttribute(DOMElement, name, previousValue)
                     case 'nodeValue':
                     case 'value':
                         DOMElement[name] = ''
-                      break
+                        break
                     default:
                         DOMElement.removeAttribute(name)
-                    break;
+                        break;
                 }
             }
-        break;
+            break;
     }
 
 }
@@ -3983,7 +4110,6 @@ function _ucfirst(string)
 {
     return (string + '').charAt(0).toUpperCase() + string.slice(1);
 }
-
 ;// CONCATENATED MODULE: ./src/dom/create.js
 
 
@@ -3997,21 +4123,21 @@ function _ucfirst(string)
  */
 
 function createDomElement(vnode, parentDOMElement)
-{        
+{
     switch (vnode.type)
     {
         case 'text':
             return createTextNode(vnode, vnode.nodeValue);
-        
+
         case 'empty':
             return createTextNode(vnode, '');
-        
+
         case 'thunk':
             return flatten(createThunk(vnode, parentDOMElement));
-        
+
         case 'fragment':
             return flatten(createFragment(vnode, parentDOMElement));
-        
+
         case 'native':
             return flatten(createHTMLElement(vnode));
     }
@@ -4066,7 +4192,7 @@ function createHTMLElement(vnode)
     utils.foreach(children, function(i, child)
     {
         if (!utils.is_empty(child))
-        {                        
+        {
             let childDOMElem = createDomElement(child, DOMElement);
 
             // Returns a fragment
@@ -4086,7 +4212,7 @@ function createHTMLElement(vnode)
 
 /* Handles nested fragments */
 function appendFragment(parentDOMElement, children)
-{    
+{
     if (utils.is_array(children))
     {
         utils.foreach(children, function(i, child)
@@ -4105,7 +4231,7 @@ function createThunk(vnode, parentDOMElement)
 {
     // Skip this it's already been rendered if it's coming from a patch
     if (isThunkInstantiated(vnode))
-    {        
+    {
         console.log('already instantiated');
 
         let DOMElement = createDomElement(vnode.children[0]);
@@ -4127,7 +4253,7 @@ function createThunk(vnode, parentDOMElement)
 }
 
 function createFragment(vnode, parentDOMElement)
-{    
+{
     let ret = [];
 
     utils.foreach(vnode.children, function(i, child)
@@ -4137,7 +4263,6 @@ function createFragment(vnode, parentDOMElement)
 
     return ret;
 }
-
 ;// CONCATENATED MODULE: ./src/dom/commit.js
 
 
@@ -4155,8 +4280,8 @@ function commit(actions)
 {
     utils.foreach(actions, function(i, action)
     {
-        let {callback, args } = action;
-        
+        let { callback, args } = action;
+
         callback.apply(null, args);
     });
 }
@@ -4186,8 +4311,8 @@ function commit_replaceNode(left, right)
 
     removeEvents(left);
 
-    let rDOMElement      = createDomElement(right);
-    let lDOMElement      = nodeElem(left);
+    let rDOMElement = createDomElement(right);
+    let lDOMElement = nodeElem(left);
     let parentDOMElement = parentElem(left);
 
     // We don't care if left or right is a thunk or fragment here
@@ -4276,7 +4401,7 @@ function appendChild(parentVnode, vnode)
     if (utils.is_array(DOMElement))
     {
         utils.foreach(DOMElement, function(i, child)
-        {                
+        {
             parentDOMElement.appendChild(child);
         });
     }
@@ -4356,13 +4481,13 @@ function removeEvents(vnode)
 
 function insertAtIndex(parentVnode, vnode, index)
 {
-    let vIndex           = index;
-    let dIndex           = childDomIndex(parentVnode, index);
-    let DOMElement       = createDomElement(vnode);
+    let vIndex = index;
+    let dIndex = childDomIndex(parentVnode, index);
+    let DOMElement = createDomElement(vnode);
     let parentDOMElement = nodeElemParent(parentVnode);
 
     if (utils.is_array(DOMElement))
-    {        
+    {
         utils.foreach(DOMElement, function(i, child)
         {
             if (dIndex >= parentDOMElement.children.length)
@@ -4370,7 +4495,7 @@ function insertAtIndex(parentVnode, vnode, index)
                 parentDOMElement.appendChild(child);
             }
             else
-            {                
+            {
                 parentDOMElement.insertBefore(child, parentDOMElement.children[dIndex]);
             }
 
@@ -4394,13 +4519,13 @@ function insertAtIndex(parentVnode, vnode, index)
 
 function moveToIndex(parentVnode, vnode, index)
 {
-    let vIndex           = index;
-    let dIndex           = childDomIndex(parentVnode, index);
-    let DOMElement       = nodeElem(vnode);
-    let isFragment       = utils.is_array(DOMElement);
+    let vIndex = index;
+    let dIndex = childDomIndex(parentVnode, index);
+    let DOMElement = nodeElem(vnode);
+    let isFragment = utils.is_array(DOMElement);
     let parentDOMElement = nodeElemParent(parentVnode);
-    let currIndex        = isFragment ? Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement[0]) : Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement);
-    
+    let currIndex = isFragment ? Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement[0]) : Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement);
+
     if (isFragment)
     {
         moveFragmentDomEls(parentDOMElement, DOMElement, dIndex, currIndex);
@@ -4411,7 +4536,7 @@ function moveToIndex(parentVnode, vnode, index)
     // Nothing to do
     if (currIndex === dIndex || (dIndex === 0 && parentDOMElement.children.length === 0))
     {
-        
+
     }
     // Move to start
     else if (dIndex === 0)
@@ -4420,7 +4545,7 @@ function moveToIndex(parentVnode, vnode, index)
     }
     // Move to end
     else if (dIndex >= parentDOMElement.children.length)
-    { 
+    {
         parentDOMElement.removeChild(DOMElement);
         parentDOMElement.appendChild(DOMElement);
     }
@@ -4430,7 +4555,7 @@ function moveToIndex(parentVnode, vnode, index)
     }
 
     // Move vnode
-    let vChildren  = parentVnode.children;
+    let vChildren = parentVnode.children;
     let vCurrIndex = vChildren.indexOf(vnode);
 
     // Do nothing
@@ -4445,13 +4570,13 @@ function moveToIndex(parentVnode, vnode, index)
 }
 
 function moveFragmentDomEls(parentDOMElement, DOMElements, index, currIndex)
-{    
+{
     // Nothing to do
     if (currIndex === index || (index === 0 && parentDOMElement.children.length === 0))
     {
         return;
     }
-    
+
     // Move to start
     if (index === 0)
     {
@@ -4462,7 +4587,7 @@ function moveFragmentDomEls(parentDOMElement, DOMElements, index, currIndex)
     }
     // Move to end
     else if (index >= parentDOMElement.children.length)
-    { 
+    {
         utils.foreach(DOMElements, function(i, child)
         {
             parentDOMElement.removeChild(child);
@@ -4490,8 +4615,7 @@ function removeAttribute(vnode, name, previousValue)
     removeDomAttribute(nodeElem(vnode), name, previousValue)
 }
 
-const ACTION_MAP =
-{
+const ACTION_MAP = {
     replaceNode: commit_replaceNode,
     appendChild,
     removeChild,
@@ -4503,7 +4627,7 @@ const ACTION_MAP =
 };
 
 function action(name, args)
-{   
+{
     let callback = ACTION_MAP[name];
 
     return {
@@ -4511,7 +4635,6 @@ function action(name, args)
         args
     };
 }
-
 ;// CONCATENATED MODULE: ./src/dom/index.js
 
 
@@ -4539,7 +4662,7 @@ class Root
      * @param {object | undefined}  options     Options (optional)
      */
     constructor(htmlRootEl, options)
-    {        
+    {
         this.htmlRootEl = htmlRootEl;
 
         this.options = options;
@@ -4582,7 +4705,7 @@ class Root
      */
     __patchRoot()
     {
-        let actions =  { current : [] };
+        let actions = { current: [] };
 
         patch(this.htmlRootEl._reactiflyRootVnode, createElement(this.component), actions.current);
 
@@ -4614,7 +4737,7 @@ class Root
      *
      */
     __mount(DOMElement)
-    {        
+    {
         let _this = this;
 
         let parent = this.htmlRootEl;
@@ -4626,7 +4749,7 @@ class Root
             {
                 if (utils.is_array(childDomElement))
                 {
-                   _this.__mount(childDomElement, parent);
+                    _this.__mount(childDomElement, parent);
                 }
                 else
                 {
@@ -4643,7 +4766,6 @@ class Root
         }
     }
 }
-
 ;// CONCATENATED MODULE: ./src/render/index.js
 
 
@@ -4667,12 +4789,11 @@ function createRoot(htmlRootEl, options)
  * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
  */
 function render(component, htmlRootEl, rootProps)
-{       
+{
     let root = createRoot(htmlRootEl);
 
     root.render(component, rootProps);
 }
-
 ;// CONCATENATED MODULE: ./src/index.js
 
 

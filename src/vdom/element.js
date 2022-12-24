@@ -5,15 +5,16 @@ import _ from '../utils/index';
 /**
  * JSX create element.
  *  
- * @param   {HTMLElement}         htmlRootEl  Root html element
- * @param   {object | undefined}  options     Options (optional)
- * @returns {import('./root').Root}
+ * @param   {string | function}   tag         Root html element
+ * @param   {object | undefined}  props       Tag props / attributes
+ * @param   {array | undefined}  ...children  Tag children (recursive)
+ * @returns {object}
  */
 export function createElement(tag, props, ...children)
 {
     if (arguments.length === 0)
     {
-        return createEmptyElement();
+        return createEmptyVnode();
     }
 
     let normalizedProps = {},
@@ -66,7 +67,7 @@ export function createElement(tag, props, ...children)
             return createFunctionalThunk(tag, normalizedProps, children, key, ref);
         }
 
-        return createThunkElement(tag, normalizedProps, children, key, ref);
+        return createThunkVnode(tag, normalizedProps, children, key, ref);
     }
 
     return {
@@ -86,16 +87,16 @@ export function createElement(tag, props, ...children)
 
 /**
  * Cleans up the array of child elements.
+ * 
  * - Flattens nested arrays
  * - Flattens nested fragments
  * - Converts raw strings and numbers into vnodes
  * - Filters out undefined elements
- * - Fragments that are nested inside an normal node
- * - are essentially just array containers, so they get flattened here.
- * - if a component returns a fragment however that gets handled
- * - during the commit/patch/create stages.
+ *  
+ * @param   {array}                children   Child vnodes
+ * @param   {boolean | undefined}  checkKeys  Check keys on child when a fragment is found
+ * @returns {array}
  */
-
 function normaliseChildren(children, checkKeys)
 {
     checkKeys = _.is_undefined(checkKeys) ? false : checkKeys;
@@ -110,7 +111,7 @@ function normaliseChildren(children, checkKeys)
         {
             if (_.is_null(vnode) || _.is_undefined(vnode))
             {
-                ret.push(createEmptyElement());
+                ret.push(createEmptyVnode());
             }
             else if (checkKeys && !vnode.key)
             {
@@ -118,7 +119,7 @@ function normaliseChildren(children, checkKeys)
             }
             else if (_.is_string(vnode) || _.is_number(vnode))
             {
-                ret.push(createTextElement(vnode, null));
+                ret.push(createTextVnode(vnode, null));
             }
             else if (_.is_array(vnode))
             {
@@ -139,9 +140,16 @@ function normaliseChildren(children, checkKeys)
         });
     }
 
-    return _.is_empty(ret) ? [createEmptyElement()] : filterChildren(ret);
+    return _.is_empty(ret) ? [createEmptyVnode()] : filterChildren(ret);
 }
 
+/**
+ * Squashes a fragment into stack and applies special fragment keys to it.
+ *  
+ * @param {object}  fragment  Fragment Vnode
+ * @param {array}   ret       Return array to modify
+ * @param {number}  fCount    Number of direct fragment childs in parent
+ */
 function squashFragment(fragment, ret, fCount)
 {
     let basekey = !fragment.key ? `f_${fCount}` : fragment.key;
@@ -159,6 +167,14 @@ function squashFragment(fragment, ret, fCount)
 /**
  * If a node comprises of multiple empty children, filter
  * children and return only a single "empty" child
+ */
+
+/**
+ * Ensures we return only a single empty Vnode child (instead of multiple) when
+ * children are empty
+ *  
+ * @param   {array}  children  Child Vnodes
+ * @returns {array}
  */
 function filterChildren(children)
 {
@@ -179,10 +195,13 @@ function filterChildren(children)
 }
 
 /**
- * Text nodes are stored as objects to keep things simple
+ * Creates text Vnode.
+ *  
+ * @param   {string}              text Node text 
+ * @param   {string | undefined}  key  Node key   
+ * @returns {object}
  */
-
-function createTextElement(text, key)
+function createTextVnode(text, key)
 {
     text = _.is_string(text) ? text : text + '';
 
@@ -198,10 +217,11 @@ function createTextElement(text, key)
 }
 
 /**
- * Text nodes are stored as objects to keep things simple
+ * Creates empty Vnode.
+ * 
+ * @returns {object}
  */
-
-function createEmptyElement()
+function createEmptyVnode()
 {
     return {
         type: 'empty',
@@ -214,10 +234,16 @@ function createEmptyElement()
 }
 
 /**
- * Lazily-rendered virtual nodes
+ * Creates thunk Vnode with component class.
+ * 
+ * @param   {function}            fn        Component function
+ * @param   {object}              props     Component props
+ * @param   {array}               children  Vnode children
+ * @param   {string | undefined}  key       Node key
+ * @param   {object | undefined}  ref       Node ref   
+ * @returns {object}
  */
-
-function createThunkElement(fn, props, children, key, ref)
+function createThunkVnode(fn, props, children, key, ref)
 {
     let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
 
@@ -238,9 +264,15 @@ function createThunkElement(fn, props, children, key, ref)
 }
 
 /**
- * Lazily-rendered virtual nodes
+ * Creates thunk Vnode with function.
+ * 
+ * @param   {function}            fn        Component function
+ * @param   {object}              props     Component props
+ * @param   {array}               children  Vnode children
+ * @param   {string | undefined}  key       Node key
+ * @param   {object | undefined}  ref       Node ref   
+ * @returns {object}
  */
-
 function createFunctionalThunk(fn, props, children, key, ref)
 {
     let func = functionalComponent(fn);
