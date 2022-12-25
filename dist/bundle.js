@@ -2322,11 +2322,6 @@ function genDepencies(obj)
         obj.props = RENDER_QUEUE.current.props;
     }
 
-    if (RENDER_QUEUE.current && RENDER_QUEUE.current.props && !obj['this'].props)
-    {
-        obj.props = RENDER_QUEUE.current.props;
-    }
-
     return obj;
 }
 
@@ -3211,44 +3206,54 @@ function createFunctionalThunk(fn, props, children, key, ref)
 
 
 /**
- * Patch left to right
+ * Patch previous/next render Vnodes (Recursive).
  * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
  */
-function patch(prevNode, nextNode, actions)
+function patch(left, right, actions)
 {
     actions = utils.is_undefined(actions) ? [] : actions;
 
     // Same nothing to do
-    if (prevNode === nextNode)
+    if (left === right)
     {
         // nothing to do
     }
-    else if (prevNode.type !== nextNode.type)
+    else if (left.type !== right.type)
     {
-        replaceNode(prevNode, nextNode, actions);
+        replaceNode(left, right, actions);
     }
-    else if (isNative(nextNode))
+    else if (isNative(right))
     {
-        patchNative(prevNode, nextNode, actions);
+        patchNative(left, right, actions);
     }
-    else if (isText(nextNode))
+    else if (isText(right))
     {
-        patchText(prevNode, nextNode, actions);
+        patchText(left, right, actions);
     }
-    else if (isThunk(nextNode))
+    else if (isThunk(right))
     {
-        patchThunk(prevNode, nextNode, actions);
+        patchThunk(left, right, actions);
     }
-    else if (isFragment(nextNode))
+    else if (isFragment(right))
     {
-        patchFragment(prevNode, nextNode, actions);
+        patchFragment(left, right, actions);
     }
-    else if (isEmpty(nextNode))
+    else if (isEmpty(right))
     {
-        replaceNode(prevNode, nextNode, actions);
+        replaceNode(left, right, actions);
     }
 }
 
+/**
+ * Patch text Vnode.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchText(left, right, actions)
 {
     if (right.nodeValue !== left.nodeValue)
@@ -3259,7 +3264,13 @@ function patchText(left, right, actions)
     }
 }
 
-// Replacing one node with another
+/**
+ * Replace Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function replaceNode(left, right, actions)
 {
     if (isThunk(right))
@@ -3279,6 +3290,13 @@ function replaceNode(left, right, actions)
     actions.push(action('replaceNode', [left, right]));
 }
 
+/**
+ * Patch native Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchNative(left, right, actions)
 {
     if (left.tagName !== right.tagName)
@@ -3293,6 +3311,13 @@ function patchNative(left, right, actions)
     }
 }
 
+/**
+ * Patch thunk Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchThunk(left, right, actions)
 {
     // Same component 
@@ -3313,6 +3338,12 @@ function patchThunk(left, right, actions)
     }
 }
 
+/**
+ * Patch thunk props.
+ * 
+ * @param {object}  vnode
+ * @param {object}  newProps
+ */
 function patchThunkProps(vnode, newProps)
 {
     let component = nodeComponent(vnode);
@@ -3324,6 +3355,13 @@ function patchThunkProps(vnode, newProps)
     vnode.props = newProps;
 }
 
+/**
+ * Diff thunk Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function diffThunk(left, right, actions)
 {
     let component = nodeComponent(left);
@@ -3333,14 +3371,26 @@ function diffThunk(left, right, actions)
     patchChildren(left, right, actions);
 }
 
+/**
+ * Patch fragment Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchFragment(left, right, actions)
 {
     patchChildren(left, right, actions);
 }
 
 /**
- * Less expensive patch before diff if possible
+ * Patch Vnode children.
  * 
+ * This is a less expensive pre-patch before diffing is needed if possible
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
  */
 function patchChildren(left, right, actions)
 {
@@ -3459,6 +3509,15 @@ function patchChildren(left, right, actions)
     }
 }
 
+/**
+ * Patch single to multiple children
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {object}  lChild
+ * @param {array}   rChildren
+ * @param {array}   actions
+ */
 function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
 {
     // We need to compare keys and check if one
@@ -3500,6 +3559,13 @@ function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
     }
 }
 
+/**
+ * Diff children.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function diffChildren(left, right, actions)
 {
     let lGroup = groupByKey(left.children);
@@ -3640,6 +3706,13 @@ function groupByKey(children)
     return ret;
 }
 
+/**
+ * Diff native attributes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function diffAttributes(left, right, actions)
 {
     let pAttrs = left.attributes;
@@ -3679,6 +3752,12 @@ function diffAttributes(left, right, actions)
 
 
 
+/**
+ * Instantiate thunk component.
+ * 
+ * @param   {object}  vnode
+ * @returns {import('../compat/Compoent').Component}
+ */
 function thunkInstantiate(vnode)
 {
     let component = nodeComponent(vnode);
@@ -3697,22 +3776,33 @@ function thunkInstantiate(vnode)
     return component;
 }
 
+/**
+ * Renders thunk.
+ * 
+ * @param   {object}        component
+ * @returns {object|array}
+ */
+function thunkRender(component)
+{
+    return jsxFactory(component);
+}
+
+/**
+ * Re-renders thunk and commits patches.
+ * 
+ * @param  {object}  vnode
+ */
 function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
-    let left = vnode.children[0];
-    let right = jsxFactory(component);
-    let actions = tree(left, right);
+    let left      = vnode.children[0];
+    let right     = jsxFactory(component);
+    let actions   = tree(left, right);
 
     if (!utils.is_empty(actions.current))
     {
         commit(actions.current);
     }
-}
-
-function thunkRender(component)
-{
-    return jsxFactory(component);
 }
 
 function tree(left, right)

@@ -4,44 +4,54 @@ import * as thunk from './thunk';
 import _ from '../utils/index';
 
 /**
- * Patch left to right
+ * Patch previous/next render Vnodes (Recursive).
  * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
  */
-export function patch(prevNode, nextNode, actions)
+export function patch(left, right, actions)
 {
     actions = _.is_undefined(actions) ? [] : actions;
 
     // Same nothing to do
-    if (prevNode === nextNode)
+    if (left === right)
     {
         // nothing to do
     }
-    else if (prevNode.type !== nextNode.type)
+    else if (left.type !== right.type)
     {
-        replaceNode(prevNode, nextNode, actions);
+        replaceNode(left, right, actions);
     }
-    else if (vElem.isNative(nextNode))
+    else if (vElem.isNative(right))
     {
-        patchNative(prevNode, nextNode, actions);
+        patchNative(left, right, actions);
     }
-    else if (vElem.isText(nextNode))
+    else if (vElem.isText(right))
     {
-        patchText(prevNode, nextNode, actions);
+        patchText(left, right, actions);
     }
-    else if (vElem.isThunk(nextNode))
+    else if (vElem.isThunk(right))
     {
-        patchThunk(prevNode, nextNode, actions);
+        patchThunk(left, right, actions);
     }
-    else if (vElem.isFragment(nextNode))
+    else if (vElem.isFragment(right))
     {
-        patchFragment(prevNode, nextNode, actions);
+        patchFragment(left, right, actions);
     }
-    else if (vElem.isEmpty(nextNode))
+    else if (vElem.isEmpty(right))
     {
-        replaceNode(prevNode, nextNode, actions);
+        replaceNode(left, right, actions);
     }
 }
 
+/**
+ * Patch text Vnode.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchText(left, right, actions)
 {
     if (right.nodeValue !== left.nodeValue)
@@ -52,7 +62,13 @@ function patchText(left, right, actions)
     }
 }
 
-// Replacing one node with another
+/**
+ * Replace Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function replaceNode(left, right, actions)
 {
     if (vElem.isThunk(right))
@@ -72,6 +88,13 @@ function replaceNode(left, right, actions)
     actions.push(action('replaceNode', [left, right]));
 }
 
+/**
+ * Patch native Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchNative(left, right, actions)
 {
     if (left.tagName !== right.tagName)
@@ -86,6 +109,13 @@ function patchNative(left, right, actions)
     }
 }
 
+/**
+ * Patch thunk Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchThunk(left, right, actions)
 {
     // Same component 
@@ -106,6 +136,12 @@ function patchThunk(left, right, actions)
     }
 }
 
+/**
+ * Patch thunk props.
+ * 
+ * @param {object}  vnode
+ * @param {object}  newProps
+ */
 function patchThunkProps(vnode, newProps)
 {
     let component = vElem.nodeComponent(vnode);
@@ -117,6 +153,13 @@ function patchThunkProps(vnode, newProps)
     vnode.props = newProps;
 }
 
+/**
+ * Diff thunk Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function diffThunk(left, right, actions)
 {
     let component = vElem.nodeComponent(left);
@@ -126,14 +169,26 @@ function diffThunk(left, right, actions)
     patchChildren(left, right, actions);
 }
 
+/**
+ * Patch fragment Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function patchFragment(left, right, actions)
 {
     patchChildren(left, right, actions);
 }
 
 /**
- * Less expensive patch before diff if possible
+ * Patch Vnode children.
  * 
+ * This is a less expensive pre-patch before diffing is needed if possible
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
  */
 function patchChildren(left, right, actions)
 {
@@ -252,6 +307,15 @@ function patchChildren(left, right, actions)
     }
 }
 
+/**
+ * Patch single to multiple children
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {object}  lChild
+ * @param {array}   rChildren
+ * @param {array}   actions
+ */
 function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
 {
     // We need to compare keys and check if one
@@ -293,6 +357,13 @@ function patchSingleToMultiChildren(left, right, lChild, rChildren, actions)
     }
 }
 
+/**
+ * Diff children.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function diffChildren(left, right, actions)
 {
     let lGroup = groupByKey(left.children);
@@ -433,6 +504,13 @@ function groupByKey(children)
     return ret;
 }
 
+/**
+ * Diff native attributes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
 function diffAttributes(left, right, actions)
 {
     let pAttrs = left.attributes;

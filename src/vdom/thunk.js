@@ -6,6 +6,12 @@ import { patch } from './patch';
 import { RENDER_QUEUE } from '../compat/index';
 import _ from '../utils/index';
 
+/**
+ * Instantiate thunk component.
+ * 
+ * @param   {object}  vnode
+ * @returns {import('../compat/Compoent').Component}
+ */
 export function thunkInstantiate(vnode)
 {
     let component = nodeComponent(vnode);
@@ -24,12 +30,28 @@ export function thunkInstantiate(vnode)
     return component;
 }
 
+/**
+ * Renders thunk.
+ * 
+ * @param   {object}        component
+ * @returns {object|array}
+ */
+export function thunkRender(component)
+{
+    return jsxFactory(component);
+}
+
+/**
+ * Re-renders thunk and commits patches.
+ * 
+ * @param  {object}  vnode
+ */
 export function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
     let left = vnode.children[0];
     let right = jsxFactory(component);
-    let actions = tree(left, right);
+    let actions = patchTree(left, right);
 
     if (!_.is_empty(actions.current))
     {
@@ -37,12 +59,14 @@ export function thunkUpdate(vnode)
     }
 }
 
-export function thunkRender(component)
-{
-    return jsxFactory(component);
-}
-
-function tree(left, right)
+/**
+ * Patch's thunk tree and returns actions.
+ * 
+ * @param   {object}  left
+ * @param   {object}  right
+ * @returns {array}
+ */
+function patchTree(left, right)
 {
     let actions = {
         current: []
@@ -53,6 +77,12 @@ function tree(left, right)
     return actions;
 }
 
+/**
+ * Parses component JSX from render.
+ * 
+ * @param   {object}        component
+ * @returns {object|array}
+ */
 function jsxFactory(component)
 {
     RENDER_QUEUE.current = component;
@@ -81,6 +111,12 @@ function jsxFactory(component)
     return result;
 }
 
+/**
+ * Returns component context variables/dependencies for render function.
+ * 
+ * @param   {object} component
+ * @returns {object}
+ */
 export function renderContext(component)
 {
     let ret = {};

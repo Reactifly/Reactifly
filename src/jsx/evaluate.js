@@ -67,7 +67,7 @@ function genDepencies(obj)
 
     let hasProps = typeof obj.props !== 'undefined' || (obj['this'] && obj['this'].props);
 
-    if (!hasProps && RENDER_QUEUE.current && RENDER_QUEUE.current.props )
+    if (!hasProps && RENDER_QUEUE.current && RENDER_QUEUE.current.props)
     {
         obj.props = RENDER_QUEUE.current.props;
     }
