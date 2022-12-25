@@ -1,70 +1,115 @@
 import _ from '../utils/index';
 
 /**
- * Patch a left vnode with a right one
+ * Checks if Vnode is mounted.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
  */
-
-export function patchVnode(left, right)
-{
-    for (let key in left)
-    {
-        delete left[key];
-    }
-
-    for (let key in right)
-    {
-        left[key] = right[key];
-    }
-}
-
-/**
- * Functional type checking
- */
-
 export let isMounted = (node) =>
 {
     return _.in_dom(nodeElem(node));
 }
 
+/**
+ * Checks if Vnode is fragment.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let isFragment = (node) =>
 {
     return node.type === 'fragment';
 }
 
+/**
+ * Checks if Vnode is thunk.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let isThunk = (node) =>
 {
     return node.type === 'thunk';
 }
 
+/**
+ * Is functional thunk.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
+export let isFunctionalThunk = (node) =>
+{
+    return node.type === 'thunk' && node.__internals.fn !== null
+}
+
+/**
+ * Is native Vnode.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let isNative = (node) =>
 {
     return node.type === 'native';
 }
 
+/**
+ * Is text Vnode.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let isText = (node) =>
 {
     return node.type === 'text';
 }
 
+/**
+ * Is empty Vnode.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let isEmpty = (node) =>
 {
     return node.type === 'empty';
 }
 
+/**
+ * Has no children.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let noChildren = (node) =>
 {
     return node.children.length === 1 && isEmpty(node.children[0]);
 }
 
+/**
+ * Has single child.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let singleChild = (node) =>
 {
     return node.children.length === 1 && !isEmpty(node.children[0]);
 }
 
+/**
+ * Are thunks the same.
+ *  
+ * @param   {object}  left
+ * @param   {object}  right
+ * @returns {boolean}
+ */
 export let isSameThunk = (left, right) =>
 {
     // Functional component
-    if (left.__internals._fn || right.__internals._fn)
+    if (isFunctionalThunk(left) || isFunctionalThunk(right))
     {
         return left.__internals._name === right.__internals._name && left.__internals._fn === right.__internals._fn;
     }
@@ -72,20 +117,35 @@ export let isSameThunk = (left, right) =>
     return left.fn === right.fn && left.__internals._name === right.__internals._name;
 }
 
-export let isThunkInstantiated = (vnode) =>
-{
-    return nodeComponent(vnode) !== null;
-}
-
+/**
+ * Are fragments the same.
+ *  
+ * @param   {object}  left
+ * @param   {object}  right
+ * @returns {boolean}
+ */
 export let isSameFragment = (left, right) =>
 {
     return isFragment(left) && isFragment(right) && left.fn === right.fn;
 }
 
 /**
- * Checks if thunk is nesting only a fragment.
+ * Is thunk instantiated.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
  */
+export let isThunkInstantiated = (vnode) =>
+{
+    return nodeComponent(vnode) !== null;
+}
 
+/**
+ * Checks if a thunk Vnode is only nesting a fragment.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 export let isNestingFragment = (node) =>
 {
     if (isThunk(node) && isThunkInstantiated(node))
@@ -102,18 +162,23 @@ export let isNestingFragment = (node) =>
 }
 
 /**
- * Returns thunk function / class name
+ * Thunk function name.
+ *  
+ * @param   {object}  node
+ * @returns {string}
  */
-
 export let thunkName = (node) =>
 {
     return node.__internals._name;
 }
 
 /**
- * Get/set a nodes DOM element
+ * Set/get node element.
+ *  
+ * @param   {object}                   node
+ * @param   {HTMLElement | undefined}  Elem 
+ * @returns {HTMLElement}
  */
-
 export let nodeElem = (node, elem) =>
 {
     if (!_.is_undefined(elem))
@@ -132,27 +197,65 @@ export let nodeElem = (node, elem) =>
 }
 
 /**
- * Returns the actual parent DOMElement of a parent node.
- * 
+ * Set/get native Vnodes attributes.
+ *  
+ * @param   {object}              node
+ * @param   {object | undefined}  attrs 
+ * @returns {object}
  */
-
-export let nodeElemParent = (parent) =>
+export let nodeAttributes = (node, attrs) =>
 {
-    if (isFragment(parent) || isThunk(parent))
+    if (!_.is_undefined(attrs))
     {
-        let child = nodeElem(parent);
+        node.__internals._prevAttrs = node.attributes;
 
-        return _.is_array(child) ? child[0].parentNode : child.parentNode;
+        node.attributes = attrs;
     }
 
-    return nodeElem(parent);
+    return node.attributes;
 }
 
 /**
- * Returns the parent DOMElement of a given vnNode
- * 
+ * Set/get Vnode's component.
+ *  
+ * @param   {object}              node
+ * @param   {object | undefined}  component 
+ * @returns {object}
  */
+export let nodeComponent = (node, component) =>
+{
+    if (!_.is_undefined(component))
+    {
+        node.__internals._component = component;
+    }
 
+    return node.__internals._component;
+}
+
+/**
+ * Set/get component's Vnode.
+ *  
+ * @param   {object}              component
+ * @param   {object | undefined}  node 
+ * @returns {object}
+ */
+export let componentNode = (component, node) =>
+{
+    if (!_.is_undefined(node))
+    {
+        component.__internals.vnode = node;
+    }
+
+    return component.__internals.vnode;
+}
+
+
+/**
+ * Returns the parent DOMElement of a given vnNode.
+ *  
+ * @param   {object}  vnode
+ * @returns {HTMLElement}
+ */
 export let parentElem = (vnode) =>
 {
     // Native node
@@ -182,86 +285,43 @@ export let parentElem = (vnode) =>
 }
 
 /**
- * Returns the parent DOMElement of a given vnNode
- * 
+ * Returns index of Vnode relative to parent / siblings.
+ *  
+ * @param   {object}  node
+ * @returns {number}
  */
-
-export let childDomIndex = (parent, index) =>
+export let domIndex = (node) =>
 {
-    if (parent.children.length <= 1)
-    {
-        return 0;
-    }
+    let parentDOMElement = parentElem(node);
 
-    let buffer = 0;
+    let domSiblings = Array.prototype.slice.call(parentDOMElement.children);
 
-    _.foreach(parent.children, function(i, child)
+    let thisEl = nodeElem(node);
+
+    thisEl = _.isArray(thisEl) ? thisEl[0] : thisEl;
+
+    let index = 0;
+
+    _.foreach(domSiblings, function(i, siblingEl)
     {
-        if (i >= index)
+        if (siblingEl === thisEl)
         {
+            index = i;
+
             return false;
-        }
-        else if (isThunk(child))
-        {
-            let els = nodeElem(child);
-
-            if (_.is_array(els))
-            {
-                buffer += els.length;
-            }
         }
     });
 
-    return buffer + index;
+    return index;
 }
 
 /**
- * Get/set a nodes DOM element
+ * Recursively traverse down tree until either a DOM node is found
+ * or a fragment is found and return it's children
+ *  
+ * @param   {object}  node
+ * @returns {array|HTMLElement}
  */
-
-export let nodeAttributes = (node, attrs) =>
-{
-    if (!_.is_undefined(attrs))
-    {
-        node.__internals._prevAttrs = node.attributes;
-
-        node.attributes = attrs;
-    }
-
-    return node.attributes;
-}
-
-/**
- * Get/set a node's component
- */
-
-export let nodeComponent = (node, component) =>
-{
-    if (!_.is_undefined(component))
-    {
-        node.__internals._component = component;
-    }
-
-    return node.__internals._component;
-}
-
-/**
- * Get/set a component's node
- */
-
-export let componentNode = (component, node) =>
-{
-    if (!_.is_undefined(node))
-    {
-        component.__internals.vnode = node;
-    }
-
-    return component.__internals.vnode;
-}
-
-// Recursively traverse down tree until either a DOM node is found
-// or a fragment is found and return it's children
-
 function findThunkDomEl(vnode)
 {
     if (isNative(vnode) || isText(vnode) || isEmpty(vnode))
@@ -285,31 +345,12 @@ function findThunkDomEl(vnode)
         nodeElem(vnode);
 }
 
-// Recursively traverse down tree until either a DOM node is found
-// or a fragment is found and return it's children
-
-function findThunkParentDomEl(vnode)
-{
-    let child = vnode.children[0];
-
-    if (isNative(child) || isText(child) || isEmpty(child))
-    {
-        return nodeElem(child).parentNode;
-    }
-
-    while (isThunk(child) || isFragment(child))
-    {
-        vnode = child;
-        child = child.children[0];
-    }
-
-    return isFragment(vnode) ? nodeElem(vnode.children[0]).parentNode : nodeElem(vnode).parentNode;
-}
-
 /**
  * Points vnode -> component and component -> vndode
+ *  
+ * @param  {object}  vnode
+ * @param  {object}  component
  */
-
 export let pointVnodeThunk = (vnode, component) =>
 {
     // point vnode -> component
@@ -325,6 +366,12 @@ export let pointVnodeThunk = (vnode, component) =>
     }
 }
 
+/**
+ * Patches right Vnode to left.
+ *  
+ * @param  {object}  left
+ * @param  {object}  right
+ */
 export function patchVnodes(left, right)
 {
     _.foreach(left, function(key, val)
@@ -346,7 +393,6 @@ export function patchVnodes(left, right)
  * Recursively calls unmount on nested components
  * in a sub tree
  */
-
 export let nodeWillUnmount = (vnode) =>
 {
     if (isThunk(vnode) || isFragment(vnode))
@@ -371,6 +417,38 @@ export let nodeWillUnmount = (vnode) =>
         _.foreach(vnode.children, function(i, child)
         {
             nodeWillUnmount(child);
+        });
+    }
+}
+
+/**
+ * Recursively calls "componentDidMount" on nested components
+ * in a sub tree.
+ */
+export let nodeDidMount = (vnode) =>
+{
+    if (isThunk(vnode) || isFragment(vnode))
+    {
+        let component = nodeComponent(vnode);
+
+        if (component && _.is_callable(component.componentDidMount))
+        {
+            component.componentDidMount();
+        }
+
+        if (!noChildren(vnode))
+        {
+            _.foreach(vnode.children, function(i, child)
+            {
+                nodeDidMount(child);
+            });
+        }
+    }
+    else if (isNative(vnode) && !noChildren(vnode))
+    {
+        _.foreach(vnode.children, function(i, child)
+        {
+            nodeDidMount(child);
         });
     }
 }

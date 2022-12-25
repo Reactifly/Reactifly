@@ -38,7 +38,7 @@ export class Root
     {
         this.component = !_.is_callable(componentOrJSX) ? this.__componentFactory(componentOrJSX, rootProps) : componentOrJSX;
 
-        this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot()
+        this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps)
     }
 
     /**
@@ -49,12 +49,12 @@ export class Root
      */
     __componentFactory(jsxStr, rootProps)
     {
-        const FunctionalComp = function()
+        const renderFunc = function()
         {
             return jsx('<Fragment>' + jsxStr + '</Fragment>', rootProps);
         };
 
-        return FunctionalComp;
+        return renderFunc;
     }
 
     /**
@@ -77,9 +77,9 @@ export class Root
      * Render the root component.
      *
      */
-    __renderRoot()
+    __renderRoot(rootProps)
     {
-        let vnode = createElement(this.component);
+        let vnode = createElement(this.component, rootProps);
 
         let DOMElement = createDomElement(vnode, this.htmlRootEl);
 

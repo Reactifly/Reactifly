@@ -2,7 +2,7 @@ import Parser from './Parser';
 import { JsxSyntaxError } from './error';
 import { createElement } from '../vdom/index';
 import { Fragment } from '../compat/index';
-import { renderQueue } from '../compat/index';
+import { RENDER_QUEUE } from '../compat/index';
 
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS = {};
@@ -65,9 +65,11 @@ function genDepencies(obj)
         obj[key] = COMPONENT_CACHE[key];
     }
 
-    if (renderQueue.current && renderQueue.current.props && !obj.props)
+    let hasProps = typeof obj.props !== 'undefined' || (obj['this'] && obj['this'].props);
+
+    if (!hasProps && RENDER_QUEUE.current && RENDER_QUEUE.current.props )
     {
-        obj.props = renderQueue.current.props;
+        obj.props = RENDER_QUEUE.current.props;
     }
 
     return obj;

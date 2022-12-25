@@ -540,7 +540,7 @@ function is_class(mixed_var, classname, strict)
     // ES6 class declaration depending on strict
     if (strict)
     {
-        
+
         return typeof mixed_var === 'function' && /^\s*class\s+/.test(mixed_var.toString());
     }
 
@@ -845,7 +845,7 @@ function equalTraverseable(a, b)
 
     foreach(a, function(i, val)
     {
-        if (!is_equal(val, b[i]))
+        if (!utils_is_equal(val, b[i]))
         {
             ret = false;
 
@@ -863,7 +863,7 @@ function equalTraverseable(a, b)
  * @param   {mixed}  b
  * @returns {boolean}
  */
-function is_equal(a, b)
+function utils_is_equal(a, b)
 {
     if ((typeof a) !== (typeof b))
     {
@@ -1191,9 +1191,7 @@ function map(obj, callback, args)
     return ret;
 }
 
-
-const utils_ =
-{
+const utils_ = {
     is_object,
     is_array,
     is_string,
@@ -1207,7 +1205,7 @@ const utils_ =
     is_constructable,
     is_class,
     is_empty,
-    is_equal,
+    is_equal: utils_is_equal,
     in_dom,
     size,
     bool,
@@ -1226,7 +1224,6 @@ const utils_ =
     mergeDeep,
     foreach,
     map,
-
 };
 
 /* harmony default export */ const utils = (utils_);
@@ -1234,70 +1231,115 @@ const utils_ =
 
 
 /**
- * Patch a left vnode with a right one
+ * Checks if Vnode is mounted.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
  */
-
-function patchVnode(left, right)
-{
-    for (let key in left)
-    {
-        delete left[key];
-    }
-
-    for (let key in right)
-    {
-        left[key] = right[key];
-    }
-}
-
-/**
- * Functional type checking
- */
-
 let isMounted = (node) =>
 {
     return _.in_dom(nodeElem(node));
 }
 
+/**
+ * Checks if Vnode is fragment.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let isFragment = (node) =>
 {
     return node.type === 'fragment';
 }
 
+/**
+ * Checks if Vnode is thunk.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let isThunk = (node) =>
 {
     return node.type === 'thunk';
 }
 
+/**
+ * Is functional thunk.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
+let isFunctionalThunk = (node) =>
+{
+    return node.type === 'thunk' && node.__internals.fn !== null
+}
+
+/**
+ * Is native Vnode.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let isNative = (node) =>
 {
     return node.type === 'native';
 }
 
+/**
+ * Is text Vnode.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let isText = (node) =>
 {
     return node.type === 'text';
 }
 
+/**
+ * Is empty Vnode.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let isEmpty = (node) =>
 {
     return node.type === 'empty';
 }
 
+/**
+ * Has no children.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let noChildren = (node) =>
 {
     return node.children.length === 1 && isEmpty(node.children[0]);
 }
 
+/**
+ * Has single child.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let singleChild = (node) =>
 {
     return node.children.length === 1 && !isEmpty(node.children[0]);
 }
 
+/**
+ * Are thunks the same.
+ *  
+ * @param   {object}  left
+ * @param   {object}  right
+ * @returns {boolean}
+ */
 let isSameThunk = (left, right) =>
 {
     // Functional component
-    if (left.__internals._fn || right.__internals._fn)
+    if (isFunctionalThunk(left) || isFunctionalThunk(right))
     {
         return left.__internals._name === right.__internals._name && left.__internals._fn === right.__internals._fn;
     }
@@ -1305,20 +1347,35 @@ let isSameThunk = (left, right) =>
     return left.fn === right.fn && left.__internals._name === right.__internals._name;
 }
 
-let isThunkInstantiated = (vnode) =>
-{
-    return nodeComponent(vnode) !== null;
-}
-
+/**
+ * Are fragments the same.
+ *  
+ * @param   {object}  left
+ * @param   {object}  right
+ * @returns {boolean}
+ */
 let isSameFragment = (left, right) =>
 {
     return isFragment(left) && isFragment(right) && left.fn === right.fn;
 }
 
 /**
- * Checks if thunk is nesting only a fragment.
+ * Is thunk instantiated.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
  */
+let isThunkInstantiated = (vnode) =>
+{
+    return nodeComponent(vnode) !== null;
+}
 
+/**
+ * Checks if a thunk Vnode is only nesting a fragment.
+ *  
+ * @param   {object}  node
+ * @returns {boolean}
+ */
 let isNestingFragment = (node) =>
 {
     if (isThunk(node) && isThunkInstantiated(node))
@@ -1335,18 +1392,23 @@ let isNestingFragment = (node) =>
 }
 
 /**
- * Returns thunk function / class name
+ * Thunk function name.
+ *  
+ * @param   {object}  node
+ * @returns {string}
  */
-
 let thunkName = (node) =>
 {
     return node.__internals._name;
 }
 
 /**
- * Get/set a nodes DOM element
+ * Set/get node element.
+ *  
+ * @param   {object}                   node
+ * @param   {HTMLElement | undefined}  Elem 
+ * @returns {HTMLElement}
  */
-
 let nodeElem = (node, elem) =>
 {
     if (!utils.is_undefined(elem))
@@ -1365,27 +1427,65 @@ let nodeElem = (node, elem) =>
 }
 
 /**
- * Returns the actual parent DOMElement of a parent node.
- * 
+ * Set/get native Vnodes attributes.
+ *  
+ * @param   {object}              node
+ * @param   {object | undefined}  attrs 
+ * @returns {object}
  */
-
-let nodeElemParent = (parent) =>
+let nodeAttributes = (node, attrs) =>
 {
-    if (isFragment(parent) || isThunk(parent))
+    if (!utils.is_undefined(attrs))
     {
-        let child = nodeElem(parent);
+        node.__internals._prevAttrs = node.attributes;
 
-        return utils.is_array(child) ? child[0].parentNode : child.parentNode;
+        node.attributes = attrs;
     }
 
-    return nodeElem(parent);
+    return node.attributes;
 }
 
 /**
- * Returns the parent DOMElement of a given vnNode
- * 
+ * Set/get Vnode's component.
+ *  
+ * @param   {object}              node
+ * @param   {object | undefined}  component 
+ * @returns {object}
  */
+let nodeComponent = (node, component) =>
+{
+    if (!utils.is_undefined(component))
+    {
+        node.__internals._component = component;
+    }
 
+    return node.__internals._component;
+}
+
+/**
+ * Set/get component's Vnode.
+ *  
+ * @param   {object}              component
+ * @param   {object | undefined}  node 
+ * @returns {object}
+ */
+let componentNode = (component, node) =>
+{
+    if (!_.is_undefined(node))
+    {
+        component.__internals.vnode = node;
+    }
+
+    return component.__internals.vnode;
+}
+
+
+/**
+ * Returns the parent DOMElement of a given vnNode.
+ *  
+ * @param   {object}  vnode
+ * @returns {HTMLElement}
+ */
 let parentElem = (vnode) =>
 {
     // Native node
@@ -1415,86 +1515,43 @@ let parentElem = (vnode) =>
 }
 
 /**
- * Returns the parent DOMElement of a given vnNode
- * 
+ * Returns index of Vnode relative to parent / siblings.
+ *  
+ * @param   {object}  node
+ * @returns {number}
  */
-
-let childDomIndex = (parent, index) =>
+let domIndex = (node) =>
 {
-    if (parent.children.length <= 1)
-    {
-        return 0;
-    }
+    let parentDOMElement = parentElem(node);
 
-    let buffer = 0;
+    let domSiblings = Array.prototype.slice.call(parentDOMElement.children);
 
-    utils.foreach(parent.children, function(i, child)
+    let thisEl = nodeElem(node);
+
+    thisEl = _.isArray(thisEl) ? thisEl[0] : thisEl;
+
+    let index = 0;
+
+    _.foreach(domSiblings, function(i, siblingEl)
     {
-        if (i >= index)
+        if (siblingEl === thisEl)
         {
+            index = i;
+
             return false;
-        }
-        else if (isThunk(child))
-        {
-            let els = nodeElem(child);
-
-            if (utils.is_array(els))
-            {
-                buffer += els.length;
-            }
         }
     });
 
-    return buffer + index;
+    return index;
 }
 
 /**
- * Get/set a nodes DOM element
+ * Recursively traverse down tree until either a DOM node is found
+ * or a fragment is found and return it's children
+ *  
+ * @param   {object}  node
+ * @returns {array|HTMLElement}
  */
-
-let nodeAttributes = (node, attrs) =>
-{
-    if (!utils.is_undefined(attrs))
-    {
-        node.__internals._prevAttrs = node.attributes;
-
-        node.attributes = attrs;
-    }
-
-    return node.attributes;
-}
-
-/**
- * Get/set a node's component
- */
-
-let nodeComponent = (node, component) =>
-{
-    if (!utils.is_undefined(component))
-    {
-        node.__internals._component = component;
-    }
-
-    return node.__internals._component;
-}
-
-/**
- * Get/set a component's node
- */
-
-let componentNode = (component, node) =>
-{
-    if (!_.is_undefined(node))
-    {
-        component.__internals.vnode = node;
-    }
-
-    return component.__internals.vnode;
-}
-
-// Recursively traverse down tree until either a DOM node is found
-// or a fragment is found and return it's children
-
 function findThunkDomEl(vnode)
 {
     if (isNative(vnode) || isText(vnode) || isEmpty(vnode))
@@ -1518,31 +1575,12 @@ function findThunkDomEl(vnode)
         nodeElem(vnode);
 }
 
-// Recursively traverse down tree until either a DOM node is found
-// or a fragment is found and return it's children
-
-function findThunkParentDomEl(vnode)
-{
-    let child = vnode.children[0];
-
-    if (isNative(child) || isText(child) || isEmpty(child))
-    {
-        return nodeElem(child).parentNode;
-    }
-
-    while (isThunk(child) || isFragment(child))
-    {
-        vnode = child;
-        child = child.children[0];
-    }
-
-    return isFragment(vnode) ? nodeElem(vnode.children[0]).parentNode : nodeElem(vnode).parentNode;
-}
-
 /**
  * Points vnode -> component and component -> vndode
+ *  
+ * @param  {object}  vnode
+ * @param  {object}  component
  */
-
 let pointVnodeThunk = (vnode, component) =>
 {
     // point vnode -> component
@@ -1558,6 +1596,12 @@ let pointVnodeThunk = (vnode, component) =>
     }
 }
 
+/**
+ * Patches right Vnode to left.
+ *  
+ * @param  {object}  left
+ * @param  {object}  right
+ */
 function patchVnodes(left, right)
 {
     utils.foreach(left, function(key, val)
@@ -1579,7 +1623,6 @@ function patchVnodes(left, right)
  * Recursively calls unmount on nested components
  * in a sub tree
  */
-
 let nodeWillUnmount = (vnode) =>
 {
     if (isThunk(vnode) || isFragment(vnode))
@@ -1604,6 +1647,38 @@ let nodeWillUnmount = (vnode) =>
         utils.foreach(vnode.children, function(i, child)
         {
             nodeWillUnmount(child);
+        });
+    }
+}
+
+/**
+ * Recursively calls "componentDidMount" on nested components
+ * in a sub tree.
+ */
+let nodeDidMount = (vnode) =>
+{
+    if (isThunk(vnode) || isFragment(vnode))
+    {
+        let component = nodeComponent(vnode);
+
+        if (component && _.is_callable(component.componentDidMount))
+        {
+            component.componentDidMount();
+        }
+
+        if (!noChildren(vnode))
+        {
+            _.foreach(vnode.children, function(i, child)
+            {
+                nodeDidMount(child);
+            });
+        }
+    }
+    else if (isNative(vnode) && !noChildren(vnode))
+    {
+        _.foreach(vnode.children, function(i, child)
+        {
+            nodeDidMount(child);
         });
     }
 }
@@ -2240,9 +2315,16 @@ function genDepencies(obj)
         obj[key] = COMPONENT_CACHE[key];
     }
 
-    if (renderQueue.current && renderQueue.current.props && !obj.props)
+    let hasProps = typeof obj.props !== 'undefined' || (obj['this'] && obj['this'].props);
+
+    if (!hasProps && RENDER_QUEUE.current && RENDER_QUEUE.current.props )
     {
-        obj.props = renderQueue.current.props;
+        obj.props = RENDER_QUEUE.current.props;
+    }
+
+    if (RENDER_QUEUE.current && RENDER_QUEUE.current.props && !obj['this'].props)
+    {
+        obj.props = RENDER_QUEUE.current.props;
     }
 
     return obj;
@@ -2543,29 +2625,129 @@ class Fragment extends Component
     }
 }
 ;// CONCATENATED MODULE: ./src/compat/hooks.js
+/*
+Copyright 2018-2019 a1pack
+
+https://codesandbox.io/s/mnox05qp8?file=/src/index.js:0-7779
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 
 
-const renderQueue = {
+
+const RENDER_QUEUE = {
     current: null
 };
 
+let HOOK_CONTEXT;
+
+function useEffect(effect, deps)
+{
+    const i = HOOK_CONTEXT.hookIndex++;
+
+    if (!HOOK_CONTEXT.hooks[i])
+    {
+        HOOK_CONTEXT.hooks[i] = effect;
+        HOOK_CONTEXT.hookDeps[i] = deps;
+        HOOK_CONTEXT.hooksCleanups[i] = effect();
+    }
+    else
+    {
+        if (deps && !is_equal(deps, HOOK_CONTEXT.hookDeps[i]))
+        {
+            if (HOOK_CONTEXT.hooksCleanups[i])
+            {
+                HOOK_CONTEXT.hooksCleanups[i]();
+            }
+
+            HOOK_CONTEXT.hooksCleanups[i] = effect();
+        }
+    }
+}
+
+function useRef(initialValue)
+{
+    return useCallback(refHolderFactory(initialValue), []);
+}
+
+function refHolderFactory(reference)
+{
+    function RefHolder(ref)
+    {
+        reference = ref;
+    }
+
+    Object.defineProperty(RefHolder, "current",
+    {
+        get: () => reference,
+        enumerable: true,
+        configurable: true
+    });
+
+    return RefHolder;
+}
+
+function useLayoutEffect(effect, deps)
+{
+    const i = HOOK_CONTEXT.hookIndex++;
+
+    const thisHookContext = HOOK_CONTEXT;
+
+    useEffect(() =>
+    {
+        thisHookContext.layoutEffects[i] = () =>
+        {
+            thisHookContext.hooksCleanups[i] = effect();
+        };
+
+    }, deps);
+}
+
+function useReducer(reducer, initialState, initialAction)
+{
+    const i = HOOK_CONTEXT.hookIndex++;
+
+    if (!HOOK_CONTEXT.hooks[i])
+    {
+        HOOK_CONTEXT.hooks[i] = {
+            state: initialAction ? reducer(initialState, initialAction) : initialState
+        };
+    }
+
+    const thisHookContext = HOOK_CONTEXT;
+
+    return [
+        HOOK_CONTEXT.hooks[i].state,
+        useCallback(action =>
+        {
+            thisHookContext.hooks[i].state = reducer(thisHookContext.hooks[i].state, action);
+
+            thisHookContext.setState();
+        }, [])
+    ];
+}
+
 function useState(initial)
 {
-    const i = renderQueue.current.hookIndex++;
+    const i = RENDER_QUEUE.current.hookIndex++;
 
-    if (!renderQueue.current.hooks[i])
+    if (!RENDER_QUEUE.current.hooks[i])
     {
-        renderQueue.current.hooks[i] = {
+        RENDER_QUEUE.current.hooks[i] = {
             state: transformState(initial)
         };
     }
 
-    const thisHookContext = renderQueue.current;
+    const thisHookContext = RENDER_QUEUE.current;
 
     return [
 
-        renderQueue.current.hooks[i].state,
+        RENDER_QUEUE.current.hooks[i].state,
 
         useCallback(newState =>
         {
@@ -2584,18 +2766,18 @@ function useCallback(cb, deps)
 
 function useMemo(factory, deps)
 {
-    const i = renderQueue.current.hookIndex++;
+    const i = RENDER_QUEUE.current.hookIndex++;
     if (
-        !renderQueue.current.hooks[i] ||
+        !RENDER_QUEUE.current.hooks[i] ||
         !deps ||
-        !is_equal(deps, renderQueue.current.hookDeps[i])
+        !utils_is_equal(deps, RENDER_QUEUE.current.hookDeps[i])
     )
     {
-        renderQueue.current.hooks[i] = factory();
-        renderQueue.current.hookDeps[i] = deps;
+        RENDER_QUEUE.current.hooks[i] = factory();
+        RENDER_QUEUE.current.hookDeps[i] = deps;
     }
 
-    return renderQueue.current.hooks[i];
+    return RENDER_QUEUE.current.hooks[i];
 }
 
 // end public api
@@ -2687,11 +2869,11 @@ class FunctionalComponent extends Component
 
     render()
     {
-        const prevContext = renderQueue.current;
+        const prevContext = RENDER_QUEUE.current;
 
         try
         {
-            renderQueue.current = this;
+            RENDER_QUEUE.current = this;
 
             this.hookIndex = 0;
 
@@ -2699,7 +2881,7 @@ class FunctionalComponent extends Component
         }
         finally
         {
-            renderQueue.current = prevContext;
+            RENDER_QUEUE.current = prevContext;
         }
     }
 }
@@ -3496,6 +3678,7 @@ function diffAttributes(left, right, actions)
 
 
 
+
 function thunkInstantiate(vnode)
 {
     let component = nodeComponent(vnode);
@@ -3545,6 +3728,8 @@ function tree(left, right)
 
 function jsxFactory(component)
 {
+    RENDER_QUEUE.current = component;
+
     if (component.__internals._fn)
     {
         return component.render();
@@ -4626,6 +4811,61 @@ function removeAttribute(vnode, name, previousValue)
     removeDomAttribute(nodeElem(vnode), name, previousValue)
 }
 
+/**
+ * Returns the actual parent DOMElement of a parent node.
+ *  
+ * @param   {object}  parent
+ * @returns {HTMLElement}
+ */
+function nodeElemParent(parent)
+{
+    if (isFragment(parent) || isThunk(parent))
+    {
+        let child = nodeElem(parent);
+
+        return utils.is_array(child) ? child[0].parentNode : child.parentNode;
+    }
+
+    return nodeElem(parent);
+}
+
+
+/**
+ * Returns the DOM index 
+ *  
+ * @param   {object}  vnode
+ * @returns {HTMLElement}
+ */
+function childDomIndex(parent, index)
+{
+    if (parent.children.length <= 1)
+    {
+        return 0;
+    }
+
+    let buffer = 0;
+
+    utils.foreach(parent.children, function(i, child)
+    {
+        if (i >= index)
+        {
+            return false;
+        }
+
+        if (isThunk(child))
+        {
+            let els = nodeElem(child);
+
+            if (utils.is_array(els))
+            {
+                buffer += els.length;
+            }
+        }
+    });
+
+    return buffer + index;
+}
+
 const ACTION_MAP = {
     replaceNode: commit_replaceNode,
     appendChild,
@@ -4691,7 +4931,7 @@ class Root
     {
         this.component = !utils.is_callable(componentOrJSX) ? this.__componentFactory(componentOrJSX, rootProps) : componentOrJSX;
 
-        this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot()
+        this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps)
     }
 
     /**
@@ -4702,12 +4942,12 @@ class Root
      */
     __componentFactory(jsxStr, rootProps)
     {
-        const FunctionalComp = function()
+        const renderFunc = function()
         {
             return jsx('<Fragment>' + jsxStr + '</Fragment>', rootProps);
         };
 
-        return FunctionalComp;
+        return renderFunc;
     }
 
     /**
@@ -4730,9 +4970,9 @@ class Root
      * Render the root component.
      *
      */
-    __renderRoot()
+    __renderRoot(rootProps)
     {
-        let vnode = createElement(this.component);
+        let vnode = createElement(this.component, rootProps);
 
         let DOMElement = createDomElement(vnode, this.htmlRootEl);
 

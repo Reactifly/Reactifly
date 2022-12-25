@@ -129,7 +129,7 @@ export function replaceNode(left, right)
  */
 export function appendChild(parentVnode, vnode)
 {
-    let parentDOMElement = vDOM.nodeElemParent(parentVnode);
+    let parentDOMElement = nodeElemParent(parentVnode);
     let DOMElement = createDomElement(vnode);
 
     if (_.is_array(DOMElement))
@@ -216,9 +216,9 @@ function removeEvents(vnode)
 export function insertAtIndex(parentVnode, vnode, index)
 {
     let vIndex = index;
-    let dIndex = vDOM.childDomIndex(parentVnode, index);
+    let dIndex = childDomIndex(parentVnode, index);
     let DOMElement = createDomElement(vnode);
-    let parentDOMElement = vDOM.nodeElemParent(parentVnode);
+    let parentDOMElement = nodeElemParent(parentVnode);
 
     if (_.is_array(DOMElement))
     {
@@ -254,10 +254,10 @@ export function insertAtIndex(parentVnode, vnode, index)
 export function moveToIndex(parentVnode, vnode, index)
 {
     let vIndex = index;
-    let dIndex = vDOM.childDomIndex(parentVnode, index);
+    let dIndex = childDomIndex(parentVnode, index);
     let DOMElement = vDOM.nodeElem(vnode);
     let isFragment = _.is_array(DOMElement);
-    let parentDOMElement = vDOM.nodeElemParent(parentVnode);
+    let parentDOMElement = nodeElemParent(parentVnode);
     let currIndex = isFragment ? Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement[0]) : Array.prototype.slice.call(parentDOMElement.children).indexOf(DOMElement);
 
     if (isFragment)
@@ -347,6 +347,61 @@ export function setAttribute(vnode, name, value, previousValue)
 export function removeAttribute(vnode, name, previousValue)
 {
     removeDomAttribute(vDOM.nodeElem(vnode), name, previousValue)
+}
+
+/**
+ * Returns the actual parent DOMElement of a parent node.
+ *  
+ * @param   {object}  parent
+ * @returns {HTMLElement}
+ */
+function nodeElemParent(parent)
+{
+    if (vDOM.isFragment(parent) || vDOM.isThunk(parent))
+    {
+        let child = vDOM.nodeElem(parent);
+
+        return _.is_array(child) ? child[0].parentNode : child.parentNode;
+    }
+
+    return vDOM.nodeElem(parent);
+}
+
+
+/**
+ * Returns the DOM index 
+ *  
+ * @param   {object}  vnode
+ * @returns {HTMLElement}
+ */
+function childDomIndex(parent, index)
+{
+    if (parent.children.length <= 1)
+    {
+        return 0;
+    }
+
+    let buffer = 0;
+
+    _.foreach(parent.children, function(i, child)
+    {
+        if (i >= index)
+        {
+            return false;
+        }
+
+        if (vDOM.isThunk(child))
+        {
+            let els = vDOM.nodeElem(child);
+
+            if (_.is_array(els))
+            {
+                buffer += els.length;
+            }
+        }
+    });
+
+    return buffer + index;
 }
 
 const ACTION_MAP = {

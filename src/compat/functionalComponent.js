@@ -1,5 +1,5 @@
 import { Component } from './Component';
-import { renderQueue } from './hooks';
+import { RENDER_QUEUE } from './hooks';
 
 class FunctionalComponent extends Component
 {
@@ -73,11 +73,11 @@ class FunctionalComponent extends Component
 
     render()
     {
-        const prevContext = renderQueue.current;
+        const prevContext = RENDER_QUEUE.current;
 
         try
         {
-            renderQueue.current = this;
+            RENDER_QUEUE.current = this;
 
             this.hookIndex = 0;
 
@@ -85,7 +85,7 @@ class FunctionalComponent extends Component
         }
         finally
         {
-            renderQueue.current = prevContext;
+            RENDER_QUEUE.current = prevContext;
         }
     }
 }

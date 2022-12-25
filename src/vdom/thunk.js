@@ -3,6 +3,7 @@ import { nodeComponent, isNative, isThunk, isFragment } from './utils';
 import { parseJSX } from '../jsx/index';
 import { commit } from '../dom/index';
 import { patch } from './patch';
+import { RENDER_QUEUE } from '../compat/index';
 import _ from '../utils/index';
 
 export function thunkInstantiate(vnode)
@@ -54,6 +55,8 @@ function tree(left, right)
 
 function jsxFactory(component)
 {
+    RENDER_QUEUE.current = component;
+
     if (component.__internals._fn)
     {
         return component.render();
