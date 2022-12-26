@@ -35,7 +35,7 @@ export function memo(c, comparer)
 
         return createElement(c, props);
     }
-    
+
     Memoed.displayName = 'Memo(' + (c.displayName || c.name) + ')';
     Memoed.prototype.isReactComponent = true;
     Memoed._forwarded = true;

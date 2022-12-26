@@ -1,0 +1,37 @@
+{
+  "help": {
+    "what is this file?": "It controls protected/private property mangling so that minified builds have consistent property names.",
+    "why are there duplicate minified properties?": "Most properties are only used on one type of objects, so they can have the same name since they will never collide. Doing this reduces size."
+  },
+  "minify": {
+    "mangle": {
+      "properties": {
+        "regex": "^_[^_]",
+        "reserved": [
+          "__internals"
+        ]
+      }
+    },
+    "compress": {
+      "hoist_vars": true,
+      "reduce_funcs": false
+    }
+  },
+  "props": {
+    "cname": 6,
+    "props": {
+      "$__internals": "l",
+      "$_vnode": "__v",
+      "$_children": "__k",
+      "$_context": "c",
+      "$_hook": "__h",
+      "$_catchError": "__e",
+      "$_unmount": "__u",
+      "$_owner": "__o",
+      "$_skipEffects": "__s",
+      "$_rerenderCount": "__r",
+      "$_forwarded": "__f",
+      "$_isSuspended": "__i"
+    }
+  }
+}
