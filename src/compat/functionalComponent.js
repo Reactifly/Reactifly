@@ -32,9 +32,9 @@ class FunctionalComponent extends Component
      */
     componentDidMount()
     {
-        for (let i = 0; i < this.hooks.length; ++i)
+        for (let i = 0; i < this.__internals.hooks.length; ++i)
         {
-            const effect = this.layoutEffects[i];
+            const effect = this.__internals.layoutEffects[i];
 
             if (effect)
             {
@@ -46,7 +46,7 @@ class FunctionalComponent extends Component
             }
         }
 
-        this.layoutEffects = [];
+        this.__internals.layoutEffects = [];
     }
 
     /**
@@ -55,9 +55,9 @@ class FunctionalComponent extends Component
      */
     componentDidUpdate()
     {
-        for (let i = 0; i < this.hooks.length; ++i)
+        for (let i = 0; i < this.__internals.hooks.length; ++i)
         {
-            const effect = this.layoutEffects[i];
+            const effect = this.__internals.layoutEffects[i];
 
             if (effect)
             {
@@ -69,7 +69,7 @@ class FunctionalComponent extends Component
             }
         }
 
-        this.layoutEffects = [];
+        this.__internals.layoutEffects = [];
     }
 
     /**
@@ -78,9 +78,9 @@ class FunctionalComponent extends Component
      */
     componentWillUnmount()
     {
-        for (let i = 0; i < this.hooks.length; ++i)
+        for (let i = 0; i < this.__internals.hooks.length; ++i)
         {
-            const cleanup = this.hooksCleanups[i];
+            const cleanup = this.__internals.hooksCleanups[i];
 
             if (cleanup)
             {

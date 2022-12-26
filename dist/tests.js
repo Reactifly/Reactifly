@@ -5,6 +5,12 @@ const car_years  = ['1999', '1998', '1995'];
 
 console.log(reactifly.jsx(null));
 
+console.log(reactifly.jsx(''));
+
+console.log(reactifly.jsx(0));
+
+console.log(reactifly.jsx('foo'));
+
 function Car1()
 {
     console.log('rending car');

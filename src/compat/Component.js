@@ -1,5 +1,5 @@
 import { thunkUpdate, renderContext } from '../vdom/index';
-import { parseJSX } from '../jsx/index';
+import { jsx as parseJSX } from '../jsx/index';
 import _ from '../utils/index';
 
 /**
@@ -135,11 +135,11 @@ export class Component
      * @param   {string}        jsxStr  Key to set using "dot.notation" or state object.
      * @returns {array|object}
      */
-    jsx(jsx)
+    jsx(jsxStr)
     {
         const context = renderContext(this);
 
-        return parseJSX(jsx, { ...context, this: this });
+        return parseJSX(jsxStr, { ...context, this: this });
     }
 
     /**

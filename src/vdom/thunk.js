@@ -1,5 +1,5 @@
-import { nodeComponent, isNative, isThunk, isFragment } from './utils';
-import { parseJSX } from '../jsx/index';
+import { nodeComponent } from './utils';
+import { jsx as parseJSX } from '../jsx/index';
 import { commit } from '../dom/index';
 import { patch } from './patch';
 import { RENDER_QUEUE } from '../compat/index';
@@ -91,11 +91,11 @@ function jsxFactory(component)
         return component.render();
     }
 
-    const jsx = component.render();
+    const jsxStr = component.render();
 
     const context = renderContext(component);
 
-    const result = parseJSX(jsx, { ...context, this: component });
+    const result = parseJSX(jsxStr, { ...context, this: component });
 
     if (_.is_array(result))
     {

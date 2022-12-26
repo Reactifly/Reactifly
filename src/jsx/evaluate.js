@@ -1,5 +1,4 @@
 import Parser from './Parser';
-import { JsxSyntaxError } from './error';
 import { createElement } from '../vdom/index';
 import { Fragment } from '../compat/index';
 import { RENDER_QUEUE } from '../compat/index';
@@ -11,10 +10,12 @@ export const COMPONENT_CACHE = {};
 
 export default function evaluate(str, obj, config)
 {
-    if (!str || (typeof str === 'string' && str.trim() === ''))
+    if (str === null || typeof str === 'undefined' || (typeof str === 'string' && str.trim() === ''))
     {
         return createElement();
     }
+
+    str = str + '';
 
     var jsx = new innerClass(str, config);
 
@@ -53,7 +54,7 @@ export default function evaluate(str, obj, config)
     }
     catch (e)
     {
-        throw new JsxSyntaxError(e);
+        console.error(e);
     }
 }
 
