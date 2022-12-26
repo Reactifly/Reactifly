@@ -1,8 +1,8 @@
 import _ from '../utils/index';
 import * as vDOM from '../vdom/index';
-import { createDomElement } from './create';
-import { setDomAttribute, removeDomAttribute } from './attributes';
-import * as events from './events';
+import { createDomElement } from '../dom/create';
+import { setDomAttribute, removeDomAttribute } from '../dom/attributes';
+import * as events from '../dom/events';
 
 /**
  * Commit tree patching to DOM / vDom

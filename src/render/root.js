@@ -1,6 +1,7 @@
-import { createDomElement, commit } from '../dom/index';
+import { createDomElement } from '../dom/index';
 import { createElement } from '../vdom/index';
-import { patch } from '../vdom/patch';
+import { commit } from '../diff/commit';
+import { patch } from '../diff/patch';
 import { jsx } from '../jsx/index';
 import _ from '../utils/index';
 

@@ -1,7 +1,7 @@
 import { nodeComponent } from './utils';
 import { jsx as parseJSX } from '../jsx/index';
-import { commit } from '../dom/index';
-import { patch } from './patch';
+import { commit } from '../diff/commit';
+import { patch } from '../diff/patch';
 import { RENDER_QUEUE } from '../compat/index';
 import _ from '../utils/index';
 

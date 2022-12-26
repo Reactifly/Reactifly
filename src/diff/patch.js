@@ -1,6 +1,6 @@
-import { action } from '../dom/index';
-import * as vElem from './utils';
-import * as thunk from './thunk';
+import { action } from './commit';
+import * as vElem from '../vdom/utils';
+import * as thunk from '../vdom/thunk';
 import _ from '../utils/index';
 
 /**
