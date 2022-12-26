@@ -7,17 +7,17 @@ function Car1()
 {
     console.log('rending car');
 
-    const btnEl = Reactifly.useRef(null);
+    const btnEl = reactifly.useRef(null);
         
     const onButtonClick = () =>
     {
        console.log(btnEl.current);
     };
     
-    const [brand, setBrand] = Reactifly.useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
-    const [model, setModel] = Reactifly.useState(car_models[Math.floor(Math.random()*car_models.length)]);
-    const [year, setYear]   = Reactifly.useState(car_years[Math.floor(Math.random()*car_years.length)]);
-    const [color, setColor] = Reactifly.useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
+    const [brand, setBrand] = reactifly.useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+    const [model, setModel] = reactifly.useState(car_models[Math.floor(Math.random()*car_models.length)]);
+    const [year, setYear]   = reactifly.useState(car_years[Math.floor(Math.random()*car_years.length)]);
+    const [color, setColor] = reactifly.useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
 
     const genCar = function()
     {
@@ -39,7 +39,7 @@ function Car1()
         btnEl  : btnEl
     };
 
-    return Reactifly.jsx(`
+    return reactifly.jsx(`
         <div>
             <h1>Car 2 My {brand}</h1>
             <p>
@@ -54,10 +54,10 @@ function Car2()
 {
     console.log('rending car');
     
-    const [brand, setBrand] = Reactifly.useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
-    const [model, setModel] = Reactifly.useState(car_models[Math.floor(Math.random()*car_models.length)]);
-    const [year, setYear]   = Reactifly.useState(car_years[Math.floor(Math.random()*car_years.length)]);
-    const [color, setColor] = Reactifly.useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
+    const [brand, setBrand] = reactifly.useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+    const [model, setModel] = reactifly.useState(car_models[Math.floor(Math.random()*car_models.length)]);
+    const [year, setYear]   = reactifly.useState(car_years[Math.floor(Math.random()*car_years.length)]);
+    const [color, setColor] = reactifly.useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
 
     const genCar = function()
     {
@@ -76,7 +76,7 @@ function Car2()
         genCar : genCar 
     };
 
-    return Reactifly.jsx(`
+    return reactifly.jsx(`
         <div>
             <h1>Car 1 My {brand}</h1>
             <p>
@@ -87,7 +87,7 @@ function Car2()
     vars);
 }
 
-class App extends Reactifly.Component
+class App extends reactifly.Component
 {
     Car1 = Car1;
     Car2 = Car2;
@@ -103,7 +103,7 @@ class App extends Reactifly.Component
     }
 }
 
-let root = Reactifly.createRoot(document.getElementById('app'));
+let root = reactifly.createRoot(document.getElementById('app'));
 
 root.render(App);
 
@@ -111,7 +111,7 @@ root.render(App);
 {
     const t0 = performance.now();
 
-    class Nest2 extends Reactifly.Component
+    class Nest2 extends reactifly.Component
     {
         render()
         {
@@ -119,7 +119,7 @@ root.render(App);
         }
     }
 
-    class Nest1 extends Reactifly.Component
+    class Nest1 extends reactifly.Component
     {
         Nest2 = Nest2;
 
@@ -129,7 +129,7 @@ root.render(App);
         }
     }
 
-    class Bar extends Reactifly.Component
+    class Bar extends reactifly.Component
     {
         Nest1 = Nest1;
 
@@ -170,7 +170,7 @@ root.render(App);
         }
     }
 
-    let root = Reactifly.createRoot(document.body);
+    let root = reactifly.createRoot(document.body);
 
     root.render(Bar);
 
@@ -250,7 +250,7 @@ setTimeout(function()
 {
     const Result = ({ result }) =>
     {
-        return Reactifly.jsx(`
+        return reactifly.jsx(`
             <div class="result">
                 <div>
                     <a href={result.html_url} target="_blank">{result.full_name}</a> 🌟<strong>{result.stargazers_count}</strong>
@@ -298,7 +298,7 @@ setTimeout(function()
             payload: 100
         });
 
-        const [value, setValue] = Reactifly.useState(() => 10);
+        const [value, setValue] = reactifly.useState(() => 10);
 
         const inputEl = useRef(null);
         
@@ -315,7 +315,7 @@ setTimeout(function()
             [value]
         );
 
-        return Reactifly.jsx(`
+        return reactifly.jsx(`
             <div>
                 <h1 onClick={() => setValue(value => value + 1)}>Example {value}</h1>
                 Count: {state.count}
@@ -339,7 +339,7 @@ setTimeout(function()
 
     if (typeof window !== "undefined")
     {
-        Reactifly.render(App, document.body);
+        reactifly.render(App, document.body);
     }
 
 })();*/
