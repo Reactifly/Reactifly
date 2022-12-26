@@ -3,6 +3,8 @@ const car_models = ['Commodore', 'Mustang', 'i500'];
 const car_colors = ['Yellow', 'Green', 'Red'];
 const car_years  = ['1999', '1998', '1995'];
 
+console.log(reactifly.jsx(null));
+
 function Car1()
 {
     console.log('rending car');

@@ -6,10 +6,7 @@
   "minify": {
     "mangle": {
       "properties": {
-        "regex": "^_[^_]",
-        "reserved": [
-          "__internals"
-        ]
+        "regex": "^_[^_]"
       }
     },
     "compress": {

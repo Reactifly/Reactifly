@@ -5,9 +5,12 @@ module.exports = function(api) {
 
 	const rename = {};
 	const mangle = require('./mangle.json');
-	for (let prop in mangle.props.props) {
+	for (let prop in mangle.props.props)
+	{
 		let name = prop;
-		if (name[0] === '$') {
+		
+		if (name[0] === '$')
+		{
 			name = name.slice(1);
 		}
 

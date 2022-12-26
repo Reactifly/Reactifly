@@ -1,4 +1,3 @@
-import { createElement } from './element';
 import { nodeComponent, isNative, isThunk, isFragment } from './utils';
 import { parseJSX } from '../jsx/index';
 import { commit } from '../dom/index';
@@ -93,11 +92,6 @@ function jsxFactory(component)
     }
 
     const jsx = component.render();
-
-    if (jsx.trim() === '')
-    {
-        return createElement();
-    }
 
     const context = renderContext(component);
 

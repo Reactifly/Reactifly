@@ -9,9 +9,13 @@ const CACHE_FNS = {};
 const CACHE_STR = {};
 export const COMPONENT_CACHE = {};
 
-
 export default function evaluate(str, obj, config)
 {
+    if (!str || (typeof str === 'string' && str.trim() === ''))
+    {
+        return createElement();
+    }
+
     var jsx = new innerClass(str, config);
 
     var output = jsx.init();
@@ -57,7 +61,7 @@ function genDepencies(obj)
 {
     obj = !obj ? {} : obj;
 
-    obj.Reactifly = { createElement: createElement };
+    obj.reactifly = { createElement: createElement };
     obj.Fragment = Fragment;
 
     for (let key in COMPONENT_CACHE)
@@ -78,7 +82,7 @@ function genDepencies(obj)
 function innerClass(str, config)
 {
     config = config || {};
-    config.ns = 'Reactifly';
+    config.ns = 'reactifly';
     this.input = str;
     this.ns = config.ns
     this.type = config.type
