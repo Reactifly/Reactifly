@@ -3,12 +3,17 @@ import { Component } from './Component';
 /**
  * Fragment component
  * 
- * @class
  */
 export class Fragment extends Component
 {
-    constructor(props)
+    /**
+     * Constructor.
+     * 
+     * @param {object} props   The initial component props
+     * @param {object} context The initial context from parent components'
+     */
+    constructor(props, context)
     {
-        super(props);
+        super(props, context);
     }
 }

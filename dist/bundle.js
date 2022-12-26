@@ -2676,13 +2676,18 @@ class Component
 /**
  * Fragment component
  * 
- * @class
  */
 class Fragment extends Component
 {
-    constructor(props)
+    /**
+     * Constructor.
+     * 
+     * @param {object} props   The initial component props
+     * @param {object} context The initial context from parent components'
+     */
+    constructor(props, context)
     {
-        super(props);
+        super(props, context);
     }
 }
 ;// CONCATENATED MODULE: ./src/compat/hooks.js
@@ -2705,28 +2710,26 @@ const RENDER_QUEUE = {
     current: null
 };
 
-let HOOK_CONTEXT;
-
 function useEffect(effect, deps)
 {
-    const i = HOOK_CONTEXT.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    if (!HOOK_CONTEXT.hooks[i])
+    if (!RENDER_QUEUE.current.__internals.hooks[i])
     {
-        HOOK_CONTEXT.hooks[i] = effect;
-        HOOK_CONTEXT.hookDeps[i] = deps;
-        HOOK_CONTEXT.hooksCleanups[i] = effect();
+        RENDER_QUEUE.current.__internals.hooks[i] = effect;
+        RENDER_QUEUE.current.__internals.hookDeps[i] = deps;
+        RENDER_QUEUE.current.__internals.hooksCleanups[i] = effect();
     }
     else
     {
-        if (deps && !is_equal(deps, HOOK_CONTEXT.hookDeps[i]))
+        if (deps && !is_equal(deps, RENDER_QUEUE.current.__internals.hookDeps[i]))
         {
-            if (HOOK_CONTEXT.hooksCleanups[i])
+            if (RENDER_QUEUE.current.__internals.hooksCleanups[i])
             {
-                HOOK_CONTEXT.hooksCleanups[i]();
+                RENDER_QUEUE.current.__internals.hooksCleanups[i]();
             }
 
-            HOOK_CONTEXT.hooksCleanups[i] = effect();
+            RENDER_QUEUE.current.__internals.hooksCleanups[i] = effect();
         }
     }
 }
@@ -2755,15 +2758,15 @@ function refHolderFactory(reference)
 
 function useLayoutEffect(effect, deps)
 {
-    const i = HOOK_CONTEXT.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    const thisHookContext = HOOK_CONTEXT;
+    const thisHookContext = RENDER_QUEUE.current;
 
     useEffect(() =>
     {
-        thisHookContext.layoutEffects[i] = () =>
+        thisHookContext.__internals.layoutEffects[i] = () =>
         {
-            thisHookContext.hooksCleanups[i] = effect();
+            thisHookContext.__internals.hooksCleanups[i] = effect();
         };
 
     }, deps);
@@ -2771,22 +2774,22 @@ function useLayoutEffect(effect, deps)
 
 function useReducer(reducer, initialState, initialAction)
 {
-    const i = HOOK_CONTEXT.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    if (!HOOK_CONTEXT.hooks[i])
+    if (!RENDER_QUEUE.current.__internals.hooks[i])
     {
-        HOOK_CONTEXT.hooks[i] = {
+        RENDER_QUEUE.current.__internals.hooks[i] = {
             state: initialAction ? reducer(initialState, initialAction) : initialState
         };
     }
 
-    const thisHookContext = HOOK_CONTEXT;
+    const thisHookContext = RENDER_QUEUE.current;
 
     return [
-        HOOK_CONTEXT.hooks[i].state,
+        RENDER_QUEUE.current.__internals.hooks[i].state,
         useCallback(action =>
         {
-            thisHookContext.hooks[i].state = reducer(thisHookContext.hooks[i].state, action);
+            thisHookContext.__internals.hooks[i].state = reducer(thisHookContext.__internals.hooks[i].state, action);
 
             thisHookContext.setState();
         }, [])
@@ -2795,11 +2798,11 @@ function useReducer(reducer, initialState, initialAction)
 
 function useState(initial)
 {
-    const i = RENDER_QUEUE.current.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    if (!RENDER_QUEUE.current.hooks[i])
+    if (!RENDER_QUEUE.current.__internals.hooks[i])
     {
-        RENDER_QUEUE.current.hooks[i] = {
+        RENDER_QUEUE.current.__internals.hooks[i] = {
             state: transformState(initial)
         };
     }
@@ -2808,11 +2811,11 @@ function useState(initial)
 
     return [
 
-        RENDER_QUEUE.current.hooks[i].state,
+        RENDER_QUEUE.current.__internals.hooks[i].state,
 
         useCallback(newState =>
         {
-            thisHookContext.hooks[i].state = transformState(newState, thisHookContext.hooks[i].state);
+            thisHookContext.__internals.hooks[i].state = transformState(newState, thisHookContext.__internals.hooks[i].state);
 
             thisHookContext.forceUpdate();
 
@@ -2827,18 +2830,19 @@ function useCallback(cb, deps)
 
 function useMemo(factory, deps)
 {
-    const i = RENDER_QUEUE.current.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
+
     if (
-        !RENDER_QUEUE.current.hooks[i] ||
+        !RENDER_QUEUE.current.__internals.hooks[i] ||
         !deps ||
-        !is_equal(deps, RENDER_QUEUE.current.hookDeps[i])
+        !is_equal(deps, RENDER_QUEUE.current.__internals.hookDeps[i])
     )
     {
-        RENDER_QUEUE.current.hooks[i] = factory();
-        RENDER_QUEUE.current.hookDeps[i] = deps;
+        RENDER_QUEUE.current.__internals.hooks[i] = factory();
+        RENDER_QUEUE.current.__internals.hookDeps[i] = deps;
     }
 
-    return RENDER_QUEUE.current.hooks[i];
+    return RENDER_QUEUE.current.__internals.hooks[i];
 }
 
 // end public api
@@ -2858,21 +2862,35 @@ function transformState(state, prevState)
 
 
 
+/**
+ * Wrapper class around functional components.
+ * 
+ */
 class FunctionalComponent extends Component
 {
-    hookIndex;
-    hooks = [];
-    hooksCleanups = [];
-    hookDeps = [];
-    layoutEffects = [];
-
-    constructor(render, props)
+    /**
+     * Constructor.
+     * 
+     * @param {function}  render  Functional render function
+     * @param {object}    props   The initial component props
+     * @param {object}    context The initial context from parent components'
+     */
+    constructor(render, props, context)
     {
-        super(props);
+        super(props, context);
 
         this.__internals._fn = render;
+        this.__internals.hookIndex = null;
+        this.__internals.hooks = [];
+        this.__internals.hooksCleanups = [];
+        this.__internals.hookDeps = [];
+        this.__internals.layoutEffects = [];
     }
 
+    /**
+     * Runs effects after initial mount.
+     * 
+     */
     componentDidMount()
     {
         for (let i = 0; i < this.hooks.length; ++i)
@@ -2892,6 +2910,10 @@ class FunctionalComponent extends Component
         this.layoutEffects = [];
     }
 
+    /**
+     * Runs effects after component update.
+     * 
+     */
     componentDidUpdate()
     {
         for (let i = 0; i < this.hooks.length; ++i)
@@ -2911,6 +2933,10 @@ class FunctionalComponent extends Component
         this.layoutEffects = [];
     }
 
+    /**
+     * Runs effects before unmounting.
+     * 
+     */
     componentWillUnmount()
     {
         for (let i = 0; i < this.hooks.length; ++i)
@@ -2928,6 +2954,10 @@ class FunctionalComponent extends Component
         }
     }
 
+    /**
+     * Render function. Wrapper around original function
+     * 
+     */
     render()
     {
         const prevContext = RENDER_QUEUE.current;
@@ -2936,7 +2966,7 @@ class FunctionalComponent extends Component
         {
             RENDER_QUEUE.current = this;
 
-            this.hookIndex = 0;
+            this.__internals.hookIndex = 0;
 
             return this.__internals._fn(this.props);
         }
@@ -2950,7 +2980,7 @@ class FunctionalComponent extends Component
 /**
  * Functional component callback
  * 
- * @class
+ * @return {function}
  */
 function functionalComponent(fn)
 {
@@ -4549,10 +4579,14 @@ function createTextNode(vnode, text)
 
 function createHTMLElement(vnode)
 {
-    let { tagName, attributes, children } = vnode;
+    let { tagName, attributes, children, ref } = vnode;
 
     let DOMElement = createNativeElement(tagName);
 
+    if (ref)
+    {
+        ref(DOMElement);
+    }
     utils.foreach(attributes, function(prop, value)
     {
         setDomAttribute(DOMElement, prop, value);

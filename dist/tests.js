@@ -1,28 +1,111 @@
-function Car2()
-{
-    const divRef = Reactifly.useRef(null);
+const car_brands = ['Holden', 'Ford', 'Kia'];
+const car_models = ['Commodore', 'Mustang', 'i500'];
+const car_colors = ['Yellow', 'Green', 'Red'];
+const car_years  = ['1999', '1998', '1995'];
 
+function Car1()
+{
+    console.log('rending car');
+
+    const btnEl = Reactifly.useRef(null);
+        
     const onButtonClick = () =>
     {
-        console.log(divRef);
+       console.log(btnEl.current);
+    };
+    
+    const [brand, setBrand] = Reactifly.useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+    const [model, setModel] = Reactifly.useState(car_models[Math.floor(Math.random()*car_models.length)]);
+    const [year, setYear]   = Reactifly.useState(car_years[Math.floor(Math.random()*car_years.length)]);
+    const [color, setColor] = Reactifly.useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
+
+    const genCar = function()
+    {
+        setBrand(car_brands[Math.floor(Math.random()*car_brands.length)]);
+        setModel(car_models[Math.floor(Math.random()*car_models.length)]);
+        setYear(car_years[Math.floor(Math.random()*car_years.length)]);
+        setColor(car_colors[Math.floor(Math.random()*car_colors.length)]);
+
+        onButtonClick();
     };
 
-     let vars = 
+    let vars = 
     {
-        divRef : divRef,
-        onButtonClick : onButtonClick
+        brand  : brand,
+        model  : model,
+        year   : year,
+        color  : color,
+        genCar : genCar,
+        btnEl  : btnEl
     };
 
     return Reactifly.jsx(`
-        <div ref={divRef} onClick={onButtonClick}>
-            Hello
+        <div>
+            <h1>Car 2 My {brand}</h1>
+            <p>
+                It is a {color} {model} from {year}.
+            </p>
+            <button ref={btnEl} onClick={() => genCar()}>Generate Car</button>
         </div>`,
     vars);
 }
 
-let root = Reactifly.createRoot(document.body);
+function Car2()
+{
+    console.log('rending car');
+    
+    const [brand, setBrand] = Reactifly.useState(car_brands[Math.floor(Math.random()*car_brands.length)]);
+    const [model, setModel] = Reactifly.useState(car_models[Math.floor(Math.random()*car_models.length)]);
+    const [year, setYear]   = Reactifly.useState(car_years[Math.floor(Math.random()*car_years.length)]);
+    const [color, setColor] = Reactifly.useState(car_colors[Math.floor(Math.random()*car_colors.length)]);
 
-root.render(Car2);
+    const genCar = function()
+    {
+        setBrand(car_brands[Math.floor(Math.random()*car_brands.length)]);
+        setModel(car_models[Math.floor(Math.random()*car_models.length)]);
+        setYear(car_years[Math.floor(Math.random()*car_years.length)]);
+        setColor(car_colors[Math.floor(Math.random()*car_colors.length)]);
+    };
+
+    let vars = 
+    {
+        brand  : brand,
+        model  : model,
+        year   : year,
+        color  : color,
+        genCar : genCar 
+    };
+
+    return Reactifly.jsx(`
+        <div>
+            <h1>Car 1 My {brand}</h1>
+            <p>
+                It is a {color} {model} from {year}.
+            </p>
+            <button onClick={() => genCar()}>Generate Car</button>
+        </div>`,
+    vars);
+}
+
+class App extends Reactifly.Component
+{
+    Car1 = Car1;
+    Car2 = Car2;
+
+    render()
+    {
+        return `
+            <div>
+                <Car1 />
+                <Car2 />
+            </div>
+        `;
+    }
+}
+
+let root = Reactifly.createRoot(document.getElementById('app'));
+
+root.render(App);
 
     /*setTimeout(function()
 {
@@ -215,7 +298,7 @@ setTimeout(function()
             payload: 100
         });
 
-        const [value, setValue] = useState(() => 10);
+        const [value, setValue] = Reactifly.useState(() => 10);
 
         const inputEl = useRef(null);
         

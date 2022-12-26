@@ -65,10 +65,14 @@ function createTextNode(vnode, text)
 
 function createHTMLElement(vnode)
 {
-    let { tagName, attributes, children } = vnode;
+    let { tagName, attributes, children, ref } = vnode;
 
     let DOMElement = createNativeElement(tagName);
 
+    if (ref)
+    {
+        ref(DOMElement);
+    }
     _.foreach(attributes, function(prop, value)
     {
         setDomAttribute(DOMElement, prop, value);

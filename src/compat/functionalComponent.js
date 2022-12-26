@@ -7,12 +7,6 @@ import { RENDER_QUEUE } from './hooks';
  */
 class FunctionalComponent extends Component
 {
-    hookIndex;
-    hooks = [];
-    hooksCleanups = [];
-    hookDeps = [];
-    layoutEffects = [];
-
     /**
      * Constructor.
      * 
@@ -25,6 +19,11 @@ class FunctionalComponent extends Component
         super(props, context);
 
         this.__internals._fn = render;
+        this.__internals.hookIndex = null;
+        this.__internals.hooks = [];
+        this.__internals.hooksCleanups = [];
+        this.__internals.hookDeps = [];
+        this.__internals.layoutEffects = [];
     }
 
     /**
@@ -106,7 +105,7 @@ class FunctionalComponent extends Component
         {
             RENDER_QUEUE.current = this;
 
-            this.hookIndex = 0;
+            this.__internals.hookIndex = 0;
 
             return this.__internals._fn(this.props);
         }

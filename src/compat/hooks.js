@@ -17,28 +17,26 @@ export const RENDER_QUEUE = {
     current: null
 };
 
-let HOOK_CONTEXT;
-
 export function useEffect(effect, deps)
 {
-    const i = HOOK_CONTEXT.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    if (!HOOK_CONTEXT.hooks[i])
+    if (!RENDER_QUEUE.current.__internals.hooks[i])
     {
-        HOOK_CONTEXT.hooks[i] = effect;
-        HOOK_CONTEXT.hookDeps[i] = deps;
-        HOOK_CONTEXT.hooksCleanups[i] = effect();
+        RENDER_QUEUE.current.__internals.hooks[i] = effect;
+        RENDER_QUEUE.current.__internals.hookDeps[i] = deps;
+        RENDER_QUEUE.current.__internals.hooksCleanups[i] = effect();
     }
     else
     {
-        if (deps && !is_equal(deps, HOOK_CONTEXT.hookDeps[i]))
+        if (deps && !is_equal(deps, RENDER_QUEUE.current.__internals.hookDeps[i]))
         {
-            if (HOOK_CONTEXT.hooksCleanups[i])
+            if (RENDER_QUEUE.current.__internals.hooksCleanups[i])
             {
-                HOOK_CONTEXT.hooksCleanups[i]();
+                RENDER_QUEUE.current.__internals.hooksCleanups[i]();
             }
 
-            HOOK_CONTEXT.hooksCleanups[i] = effect();
+            RENDER_QUEUE.current.__internals.hooksCleanups[i] = effect();
         }
     }
 }
@@ -67,15 +65,15 @@ function refHolderFactory(reference)
 
 export function useLayoutEffect(effect, deps)
 {
-    const i = HOOK_CONTEXT.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    const thisHookContext = HOOK_CONTEXT;
+    const thisHookContext = RENDER_QUEUE.current;
 
     useEffect(() =>
     {
-        thisHookContext.layoutEffects[i] = () =>
+        thisHookContext.__internals.layoutEffects[i] = () =>
         {
-            thisHookContext.hooksCleanups[i] = effect();
+            thisHookContext.__internals.hooksCleanups[i] = effect();
         };
 
     }, deps);
@@ -83,22 +81,22 @@ export function useLayoutEffect(effect, deps)
 
 export function useReducer(reducer, initialState, initialAction)
 {
-    const i = HOOK_CONTEXT.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    if (!HOOK_CONTEXT.hooks[i])
+    if (!RENDER_QUEUE.current.__internals.hooks[i])
     {
-        HOOK_CONTEXT.hooks[i] = {
+        RENDER_QUEUE.current.__internals.hooks[i] = {
             state: initialAction ? reducer(initialState, initialAction) : initialState
         };
     }
 
-    const thisHookContext = HOOK_CONTEXT;
+    const thisHookContext = RENDER_QUEUE.current;
 
     return [
-        HOOK_CONTEXT.hooks[i].state,
+        RENDER_QUEUE.current.__internals.hooks[i].state,
         useCallback(action =>
         {
-            thisHookContext.hooks[i].state = reducer(thisHookContext.hooks[i].state, action);
+            thisHookContext.__internals.hooks[i].state = reducer(thisHookContext.__internals.hooks[i].state, action);
 
             thisHookContext.setState();
         }, [])
@@ -107,11 +105,11 @@ export function useReducer(reducer, initialState, initialAction)
 
 export function useState(initial)
 {
-    const i = RENDER_QUEUE.current.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
 
-    if (!RENDER_QUEUE.current.hooks[i])
+    if (!RENDER_QUEUE.current.__internals.hooks[i])
     {
-        RENDER_QUEUE.current.hooks[i] = {
+        RENDER_QUEUE.current.__internals.hooks[i] = {
             state: transformState(initial)
         };
     }
@@ -120,11 +118,11 @@ export function useState(initial)
 
     return [
 
-        RENDER_QUEUE.current.hooks[i].state,
+        RENDER_QUEUE.current.__internals.hooks[i].state,
 
         useCallback(newState =>
         {
-            thisHookContext.hooks[i].state = transformState(newState, thisHookContext.hooks[i].state);
+            thisHookContext.__internals.hooks[i].state = transformState(newState, thisHookContext.__internals.hooks[i].state);
 
             thisHookContext.forceUpdate();
 
@@ -139,18 +137,19 @@ function useCallback(cb, deps)
 
 function useMemo(factory, deps)
 {
-    const i = RENDER_QUEUE.current.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals.hookIndex++;
+
     if (
-        !RENDER_QUEUE.current.hooks[i] ||
+        !RENDER_QUEUE.current.__internals.hooks[i] ||
         !deps ||
-        !is_equal(deps, RENDER_QUEUE.current.hookDeps[i])
+        !is_equal(deps, RENDER_QUEUE.current.__internals.hookDeps[i])
     )
     {
-        RENDER_QUEUE.current.hooks[i] = factory();
-        RENDER_QUEUE.current.hookDeps[i] = deps;
+        RENDER_QUEUE.current.__internals.hooks[i] = factory();
+        RENDER_QUEUE.current.__internals.hookDeps[i] = deps;
     }
 
-    return RENDER_QUEUE.current.hooks[i];
+    return RENDER_QUEUE.current.__internals.hooks[i];
 }
 
 // end public api
