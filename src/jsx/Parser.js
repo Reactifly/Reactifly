@@ -1,22 +1,51 @@
-function oneObject(str)
-{
-    var obj = {}
-    str.split(",").forEach(_ => obj[_] = true)
-    return obj
-}
-var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
-var specalTag = oneObject('xmp,style,script,noscript,textarea,template,#comment')
+const VOID_TAGS = {
+    'area': true,
+    'base': true,
+    'basefont': true,
+    'br': true,
+    'col': true,
+    'frame': true,
+    'hr': true,
+    'img': true,
+    'input': true,
+    'link': true,
+    'meta': true,
+    'param': true,
+    'embed': true,
+    'command': true,
+    'keygen': true,
+    'source': true,
+    'track': true,
+    'wbr': true,
+};
 
-var hiddenTag = oneObject('style,script,noscript,template')
+const SPECIAL_TAGS = {
+    'xmp': true,
+    'style': true,
+    'script': true,
+    'noscript': true,
+    'textarea': true,
+    'template': true,
+    '#comment': true,
+};
 
-const Parser = function(a, f)
+const HIDDEN_TAGS = {
+    'style': true,
+    'script': true,
+    'noscript': true,
+    'template': true,
+};
+
+const Parser = function(jsx, f)
 {
     if (!(this instanceof Parser))
     {
-        return parse(a, f)
+        return parse(jsx, f)
     }
-    this.input = a
-    this.getOne = f
+
+    this.input = jsx;
+
+    this.getOne = f;
 }
 
 Parser.prototype = {
@@ -35,12 +64,15 @@ var rsp = /\s/
  */
 function parse(string, getOne)
 {
-    getOne = (getOne === void 666 || getOne === true)
+    getOne = (getOne === void 666 || getOne === true);
+
     var ret = lexer(string, getOne)
+
     if (getOne)
     {
         return typeof ret[0] === 'string' ? ret[1] : ret[0]
     }
+
     return ret
 }
 
@@ -112,7 +144,7 @@ function lexer(string, getOne)
             string = string.replace(arr[0], '')
             var node = arr[1]
             addNode(node)
-            var selfClose = !!(node.isVoidTag || specalTag[node.type])
+            var selfClose = !!(node.isVoidTag || SPECIAL_TAGS[node.type])
             if (!selfClose)
             { //放到这里可以添加孩子
                 stack.push(node)
@@ -404,7 +436,7 @@ function getOpenTag(string)
             { //处理开标签的边界符
                 leftContent += '>'
                 string = string.slice(1)
-                if (voidTag[node.type])
+                if (VOID_TAGS[node.type])
                 {
                     node.isVoidTag = true
                 }
@@ -416,7 +448,7 @@ function getOpenTag(string)
                 node.isVoidTag = true
             }
 
-            if (!node.isVoidTag && specalTag[tag])
+            if (!node.isVoidTag && SPECIAL_TAGS[tag])
             { //如果是script, style, xmp等元素
                 var closeTag = '</' + tag + '>'
                 var j = string.indexOf(closeTag)
@@ -443,7 +475,7 @@ function getText(node)
         {
             ret += el.nodeValue
         }
-        else if (el.children && !hiddenTag[el.type])
+        else if (el.children && !HIDDEN_TAGS[el.type])
         {
             ret += getText(el)
         }

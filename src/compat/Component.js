@@ -3,7 +3,7 @@ import { parseJSX } from '../jsx/index';
 import _ from '../utils/index';
 
 /**
- * Base component
+ * Base Component class. Provides `setState()` and `forceUpdate()`, which trigger rendering.
  * 
  * static getDerivedStateFromProps()
  * componentDidMount()
@@ -14,7 +14,6 @@ import _ from '../utils/index';
  * componentWillUpdate(changedProps, changedState)
  * componentDidUpdate(prevProps, prevState, snapshot)
  * componentDidCatch()
- * @class
  */
 export class Component
 {
@@ -65,14 +64,23 @@ export class Component
     };
 
     /**
-     * Constructor
-     *
+     * Constructor.
+     * 
+     * @param {object} props   The initial component props
+     * @param {object} context The initial context from parent components'
      */
     constructor(props)
     {
         this.props = !_.is_object(props) ? {} : props;
     }
 
+    /**
+     * Update component state and re-render.
+     * 
+     * @param {object | string}       key       Key to set using "dot.notation" or state object.
+     * @param {mixed}                 value     Value to set or callback if first arg is an object
+     * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
+     */
     setState(key, value, callback)
     {
         if (!_.is_object(this.state))
@@ -111,11 +119,22 @@ export class Component
         }
     }
 
+    /**
+     * Get state using "dot.notation".
+     * 
+     * @param {string}  key      Key to set using "dot.notation" or state object.
+     */
     getState(key)
     {
         return array_get(key, this.state);
     }
 
+    /**
+     * JSX helper function.
+     * 
+     * @param   {string}        jsxStr  Key to set using "dot.notation" or state object.
+     * @returns {array|object}
+     */
     jsx(jsx)
     {
         const context = renderContext(this);
@@ -123,6 +142,11 @@ export class Component
         return parseJSX(jsx, { ...context, this: this });
     }
 
+    /**
+     * Update component state and re-render.
+     * 
+     * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
+     */
     forceUpdate()
     {
         thunkUpdate(this.__internals.vnode);

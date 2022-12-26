@@ -1,4 +1,30 @@
-setTimeout(function()
+function Car2()
+{
+    const divRef = Reactifly.useRef(null);
+
+    const onButtonClick = () =>
+    {
+        console.log(divRef);
+    };
+
+     let vars = 
+    {
+        divRef : divRef,
+        onButtonClick : onButtonClick
+    };
+
+    return Reactifly.jsx(`
+        <div ref={divRef} onClick={onButtonClick}>
+            Hello
+        </div>`,
+    vars);
+}
+
+let root = Reactifly.createRoot(document.body);
+
+root.render(Car2);
+
+    /*setTimeout(function()
 {
     const t0 = performance.now();
 
@@ -134,7 +160,7 @@ setTimeout(function()
 
     root.render(React.createElement(Bar));
 
-}, 10);
+}, 10);*/
 
 /*
 (function()

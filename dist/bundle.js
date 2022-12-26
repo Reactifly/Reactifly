@@ -19,7 +19,7 @@
 /************************************************************************/
 var __webpack_exports__ = {};
 
-// UNUSED EXPORTS: Component, Fragment, createElement, createRoot, default, h, jsx, register, render, useState
+// UNUSED EXPORTS: Component, Fragment, createElement, createRoot, default, h, jsx, register, render, useLayoutEffect, useReducer, useRef, useState
 
 ;// CONCATENATED MODULE: ./src/dom/factory.js
 const SVG_ELEMENTS = 'animate circle clipPath defs ellipse g line linearGradient mask path pattern polygon polyline radialGradient rect stop svg text tspan use'.split(' ');
@@ -85,6 +85,16 @@ _map.prototype.isset = function(key)
  * @returns {object}
  */
 function obj()
+{
+    return new _map;
+}
+
+/**
+ * Returns an immutable object with set,get,isset,delete methods that accept dot.notation.
+ *
+ * @returns {object}
+ */
+function extend(a, b)
 {
     return new _map;
 }
@@ -845,7 +855,7 @@ function equalTraverseable(a, b)
 
     foreach(a, function(i, val)
     {
-        if (!utils_is_equal(val, b[i]))
+        if (!is_equal(val, b[i]))
         {
             ret = false;
 
@@ -863,7 +873,7 @@ function equalTraverseable(a, b)
  * @param   {mixed}  b
  * @returns {boolean}
  */
-function utils_is_equal(a, b)
+function is_equal(a, b)
 {
     if ((typeof a) !== (typeof b))
     {
@@ -1205,7 +1215,7 @@ const utils_ = {
     is_constructable,
     is_class,
     is_empty,
-    is_equal: utils_is_equal,
+    is_equal,
     in_dom,
     size,
     bool,
@@ -1683,25 +1693,54 @@ let nodeDidMount = (vnode) =>
     }
 }
 ;// CONCATENATED MODULE: ./src/jsx/Parser.js
-function oneObject(str)
-{
-    var obj = {}
-    str.split(",").forEach(_ => obj[_] = true)
-    return obj
-}
-var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
-var specalTag = oneObject('xmp,style,script,noscript,textarea,template,#comment')
+const VOID_TAGS = {
+    'area': true,
+    'base': true,
+    'basefont': true,
+    'br': true,
+    'col': true,
+    'frame': true,
+    'hr': true,
+    'img': true,
+    'input': true,
+    'link': true,
+    'meta': true,
+    'param': true,
+    'embed': true,
+    'command': true,
+    'keygen': true,
+    'source': true,
+    'track': true,
+    'wbr': true,
+};
 
-var hiddenTag = oneObject('style,script,noscript,template')
+const SPECIAL_TAGS = {
+    'xmp': true,
+    'style': true,
+    'script': true,
+    'noscript': true,
+    'textarea': true,
+    'template': true,
+    '#comment': true,
+};
 
-const Parser = function(a, f)
+const HIDDEN_TAGS = {
+    'style': true,
+    'script': true,
+    'noscript': true,
+    'template': true,
+};
+
+const Parser = function(jsx, f)
 {
     if (!(this instanceof Parser))
     {
-        return parse(a, f)
+        return parse(jsx, f)
     }
-    this.input = a
-    this.getOne = f
+
+    this.input = jsx;
+
+    this.getOne = f;
 }
 
 Parser.prototype = {
@@ -1720,12 +1759,15 @@ var rsp = /\s/
  */
 function parse(string, getOne)
 {
-    getOne = (getOne === void 666 || getOne === true)
+    getOne = (getOne === void 666 || getOne === true);
+
     var ret = lexer(string, getOne)
+
     if (getOne)
     {
         return typeof ret[0] === 'string' ? ret[1] : ret[0]
     }
+
     return ret
 }
 
@@ -1797,7 +1839,7 @@ function lexer(string, getOne)
             string = string.replace(arr[0], '')
             var node = arr[1]
             addNode(node)
-            var selfClose = !!(node.isVoidTag || specalTag[node.type])
+            var selfClose = !!(node.isVoidTag || SPECIAL_TAGS[node.type])
             if (!selfClose)
             { //放到这里可以添加孩子
                 stack.push(node)
@@ -2089,7 +2131,7 @@ function getOpenTag(string)
             { //处理开标签的边界符
                 leftContent += '>'
                 string = string.slice(1)
-                if (voidTag[node.type])
+                if (VOID_TAGS[node.type])
                 {
                     node.isVoidTag = true
                 }
@@ -2101,7 +2143,7 @@ function getOpenTag(string)
                 node.isVoidTag = true
             }
 
-            if (!node.isVoidTag && specalTag[tag])
+            if (!node.isVoidTag && SPECIAL_TAGS[tag])
             { //如果是script, style, xmp等元素
                 var closeTag = '</' + tag + '>'
                 var j = string.indexOf(closeTag)
@@ -2128,7 +2170,7 @@ function getText(node)
         {
             ret += el.nodeValue
         }
-        else if (el.children && !hiddenTag[el.type])
+        else if (el.children && !HIDDEN_TAGS[el.type])
         {
             ret += getText(el)
         }
@@ -2317,7 +2359,7 @@ function genDepencies(obj)
 
     let hasProps = typeof obj.props !== 'undefined' || (obj['this'] && obj['this'].props);
 
-    if (!hasProps && RENDER_QUEUE.current && RENDER_QUEUE.current.props )
+    if (!hasProps && RENDER_QUEUE.current && RENDER_QUEUE.current.props)
     {
         obj.props = RENDER_QUEUE.current.props;
     }
@@ -2479,7 +2521,7 @@ function register(component, key)
 
 
 /**
- * Base component
+ * Base Component class. Provides `setState()` and `forceUpdate()`, which trigger rendering.
  * 
  * static getDerivedStateFromProps()
  * componentDidMount()
@@ -2490,7 +2532,6 @@ function register(component, key)
  * componentWillUpdate(changedProps, changedState)
  * componentDidUpdate(prevProps, prevState, snapshot)
  * componentDidCatch()
- * @class
  */
 class Component
 {
@@ -2541,14 +2582,23 @@ class Component
     };
 
     /**
-     * Constructor
-     *
+     * Constructor.
+     * 
+     * @param {object} props   The initial component props
+     * @param {object} context The initial context from parent components'
      */
     constructor(props)
     {
         this.props = !utils.is_object(props) ? {} : props;
     }
 
+    /**
+     * Update component state and re-render.
+     * 
+     * @param {object | string}       key       Key to set using "dot.notation" or state object.
+     * @param {mixed}                 value     Value to set or callback if first arg is an object
+     * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
+     */
     setState(key, value, callback)
     {
         if (!utils.is_object(this.state))
@@ -2587,11 +2637,22 @@ class Component
         }
     }
 
+    /**
+     * Get state using "dot.notation".
+     * 
+     * @param {string}  key      Key to set using "dot.notation" or state object.
+     */
     getState(key)
     {
         return array_get(key, this.state);
     }
 
+    /**
+     * JSX helper function.
+     * 
+     * @param   {string}        jsxStr  Key to set using "dot.notation" or state object.
+     * @returns {array|object}
+     */
     jsx(jsx)
     {
         const context = renderContext(this);
@@ -2599,6 +2660,11 @@ class Component
         return parseJSX(jsx, { ...context, this: this });
     }
 
+    /**
+     * Update component state and re-render.
+     * 
+     * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
+     */
     forceUpdate()
     {
         thunkUpdate(this.__internals.vnode);
@@ -2765,7 +2831,7 @@ function useMemo(factory, deps)
     if (
         !RENDER_QUEUE.current.hooks[i] ||
         !deps ||
-        !utils_is_equal(deps, RENDER_QUEUE.current.hookDeps[i])
+        !is_equal(deps, RENDER_QUEUE.current.hookDeps[i])
     )
     {
         RENDER_QUEUE.current.hooks[i] = factory();
@@ -3795,9 +3861,9 @@ function thunkRender(component)
 function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
-    let left      = vnode.children[0];
-    let right     = jsxFactory(component);
-    let actions   = tree(left, right);
+    let left = vnode.children[0];
+    let right = jsxFactory(component);
+    let actions = patchTree(left, right);
 
     if (!utils.is_empty(actions.current))
     {
@@ -3805,7 +3871,14 @@ function thunkUpdate(vnode)
     }
 }
 
-function tree(left, right)
+/**
+ * Patch's thunk tree and returns actions.
+ * 
+ * @param   {object}  left
+ * @param   {object}  right
+ * @returns {array}
+ */
+function patchTree(left, right)
 {
     let actions = {
         current: []
@@ -3816,6 +3889,12 @@ function tree(left, right)
     return actions;
 }
 
+/**
+ * Parses component JSX from render.
+ * 
+ * @param   {object}        component
+ * @returns {object|array}
+ */
 function jsxFactory(component)
 {
     RENDER_QUEUE.current = component;
@@ -3844,6 +3923,12 @@ function jsxFactory(component)
     return result;
 }
 
+/**
+ * Returns component context variables/dependencies for render function.
+ * 
+ * @param   {object} component
+ * @returns {object}
+ */
 function renderContext(component)
 {
     let ret = {};
@@ -5148,7 +5233,7 @@ const Reactifly =
 	createRoot: createRoot,
 	render: render,
 	register: register,
-	Component: Component, Fragment: Fragment, useState: useState,
+	Component: Component, Fragment: Fragment, useState: useState, useRef: useRef, useLayoutEffect: useLayoutEffect, useReducer: useReducer,
 	jsx: jsx,
 	createElement: createElement,
 	h: createElement

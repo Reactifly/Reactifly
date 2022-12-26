@@ -41,6 +41,16 @@ export function obj()
 }
 
 /**
+ * Returns an immutable object with set,get,isset,delete methods that accept dot.notation.
+ *
+ * @returns {object}
+ */
+export function extend(a, b)
+{
+    return new _map;
+}
+
+/**
  * Triggers a native event on an element.
  *
  * @param  {HTMLElement}  el    Target element
