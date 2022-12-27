@@ -115,7 +115,7 @@ let root = reactifly.createRoot(document.getElementById('app'));
 
 root.render(App);
 
-    /*setTimeout(function()
+setTimeout(function()
 {
     const t0 = performance.now();
 
@@ -251,10 +251,10 @@ setTimeout(function()
 
     root.render(React.createElement(Bar));
 
-}, 10);*/
+}, 10);
 
-/*
-(function()
+
+/*(function()
 {
     const Result = ({ result }) =>
     {

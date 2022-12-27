@@ -1,7 +1,6 @@
 import { nodeComponent } from './utils';
 import { jsx as parseJSX } from '../jsx/index';
-import { commit } from '../diff/commit';
-import { patch } from '../diff/patch';
+import { diff } from '../diff/index';
 import { RENDER_QUEUE } from '../compat/index';
 import _ from '../utils/index';
 
@@ -50,12 +49,8 @@ export function thunkUpdate(vnode)
     let component = vnode.__internals._component;
     let left = vnode.children[0];
     let right = jsxFactory(component);
-    let actions = patchTree(left, right);
 
-    if (!_.is_empty(actions.current))
-    {
-        commit(actions.current);
-    }
+    diff(left, right);
 }
 
 /**

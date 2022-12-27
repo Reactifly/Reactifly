@@ -1,7 +1,6 @@
 import { createDomElement } from '../dom/index';
 import { createElement } from '../vdom/index';
-import { commit } from '../diff/commit';
-import { patch } from '../diff/patch';
+import { diff } from '../diff/index';
 import { jsx } from '../jsx/index';
 import _ from '../utils/index';
 
@@ -37,7 +36,7 @@ export class Root
      */
     render(componentOrJSX, rootProps)
     {
-        this.component = !_.is_callable(componentOrJSX) ? this.__componentFactory(componentOrJSX, rootProps) : componentOrJSX;
+        this.component = !_.is_callable(componentOrJSX) ? this.__renderFactory(componentOrJSX, rootProps) : componentOrJSX;
 
         this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps)
     }
@@ -48,7 +47,7 @@ export class Root
      * @param {string}              jsxStr      Root JSX to render
      * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
      */
-    __componentFactory(jsxStr, rootProps)
+    __renderFactory(jsxStr, rootProps)
     {
         const renderFunc = function()
         {
@@ -64,14 +63,7 @@ export class Root
      */
     __patchRoot()
     {
-        let actions = { current: [] };
-
-        patch(this.htmlRootEl._reactiflyRootVnode, createElement(this.component), actions.current);
-
-        if (!_.is_empty(actions.current))
-        {
-            commit(actions.current);
-        }
+        diff(this.htmlRootEl._reactiflyRootVnode, createElement(this.component));
     }
 
     /**
