@@ -3,100 +3,100 @@ import _ from '../utils/index';
 /**
  * Checks if Vnode is mounted.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isMounted = (node) =>
+export let isMounted = (vnode) =>
 {
-    return _.in_dom(nodeElem(node));
+    return _.in_dom(nodeElem(vnode));
 }
 
 /**
  * Checks if Vnode is fragment.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isFragment = (node) =>
+export let isFragment = (vnode) =>
 {
-    return node.type === 'fragment';
+    return vnode.type === 'fragment';
 }
 
 /**
  * Checks if Vnode is thunk.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isThunk = (node) =>
+export let isThunk = (vnode) =>
 {
-    return node.type === 'thunk';
+    return vnode.type === 'thunk';
 }
 
 /**
  * Is functional thunk.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isFunctionalThunk = (node) =>
+export let isFunctionalThunk = (vnode) =>
 {
-    return node.type === 'thunk' && node.__internals.fn !== null
+    return vnode.type === 'thunk' && vnode.__internals.fn !== null
 }
 
 /**
  * Is native Vnode.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isNative = (node) =>
+export let isNative = (vnode) =>
 {
-    return node.type === 'native';
+    return vnode.type === 'native';
 }
 
 /**
  * Is text Vnode.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isText = (node) =>
+export let isText = (vnode) =>
 {
-    return node.type === 'text';
+    return vnode.type === 'text';
 }
 
 /**
  * Is empty Vnode.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isEmpty = (node) =>
+export let isEmpty = (vnode) =>
 {
-    return node.type === 'empty';
+    return vnode.type === 'empty';
 }
 
 /**
  * Has no children.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let noChildren = (node) =>
+export let noChildren = (vnode) =>
 {
-    return node.children.length === 1 && isEmpty(node.children[0]);
+    return vnode.children.length === 1 && isEmpty(vnode.children[0]);
 }
 
 /**
  * Has single child.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let singleChild = (node) =>
+export let singleChild = (vnode) =>
 {
-    return node.children.length === 1 && !isEmpty(node.children[0]);
+    return vnode.children.length === 1 && !isEmpty(vnode.children[0]);
 }
 
 /**
@@ -132,7 +132,7 @@ export let isSameFragment = (left, right) =>
 /**
  * Is thunk instantiated.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
 export let isThunkInstantiated = (vnode) =>
@@ -143,19 +143,19 @@ export let isThunkInstantiated = (vnode) =>
 /**
  * Checks if a thunk Vnode is only nesting a fragment.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {boolean}
  */
-export let isNestingFragment = (node) =>
+export let isNestingFragment = (vnode) =>
 {
-    if (isThunk(node) && isThunkInstantiated(node))
+    if (isThunk(vnode) && isThunkInstantiated(vnode))
     {
-        while (node.children && isThunk(node))
+        while (vnode.children && isThunk(vnode))
         {
-            node = node.children[0];
+            vnode = vnode.children[0];
         }
 
-        return isFragment(node);
+        return isFragment(vnode);
     }
 
     return false;
@@ -164,86 +164,86 @@ export let isNestingFragment = (node) =>
 /**
  * Thunk function name.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {string}
  */
-export let thunkName = (node) =>
+export let thunkName = (vnode) =>
 {
-    return node.__internals._name;
+    return vnode.__internals._name;
 }
 
 /**
  * Set/get node element.
  *  
- * @param   {object}                   node
+ * @param   {object}                   vnode
  * @param   {HTMLElement | undefined}  Elem 
  * @returns {HTMLElement}
  */
-export let nodeElem = (node, elem) =>
+export let nodeElem = (vnode, elem) =>
 {
     if (!_.is_undefined(elem))
     {
-        node.__internals._domEl = elem;
+        vnode.__internals._domEl = elem;
 
         return elem;
     }
 
-    if (isThunk(node) || isFragment(node))
+    if (isThunk(vnode) || isFragment(vnode))
     {
-        return findThunkDomEl(node);
+        return findThunkDomEl(vnode);
     }
 
-    return node.__internals._domEl;
+    return vnode.__internals._domEl;
 }
 
 /**
  * Set/get native Vnodes attributes.
  *  
- * @param   {object}              node
+ * @param   {object}              vnode
  * @param   {object | undefined}  attrs 
  * @returns {object}
  */
-export let nodeAttributes = (node, attrs) =>
+export let nodeAttributes = (vnode, attrs) =>
 {
     if (!_.is_undefined(attrs))
     {
-        node.__internals._prevAttrs = node.attributes;
+        vnode.__internals._prevAttrs = vnode.attributes;
 
-        node.attributes = attrs;
+        vnode.attributes = attrs;
     }
 
-    return node.attributes;
+    return vnode.attributes;
 }
 
 /**
  * Set/get Vnode's component.
  *  
- * @param   {object}              node
+ * @param   {object}              vnode
  * @param   {object | undefined}  component 
  * @returns {object}
  */
-export let nodeComponent = (node, component) =>
+export let nodeComponent = (vnode, component) =>
 {
     if (!_.is_undefined(component))
     {
-        node.__internals._component = component;
+        vnode.__internals._component = component;
     }
 
-    return node.__internals._component;
+    return vnode.__internals._component;
 }
 
 /**
  * Set/get component's Vnode.
  *  
  * @param   {object}              component
- * @param   {object | undefined}  node 
+ * @param   {object | undefined}  vnode 
  * @returns {object}
  */
-export let componentNode = (component, node) =>
+export let componentNode = (component, vnode) =>
 {
-    if (!_.is_undefined(node))
+    if (!_.is_undefined(vnode))
     {
-        component.__internals.vnode = node;
+        component.__internals.vnode = vnode;
     }
 
     return component.__internals.vnode;
@@ -258,10 +258,10 @@ export let componentNode = (component, node) =>
  */
 export let parentElem = (vnode) =>
 {
-    // Native node
+    // Native vnode
     if (isNative(vnode) || isText(vnode) || isEmpty(vnode))
     {
-        return nodeElem(node).parentNode;
+        return nodeElem(vnode).parentNode;
     }
 
     // Thunks / fragments with a direct child
@@ -272,7 +272,7 @@ export let parentElem = (vnode) =>
         return nodeElem(child).parentNode;
     }
 
-    // Recursively traverse down tree until either a DOM node is found
+    // Recursively traverse down tree until either a DOM vnode is found
     // or a fragment is found and return it's parent
 
     while (isThunk(child) || isFragment(child))
@@ -287,16 +287,16 @@ export let parentElem = (vnode) =>
 /**
  * Returns index of Vnode relative to parent / siblings.
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {number}
  */
-export let domIndex = (node) =>
+export let domIndex = (vnode) =>
 {
-    let parentDOMElement = parentElem(node);
+    let parentDOMElement = parentElem(vnode);
 
     let domSiblings = Array.prototype.slice.call(parentDOMElement.children);
 
-    let thisEl = nodeElem(node);
+    let thisEl = nodeElem(vnode);
 
     thisEl = _.isArray(thisEl) ? thisEl[0] : thisEl;
 
@@ -319,7 +319,7 @@ export let domIndex = (node) =>
  * Recursively traverse down tree until either a DOM node is found
  * or a fragment is found and return it's children
  *  
- * @param   {object}  node
+ * @param   {object}  vnode
  * @returns {array|HTMLElement}
  */
 function findThunkDomEl(vnode)
