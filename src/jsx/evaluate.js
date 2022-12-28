@@ -50,6 +50,8 @@ export default function evaluate(str, obj, config)
 
         var a = fn.call(obj.this, obj)
 
+        console.log(args);
+        
         return a;
     }
     catch (e)

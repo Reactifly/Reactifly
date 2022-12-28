@@ -79,6 +79,8 @@ export class Root
         this.__mount(DOMElement);
 
         this.htmlRootEl._reactiflyRootVnode = vnode;
+
+        console.log(vnode);
     }
 
     /**

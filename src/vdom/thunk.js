@@ -47,28 +47,10 @@ export function thunkRender(component)
 export function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
-    let left = vnode.children[0];
-    let right = jsxFactory(component);
+    let left      = vnode.children[0];
+    let right     = jsxFactory(component);
 
     diff(left, right);
-}
-
-/**
- * Patch's thunk tree and returns actions.
- * 
- * @param   {object}  left
- * @param   {object}  right
- * @returns {array}
- */
-function patchTree(left, right)
-{
-    let actions = {
-        current: []
-    };
-
-    patch(left, right, actions.current);
-
-    return actions;
 }
 
 /**

@@ -62,6 +62,11 @@ export function createElement(tag, props, ...children)
 
     if (typeof tag === 'function')
     {
+        if (children[0].type !== 'empty')
+        {
+            normalizedProps.children = children;
+        }
+
         if (!_.is_constructable(tag))
         {
             return createFunctionalThunk(tag, normalizedProps, children, key, ref);
@@ -109,18 +114,25 @@ function normaliseChildren(children, checkKeys)
     {
         _.foreach(children, function(i, vnode)
         {
-            if (_.is_null(vnode) || _.is_undefined(vnode))
+            if (_.is_callable(vnode))
+            {
+                throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
+            }
+            else if (_.is_null(vnode) || _.is_undefined(vnode))
             {
                 ret.push(createEmptyVnode());
             }
             else if (checkKeys && !vnode.key)
             {
-                throw new Error('Each child in a list should have a unique "key" prop.')
+                console.error('Warning: Each child in a list should have a unique "key" prop.');
+
+                ret.push(vnode);
             }
             else if (_.is_string(vnode) || _.is_number(vnode))
             {
                 ret.push(createTextVnode(vnode, null));
             }
+            // Inline function, map or props.children
             else if (_.is_array(vnode))
             {
                 let _children = normaliseChildren(vnode, true);
@@ -250,7 +262,7 @@ function createThunkVnode(fn, props, children, key, ref)
     return {
         type: _type,
         fn,
-        children,
+        children : null,
         props,
         key,
         __internals:
@@ -280,7 +292,7 @@ function createFunctionalThunk(fn, props, children, key, ref)
     return {
         type: 'thunk',
         fn: func,
-        children: null,
+        children : null,
         props,
         key,
         __internals:
@@ -292,5 +304,7 @@ function createFunctionalThunk(fn, props, children, key, ref)
         }
     }
 }
+
+
 
 export default createElement;

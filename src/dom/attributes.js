@@ -41,12 +41,13 @@ const CSS_PREFIXABLE = [
 ];
 
 export function setDomAttribute(DOMElement, name, value, previousValue)
-{
+{    
     switch (name)
     {
         // Skip
         case 'key':
         case 'ref':
+        case 'children':
             break;
 
             // Style
@@ -117,10 +118,11 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
                         DOMElement[name] = value;
                         break;
                     default:
-                        DOMElement.removeAttribute(name)
+                        DOMElement.setAttribute(name, value);
                         break;
                 }
             }
+            
             break;
     }
 }
@@ -132,6 +134,7 @@ export function removeDomAttribute(DOMElement, name, previousValue)
         // Skip
         case 'key':
         case 'ref':
+        case 'children':
             break;
 
             // Class

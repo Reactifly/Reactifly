@@ -22,7 +22,7 @@ export class Component
      *
      * @var {object}
      */
-    context = {};
+    context = null;
 
     /**
      * props.
@@ -69,9 +69,11 @@ export class Component
      * @param {object} props   The initial component props
      * @param {object} context The initial context from parent components'
      */
-    constructor(props)
+    constructor(props, context)
     {
         this.props = !_.is_object(props) ? {} : props;
+
+        this.context = context;
     }
 
     /**
