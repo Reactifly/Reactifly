@@ -1,5 +1,6 @@
 import createNativeElement from './factory';
-import * as vDOM from '../vdom/index';
+import * as vDOM from '../vdom/utils';
+import { thunkInstantiate } from '../vdom/thunk';
 import { setDomAttribute } from './attributes';
 import _ from '../utils/index';
 
@@ -132,7 +133,7 @@ function createThunk(vnode, parentDOMElement)
 
     let { fn, props } = vnode;
 
-    let component = vDOM.thunkInstantiate(vnode);
+    let component = thunkInstantiate(vnode);
 
     // Create entire tree recursively
     let DOMElement = createDomElement(component.props.children[0]);

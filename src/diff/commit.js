@@ -1,5 +1,5 @@
 import _ from '../utils/index';
-import * as vDOM from '../vdom/index';
+import * as vDOM from '../vdom/utils';
 import { createDomElement } from '../dom/create';
 import { setDomAttribute, removeDomAttribute } from '../dom/attributes';
 import * as events from '../dom/events';

@@ -1,7 +1,7 @@
 import Parser from './Parser';
-import { createElement } from '../vdom/index';
-import { Fragment } from '../compat/index';
-import { RENDER_QUEUE } from '../compat/index';
+import { createElement } from '../vdom/element';
+import { Fragment } from '../compat/Fragment';
+import { RENDER_QUEUE } from '../internal';
 
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS = {};

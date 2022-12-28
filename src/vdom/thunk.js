@@ -1,7 +1,7 @@
 import { nodeComponent } from './utils';
 import { jsx as parseJSX } from '../jsx/index';
 import { diff } from '../diff/index';
-import { RENDER_QUEUE } from '../compat/index';
+import { RENDER_QUEUE } from '../internal';
 import _ from '../utils/index';
 
 /**

@@ -1,4 +1,4 @@
-import { thunkUpdate, renderContext } from '../vdom/index';
+import { thunkUpdate, renderContext } from '../vdom/thunk';
 import { jsx as parseJSX } from '../jsx/index';
 import _ from '../utils/index';
 

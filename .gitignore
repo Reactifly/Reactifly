@@ -1,14 +1,15 @@
-# OS generated files #
-######################
 .DS_Store
 .DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Grunt Specific
-######################
 node_modules
-package-lock.json
+npm-debug.log
+dist
+*/package-lock.json
+yarn.lock
+.vscode
+.idea
+coverage
+*.sw[op]
+*.log
+package/
+reactifly-*.tgz
+reactifly.tgz

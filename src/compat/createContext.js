@@ -1,4 +1,4 @@
-import { thunkUpdate } from '../vdom/index';
+import { thunkUpdate } from '../vdom/thunk';
 
 export let i = 0;
 

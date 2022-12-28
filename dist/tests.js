@@ -1,3 +1,6 @@
+
+
+
 const car_brands = ['Holden', 'Ford', 'Kia'];
 const car_models = ['Commodore', 'Mustang', 'i500'];
 const car_colors = ['Yellow', 'Green', 'Red'];
@@ -253,8 +256,8 @@ setTimeout(function()
 
 }, 10);
 
-
-/*(function()
+/*
+(function()
 {
     const Result = ({ result }) =>
     {

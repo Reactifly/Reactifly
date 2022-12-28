@@ -1,5 +1,5 @@
 import { isEmpty, isFragment } from './utils';
-import { functionalComponent } from '../compat/index';
+import { functionalComponent } from '../compat/functionalComponent';
 import _ from '../utils/index';
 
 /**

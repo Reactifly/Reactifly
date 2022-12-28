@@ -1,5 +1,5 @@
-import { createDomElement } from '../dom/index';
-import { createElement } from '../vdom/index';
+import { createDomElement } from '../dom/create';
+import { createElement } from '../vdom/element';
 import { diff } from '../diff/index';
 import { jsx } from '../jsx/index';
 import _ from '../utils/index';

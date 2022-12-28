@@ -11,10 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 import { is_equal } from '../utils/index';
-
-export const RENDER_QUEUE = {
-    current: null
-};
+import { RENDER_QUEUE } from '../internal';
 
 export function useEffect(effect, deps)
 {

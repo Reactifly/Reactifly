@@ -1,5 +1,5 @@
 import { Component } from './Component';
-import { RENDER_QUEUE } from './hooks';
+import { RENDER_QUEUE } from '../internal';
 
 /**
  * Wrapper class around functional components.
