@@ -18,12 +18,10 @@ export function thunkInstantiate(vnode)
     {
         let { fn, props } = vnode;
 
-        props = _.cloneDeep(props);
-
         component = _.is_constructable(fn) ? new fn(props) : fn(props);
     }
 
-    component.props.children = [jsxFactory(component)];
+    vnode.children = [jsxFactory(component)];
 
     return component;
 }

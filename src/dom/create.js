@@ -131,12 +131,10 @@ function createThunk(vnode, parentDOMElement)
         return DOMElement;
     }
 
-    let { fn, props } = vnode;
-
     let component = thunkInstantiate(vnode);
 
     // Create entire tree recursively
-    let DOMElement = createDomElement(component.props.children[0]);
+    let DOMElement = createDomElement(vnode.children[0]);
 
     // Point vnode
     vDOM.pointVnodeThunk(vnode, component);

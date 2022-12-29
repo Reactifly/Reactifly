@@ -17,26 +17,25 @@ export function createElement(tag, props, ...children)
         return createEmptyVnode();
     }
 
-    let normalizedProps = {},
-        key,
-        ref,
-        i;
+    let normalizedProps = {};
+    let key;
+    let ref;
 
-    for (i in props)
+    _.foreach(props, function(key, prop)
     {
-        if (i == 'key')
+        if (key == 'key')
         {
-            key = props[i];
+            key = prop;
         }
-        else if (i == 'ref')
+        else if (key == 'ref')
         {
-            ref = props[i];
+            ref = prop;
         }
         else
         {
-            normalizedProps[i] = props[i];
+            normalizedProps[key] = prop;
         }
-    }
+    });
 
     children = typeof children === 'undefined' ? [] : children;
 
@@ -47,22 +46,23 @@ export function createElement(tag, props, ...children)
 
     children = normaliseChildren(children);
 
-    // If a Component VNode, check for and apply defaultProps
-    // Note: type may be undefined in development, must never error here.
-    if (_.is_callable(tag) && _.is_object(tag.defaultProps))
+    if (_.is_callable(tag))
     {
-        for (i in tag.defaultProps)
+        // If a Component VNode, check for and apply defaultProps
+        // Note: type may be undefined in development, must never error here.
+        if (_.is_object(tag.defaultProps))
         {
-            if (_.is_undefined(normalizedProps[i]))
+            _.foreach(tag.defaultProps, function(key, prop)
             {
-                normalizedProps[i] = tag.defaultProps[i];
-            }
+                if (_.is_undefined(normalizedProps[key]))
+                {
+                    normalizedProps[key] = prop;
+                }
+            });
         }
-    }
 
-    if (typeof tag === 'function')
-    {
-        if (children[0].type !== 'empty')
+        // Children was supplied as prop during JSX parse
+        if (!children[0].type !== 'empty' && children.length >= 1)
         {
             normalizedProps.children = children;
         }
@@ -114,23 +114,23 @@ function normaliseChildren(children, checkKeys)
     {
         _.foreach(children, function(i, vnode)
         {
-            if (_.is_callable(vnode))
-            {
-                throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
-            }
-            else if (_.is_null(vnode) || _.is_undefined(vnode))
+            if (_.is_null(vnode) || _.is_undefined(vnode))
             {
                 ret.push(createEmptyVnode());
+            }
+            else if (_.is_string(vnode) || _.is_number(vnode))
+            {
+                ret.push(createTextVnode(vnode, null));
+            }
+            else if (_.is_callable(vnode))
+            {
+                throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
             }
             else if (checkKeys && !vnode.key)
             {
                 console.error('Warning: Each child in a list should have a unique "key" prop.');
 
                 ret.push(vnode);
-            }
-            else if (_.is_string(vnode) || _.is_number(vnode))
-            {
-                ret.push(createTextVnode(vnode, null));
             }
             // Inline function, map or props.children
             else if (_.is_array(vnode))
@@ -256,7 +256,7 @@ function createEmptyVnode()
  * @returns {object}
  */
 function createThunkVnode(fn, props, children, key, ref)
-{
+{    
     let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
 
     return {

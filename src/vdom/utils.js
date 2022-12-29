@@ -358,12 +358,6 @@ export let pointVnodeThunk = (vnode, component) =>
 
     // point component -> vnode
     component.__internals.vnode = vnode;
-
-    // Point vnode.children -> component.props.children
-    if (component.props && component.props.children)
-    {
-        vnode.children = component.props.children;
-    }
 }
 
 /**

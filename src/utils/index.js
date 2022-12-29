@@ -1006,17 +1006,22 @@ export function mergeDeep(target, ...sources)
  */
 export function foreach(obj, callback, args)
 {
-    var value, i = 0,
-        length = obj.length,
-        isArray = Object.prototype.toString.call(obj) === '[object Array]';
+    if (typeof obj !== 'object' || obj === null) return;
 
+    let isArray = Object.prototype.toString.call(obj) === '[object Array]',
+    i    = 0,
+    keys = isArray ? null : Object.keys(obj),
+    len  = isArray ? obj.length : keys.length,
+    key,
+    value;
+        
     var thisArg = typeof args !== 'undefined' && Object.prototype.toString.call(args) !== '[object Array]' ? args : obj;
 
     if (Object.prototype.toString.call(args) === '[object Array]')
     {
         if (isArray)
         {
-            for (; i < length; i++)
+            for (; i < len; i++)
             {
                 value = callback.apply(thisArg, array_merge([i, obj[i]], args));
 
@@ -1028,9 +1033,11 @@ export function foreach(obj, callback, args)
         }
         else
         {
-            for (i in obj)
+            for (; i < len; i++)
             {
-                value = callback.apply(thisArg, array_merge([i, obj[i]], args));
+                key = keys[i];
+
+                value = callback.apply(thisArg, array_merge([key, obj[key]], args));
 
                 if (value === false)
                 {
@@ -1045,7 +1052,7 @@ export function foreach(obj, callback, args)
     {
         if (isArray)
         {
-            for (; i < length; i++)
+            for (; i < len; i++)
             {
                 value = callback.call(thisArg, i, obj[i]);
 
@@ -1057,9 +1064,11 @@ export function foreach(obj, callback, args)
         }
         else
         {
-            for (i in obj)
+            for (; i < len; i++)
             {
-                value = callback.call(thisArg, i, obj[i]);
+                key = keys[i];
+
+                value = callback.call(thisArg, key, obj[key]);
 
                 if (value === false)
                 {
