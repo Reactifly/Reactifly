@@ -91,11 +91,11 @@ export function renderContext(component)
     let ret = {};
     let props = _.object_props(component);
 
-    _.foreach(props, function(i, prop)
+    _.foreach(props, function(i, key)
     {
-        if (prop !== 'render')
+        if (key !== 'render' && key !== 'children')
         {
-            ret[prop] = component[prop];
+            ret[key] = component[key];
         }
     });
 

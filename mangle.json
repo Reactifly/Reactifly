@@ -17,18 +17,12 @@
   "props": {
     "cname": 6,
     "props": {
-      "$__internals": "l",
+      "$__internals": "__internals",
       "$_vnode": "__v",
+      "$_domEl": "__de",
       "$_children": "__k",
       "$_context": "c",
-      "$_hook": "__h",
-      "$_catchError": "__e",
-      "$_unmount": "__u",
-      "$_owner": "__o",
-      "$_skipEffects": "__s",
-      "$_rerenderCount": "__r",
-      "$_forwarded": "__f",
-      "$_isSuspended": "__i"
+      "$_hook": "__h"
     }
   }
 }

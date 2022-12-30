@@ -10,7 +10,7 @@ import _ from '../utils/index';
  * @param   {array | undefined}  ...children  Tag children (recursive)
  * @returns {object}
  */
-export function createElement(tag, props, ...children)
+export function createElement(tag, props)
 {
     if (arguments.length === 0)
     {
@@ -20,6 +20,7 @@ export function createElement(tag, props, ...children)
     let normalizedProps = {};
     let key;
     let ref;
+    let children = [];
 
     _.foreach(props, function(key, prop)
     {
@@ -37,14 +38,10 @@ export function createElement(tag, props, ...children)
         }
     });
 
-    children = typeof children === 'undefined' ? [] : children;
-
     if (arguments.length > 2)
     {
-        children = arguments.length > 3 ? [].slice.call(arguments, 2) : children;
+        children = _.array_filter([].slice.call(arguments, 2));
     }
-
-    children = normaliseChildren(children);
 
     if (_.is_callable(tag))
     {
@@ -62,9 +59,13 @@ export function createElement(tag, props, ...children)
         }
 
         // Children was supplied as prop during JSX parse
-        if (!children[0].type !== 'empty' && children.length >= 1)
+        if (children.length >= 1)
+        {            
+            normalizedProps.children = normaliseChildren(children, true);
+        }
+        else
         {
-            normalizedProps.children = children;
+            children = [createEmptyVnode()];
         }
 
         if (!_.is_constructable(tag))
@@ -74,6 +75,8 @@ export function createElement(tag, props, ...children)
 
         return createThunkVnode(tag, normalizedProps, children, key, ref);
     }
+
+    children = normaliseChildren(children);
 
     return {
         type: 'native',
@@ -99,12 +102,20 @@ export function createElement(tag, props, ...children)
  * - Filters out undefined elements
  *  
  * @param   {array}                children   Child vnodes
+ * @param   {boolean | undefined}  propkeys   Apply keys as children is from props
  * @param   {boolean | undefined}  checkKeys  Check keys on child when a fragment is found
  * @returns {array}
  */
-function normaliseChildren(children, checkKeys)
+function normaliseChildren(children, propKeys, checkKeys)
 {
+    if (children.length === 0)
+    {
+        return [createEmptyVnode()];
+    }
+
     checkKeys = _.is_undefined(checkKeys) ? false : checkKeys;
+
+    propKeys = _.is_undefined(propKeys) ? false : propKeys;
 
     let fragmentcount = 0;
 
@@ -126,16 +137,10 @@ function normaliseChildren(children, checkKeys)
             {
                 throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
             }
-            else if (checkKeys && !vnode.key)
-            {
-                console.error('Warning: Each child in a list should have a unique "key" prop.');
-
-                ret.push(vnode);
-            }
             // Inline function, map or props.children
             else if (_.is_array(vnode))
             {
-                let _children = normaliseChildren(vnode, true);
+                let _children = normaliseChildren(vnode, propKeys, true);
 
                 _.array_merge(ret, _children);
             }
@@ -144,9 +149,18 @@ function normaliseChildren(children, checkKeys)
                 squashFragment(vnode, ret, fragmentcount);
 
                 fragmentcount++;
-            }
+            }            
             else
             {
+                if (propKeys && !vnode.key)
+                {
+                    vnode.key = `_pk|${i}`;
+                }
+                else if (checkKeys && !propKeys && !vnode.key)
+                {
+                    console.error('Warning: Each child in a list should have a unique "key" prop.');
+                }
+
                 ret.push(vnode);
             }
         });
@@ -166,7 +180,7 @@ function squashFragment(fragment, ret, fCount)
 {
     let basekey = !fragment.key ? `f_${fCount}` : fragment.key;
 
-    let _children = normaliseChildren(fragment.children, false);
+    let _children = normaliseChildren(fragment.children, false, false);
 
     _.foreach(_children, function(i, vnode)
     {

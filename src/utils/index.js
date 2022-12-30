@@ -764,7 +764,7 @@ export function is_empty(mixed_var)
     }
     else if (is_number(mixed_var))
     {
-        return mixed_var === 0 || isNaN(mixed_var);
+        return isNaN(mixed_var);
     }
     else if (is_array(mixed_var))
     {
