@@ -2,6 +2,7 @@ import createNativeElement from './factory';
 import * as vDOM from '../vdom/utils';
 import { thunkInstantiate } from '../vdom/thunk';
 import { setDomAttribute } from './attributes';
+import { didMount } from '../vdom/lifecycle';
 import _ from '../utils/index';
 
 /**
@@ -136,6 +137,8 @@ function createThunk(vnode, parentDOMElement)
 
     // Point vnode
     vDOM.pointVnodeThunk(vnode, component);
+
+    didMount(component);
 
     return DOMElement;
 }

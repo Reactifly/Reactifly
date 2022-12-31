@@ -1,149 +1,146 @@
 import { thunkUpdate, renderContext } from '../vdom/thunk';
 import { jsx as parseJSX } from '../jsx/index';
+import * as lifecycle from '../vdom/lifecycle';
 import _ from '../utils/index';
 
 /**
  * Base Component class. Provides `setState()` and `forceUpdate()`, which trigger rendering.
  * 
- * static getDerivedStateFromProps()
- * componentDidCatch()
+ * @param {object} props The initial component props
+ * @param {object} context The initial context from parent components'
+ * @todo static getDerivedStateFromProps()
+ * @todo componentDidCatch() 
  */
-export class Component
+export function Component(props, context)
 {
     /**
-     * Context.
+     * Internal use
      *
      * @var {object}
      */
-    context = null;
-
-    /**
-     * props.
-     *
-     * @var {object}
-     */
-    props = {};
-
-    /**
-     * Reference to DOM node.
-     *
-     * @var {object}
-     */
-    refs = {};
+    this.__internals =
+    {
+        vnode     : null,
+        prevState : {},
+        prevProps : {},
+        _snapshot : null,
+    };
 
     /**
      * State obj
      *
      * @var {object}
      */
-    state = {};
+    this.state = {};
 
     /**
      * Default props.
      *
      * @var {object}
      */
-    defaultProps = {};
+    this.defaultProps = {};
 
     /**
-     * Internal use
+     * Props
      *
      * @var {object}
      */
-    __internals = {
-        vnode: null,
-        prevState: {},
-        prevProps: {},
-    };
+    this.props = !_.is_object(props) ? {} : props;
 
     /**
-     * Constructor.
-     * 
-     * @param {object} props   The initial component props
-     * @param {object} context The initial context from parent components'
+     * Context.
+     *
+     * @var {object}
      */
-    constructor(props, context)
-    {
-        this.props = !_.is_object(props) ? {} : props;
+    this.context = context;
+}
 
-        this.context = context;
+/**
+ * Update component state and re-render.
+ * 
+ * Note that unlike React where the entire Tree is diffed from the Root down whenever a component changes,
+ * we only diff down from the actual component change, which why "shouldUpdate", "willUpdate" hooks etc...
+ * are called here. Subsequent child component's get patched and their lifecycle's called during/after the patch.
+ * 
+ * @param {object | string}       key       Key to set using "dot.notation" or state object.
+ * @param {mixed}                 value     Value to set or callback if first arg is an object
+ * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
+ */
+Component.prototype.setState = function(key, value, callback)
+{
+    let changes  = {};
+    let newState = _.cloneDeep(this.state);
+
+    // setState({ 'foo.bar' : 'foo' })
+    if (arguments.length === 1)
+    {
+        if (!_.is_object(key))
+        {
+            throw new Error('StateError: State should be an object with [dot.notation] keys. e.g. [setState({"foo.bar" : "baz"})]');
+        }
+
+        changes = key;
+    }
+    else
+    {
+        changes[key] = value;
     }
 
-    /**
-     * Update component state and re-render.
-     * 
-     * @param {object | string}       key       Key to set using "dot.notation" or state object.
-     * @param {mixed}                 value     Value to set or callback if first arg is an object
-     * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
-     */
-    setState(key, value, callback)
+    _.foreach(changes, function(k, v)
     {
-        if (!_.is_object(this.state))
-        {
-            this.state = {};
-        }
+        _.array_set(k, v, newState);
 
-        let stateChanges = {};
+    }, this);
 
-        // setState({ 'foo.bar' : 'foo' })
-        if (arguments.length === 1)
-        {
-            if (!_.is_object(key))
-            {
-                throw new Error('StateError: State should be an object with [dot.notation] keys. e.g. [setState({"foo.bar" : "baz"})]');
-            }
+    if (lifecycle.shouldUpdate(this, this.props, newState))
+    {
+        lifecycle.willUpdate(this, this.props, newState);
 
-            stateChanges = key;
-        }
-        else
-        {
-            stateChanges[key] = value;
-        }
+        lifecycle.snapshotBeforeUpdate(this, this.props, this.state);
 
         this.__internals.prevState = _.cloneDeep(this.state);
 
-        _.foreach(stateChanges, function(key, value)
-        {
-            _.array_set(key, value, this.state);
+        this.state = newState;
 
-        }, this);
-
-        if (!_.is_equal(this.state, this.__internals.prevState))
-        {
-            thunkUpdate(this.__internals.vnode);
-        }
-    }
-
-    /**
-     * Get state using "dot.notation".
-     * 
-     * @param {string}  key      Key to set using "dot.notation" or state object.
-     */
-    getState(key)
-    {
-        return array_get(key, this.state);
-    }
-
-    /**
-     * JSX helper function.
-     * 
-     * @param   {string}        jsxStr  Key to set using "dot.notation" or state object.
-     * @returns {array|object}
-     */
-    jsx(jsxStr)
-    {
-        const context = renderContext(this);
-
-        return parseJSX(jsxStr, { ...context, this: this });
-    }
-
-    /**
-     * Update component state and re-render.
-     * 
-     * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
-     */
-    forceUpdate()
-    {
         thunkUpdate(this.__internals.vnode);
+
+        lifecycle.didUpdate(this, this.__internals.prevState, this.props);
     }
+    else
+    {
+        this.state = newState;
+    }
+}
+
+/**
+ * Get state using "dot.notation".
+ * 
+ * @param {string}  key      Key to set using "dot.notation" or state object.
+ */
+Component.prototype.getState = function(key)
+{
+    return array_get(key, this.state);
+}
+
+/**
+ * JSX helper function.
+ * 
+ * @param   {string}        jsxStr  Key to set using "dot.notation" or state object.
+ * @returns {array|object}
+ */
+Component.prototype.jsx = function(jsxStr)
+{
+    const context = renderContext(this);
+
+    return parseJSX(jsxStr, { ...context, this: this });
+}
+
+/**
+ * Update component state and re-render.
+ * 
+ * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
+ */
+Component.prototype.forceUpdate = function()
+{
+    thunkUpdate(this.__internals.vnode);
 }

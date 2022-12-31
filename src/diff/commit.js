@@ -2,6 +2,7 @@ import _ from '../utils/index';
 import * as vDOM from '../vdom/utils';
 import { createDomElement } from '../dom/create';
 import { setDomAttribute, removeDomAttribute } from '../dom/attributes';
+import { didUpdate as lifecycleDidUpdate } from '../vdom/lifecycle';
 import * as events from '../dom/events';
 
 /**
@@ -398,6 +399,9 @@ function childDomIndex(parent, index)
     return buffer + index;
 }
 
+// Needs to be curried in
+const didUpdate = lifecycleDidUpdate;
+
 const ACTION_MAP = {
     replaceNode,
     appendChild,
@@ -406,7 +410,8 @@ const ACTION_MAP = {
     moveToIndex,
     replaceText,
     setAttribute,
-    removeAttribute
+    removeAttribute,
+    didUpdate
 };
 
 export function action(name, args)

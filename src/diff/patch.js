@@ -1,6 +1,7 @@
 import { action } from './commit';
-import * as vElem from '../vdom/utils';
+import * as vDom from '../vdom/utils';
 import * as thunk from '../vdom/thunk';
+import * as lifecycle from '../vdom/lifecycle';
 import _ from '../utils/index';
 
 //shouldComponentUpdate(nextProps, nextState)
@@ -25,23 +26,23 @@ export function patch(left, right, actions)
     {
         replaceNode(left, right, actions);
     }
-    else if (vElem.isNative(right))
+    else if (vDom.isNative(right))
     {
         patchNative(left, right, actions);
     }
-    else if (vElem.isText(right))
+    else if (vDom.isText(right))
     {
         patchText(left, right, actions);
     }
-    else if (vElem.isThunk(right))
+    else if (vDom.isThunk(right))
     {
         patchThunk(left, right, actions);
     }
-    else if (vElem.isFragment(right))
+    else if (vDom.isFragment(right))
     {
         patchFragment(left, right, actions);
     }
-    else if (vElem.isEmpty(right))
+    else if (vDom.isEmpty(right))
     {
         replaceNode(left, right, actions);
     }
@@ -73,18 +74,13 @@ function patchText(left, right, actions)
  */
 function replaceNode(left, right, actions)
 {
-    if (vElem.isThunk(right))
-    {
-        if (vElem.isThunkInstantiated(right))
-        {
-            throw new Error('Thunk should not be instantiated.');
-        }
-        else
-        {
-            let component = thunk.thunkInstantiate(right);
+    lifecycle.willUnMount(left);
 
-            vElem.pointVnodeThunk(vnode, component);
-        }
+    if (vDom.isThunk(right))
+    {
+        let component = thunk.thunkInstantiate(right);
+
+        vDom.pointVnodeThunk(vnode, component);
     }
 
     actions.push(action('replaceNode', [left, right]));
@@ -101,6 +97,8 @@ function patchNative(left, right, actions)
 {
     if (left.tagName !== right.tagName)
     {
+        lifecycle.willUnMount(left);
+
         actions.push(action('replaceNode', [left, right]));
     }
     else
@@ -121,18 +119,27 @@ function patchNative(left, right, actions)
 function patchThunk(left, right, actions)
 {
     // Same component 
-    if (vElem.isSameThunk(left, right))
+    if (vDom.isSameThunk(left, right))
     {
-        patchThunkProps(left, right.props);
+        let component = vDom.nodeComponent(left);
 
-        diffThunk(left, right, actions);
+        if (lifecycle.shouldUpdate(component, right.props, component.state))
+        {
+            patchThunkProps(left, right.props);
+
+            diffThunk(left, right, actions);
+
+            actions.push(action('didUpdate', [component, component.__internals.prevProps, component.state]));
+        }
     }
     // Different components
     else
     {
+        lifecycle.willUnMount(left);
+
         let component = thunk.thunkInstantiate(right);
 
-        vElem.pointVnodeThunk(right, component);
+        vDom.pointVnodeThunk(right, component);
 
         actions.push(action('replaceNode', [left, right]));
     }
@@ -146,7 +153,13 @@ function patchThunk(left, right, actions)
  */
 function patchThunkProps(vnode, newProps)
 {
-    let component = vElem.nodeComponent(vnode);
+    let component = vDom.nodeComponent(vnode);
+
+    lifecycle.willReceiveProps(component, newProps);
+
+    lifecycle.snapshotBeforeUpdate(component, vnode.props, component.state);
+
+    lifecycle.willUpdate(component, newProps, component.state);
 
     component.__internals.prevProps = _.cloneDeep(vnode.props);
 
@@ -164,7 +177,7 @@ function patchThunkProps(vnode, newProps)
  */
 function diffThunk(left, right, actions)
 {
-    let component = vElem.nodeComponent(left);
+    let component  = vDom.nodeComponent(left);
     let rightchild = thunk.thunkRender(component);
     right.children = [rightchild];
 
@@ -198,25 +211,25 @@ function patchChildren(left, right, actions)
     let rChildren = right.children;
 
     // Quick check
-    if (vElem.noChildren(left) && vElem.noChildren(right))
+    if (vDom.noChildren(left) && vDom.noChildren(right))
     {
         return;
     }
 
     // We're only adding new children
-    if (vElem.noChildren(left))
+    if (vDom.noChildren(left))
     {
         // Clear the children now
         left.children = [];
 
         // Only need to add a single child
-        if (vElem.singleChild(right))
+        if (vDom.singleChild(right))
         {
             actions.push(action('appendChild', [left, rChildren[0]]));
         }
 
         // We're adding multiple new children
-        else if (!vElem.noChildren(right))
+        else if (!vDom.noChildren(right))
         {
             _.foreach(rChildren, function(i, child)
             {
@@ -225,17 +238,19 @@ function patchChildren(left, right, actions)
         }
     }
     // There's only a single child in previous tree
-    else if (vElem.singleChild(left))
+    else if (vDom.singleChild(left))
     {
         // Both have a single node
-        if (vElem.singleChild(right))
+        if (vDom.singleChild(right))
         {
             // left and right could be the same / different type, so we need to patch them
             patch(lChildren[0], rChildren[0], actions);
         }
         // We're only removing the left node, nothing to insert
-        else if (vElem.noChildren(right))
+        else if (vDom.noChildren(right))
         {
+            lifecycle.willUnMount(lChildren[0]);
+
             // Replace empty with empty
             actions.push(action('replaceNode', [lChildren[0], rChildren[0]]));
         }
@@ -265,7 +280,7 @@ function patchChildren(left, right, actions)
     else
     {
         // Removing all children except one
-        if (vElem.singleChild(right))
+        if (vDom.singleChild(right))
         {
             let matchedKey = false;
 
@@ -279,6 +294,8 @@ function patchChildren(left, right, actions)
                 }
                 else
                 {
+                    lifecycle.willUnMount(lChild);
+
                     actions.push(action('removeChild', [left, lChild]));
                 }
             });
@@ -289,11 +306,13 @@ function patchChildren(left, right, actions)
             }
         }
         // We're only removing children
-        else if (vElem.noChildren(right))
+        else if (vDom.noChildren(right))
         {
             // When there are no child nodes in the new children
             _.foreach(left.children, function(i, child)
             {
+                lifecycle.willUnMount(child);
+
                 actions.push(action('removeChild', [left, child]));
             });
 
@@ -447,6 +466,8 @@ function diffChildren(left, right, actions)
     {
         _.foreach(lGroup, function(i, entry)
         {
+            lifecycle.willUnMount(entry.child);
+
             subActions.unshift(action('removeChild', [left, entry.child]));
         });
     }
@@ -475,9 +496,9 @@ function groupByKey(children)
         let { key } = child;
 
         // This stop thunks from reinstating when they don't need to
-        if (vElem.isThunk(child) && !key)
+        if (vDom.isThunk(child) && !key)
         {
-            let name = vElem.thunkName(child);
+            let name = vDom.thunkName(child);
 
             if (!_.is_undefined(thunks[name]))
             {
@@ -541,5 +562,5 @@ function diffAttributes(left, right, actions)
     });
 
     // Patch in new attributes
-    vElem.nodeAttributes(left, nAttrs);
+    vDom.nodeAttributes(left, nAttrs);
 }
