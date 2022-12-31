@@ -484,36 +484,46 @@ export function is_class(mixed_var, classname, strict)
         strict = typeof strict === 'undefined' ? false : strict;
     }
 
-    if (classname)
+    if (typeof mixed_var !== 'function' || !is_constructable(mixed_var))
     {
-        if (typeof mixed_var === 'function')
-        {
-            // Check for ES6 class decleration
-            let re = new RegExp('^\\s*class\\s+(' + classname + '(\\s+|\\{)|\\w+\\s+extends\\s+' + classname + ')', 'i');
-
-            let regRet = re.test(mixed_var.toString());
-
-            if (strict)
-            {
-                return regRet;
-            }
-
-            // Constructable or ES6 class declaration depending on strict
-            return is_constructable(mixed_var) && mixed_var.name === classname;
-        }
-
         return false;
     }
 
-    // ES6 class declaration depending on strict
-    if (strict)
-    {
+    let isES6 = /^\s*class\s+\w+/.test(mixed_var.toString());
 
-        return typeof mixed_var === 'function' && /^\s*class\s+/.test(mixed_var.toString());
+    if (classname)
+    {
+        if (!isES6 && strict)
+        {
+            return false;
+        }
+
+        if (mixed_var.name === classname || mixed_var.prototype.constructor.name === classname)
+        {
+            return true;
+        }
+
+        let proto = mixed_var.prototype;
+
+        let ret = false;
+
+        while(proto && proto.constructor)
+        {
+            if (proto.constructor.name === classname)
+            {
+                ret = true;
+                break;
+            }
+
+            proto = Object.getPrototypeOf(proto);
+        }
+    
+        return ret;
     }
 
-    // Constructable
-    return is_constructable(mixed_var);
+    // ES6 class declaration depending on strict
+    
+    return strict ? isES6 : is_constructable(mixed_var);
 }
 
 /**

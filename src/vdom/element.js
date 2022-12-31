@@ -283,6 +283,11 @@ function createEmptyVnode()
  */
 function createThunkVnode(fn, props, children, key, ref)
 {    
+    if (!_.is_class(fn, 'Component'))
+    {
+        throw new Error('Class components must extend [Reactifly.Component].');
+    }
+    
     let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
 
     return {
