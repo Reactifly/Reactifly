@@ -1,19 +1,14 @@
 import { Component } from './Component';
 
 /**
- * Fragment component
- * 
+ * Fragment component.
  */
-export class Fragment extends Component
+export function Fragment(p, context)
 {
-    /**
-     * Constructor.
-     * 
-     * @param {object} props   The initial component props
-     * @param {object} context The initial context from parent components'
-     */
-    constructor(props, context)
-    {
-        super(props, context);
-    }
+    this.props = p;
+
+    this.context = context;
 }
+
+Fragment.prototype = new Component();
+Fragment.prototype.constructor = Fragment;

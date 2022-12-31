@@ -5,114 +5,117 @@ import { RENDER_QUEUE } from '../internal';
  * Wrapper class around functional components.
  * 
  */
-class FunctionalComponent extends Component
+function FunctionalComponent(render, props, context)
 {
-    /**
-     * Constructor.
-     * 
-     * @param {function}  render  Functional render function
-     * @param {object}    props   The initial component props
-     * @param {object}    context The initial context from parent components'
-     */
-    constructor(render, props, context)
-    {
-        super(props, context);
+    this.props = props;
 
-        this.__internals._fn = render;
-        this.__internals.hookIndex = null;
-        this.__internals.hooks = [];
-        this.__internals.hooksCleanups = [];
-        this.__internals.hookDeps = [];
-        this.__internals.layoutEffects = [];
-    }
+    this.context = context;
 
-    /**
-     * Runs effects after initial mount.
-     * 
-     */
-    componentDidMount()
+    this.__internals =
     {
-        for (let i = 0; i < this.__internals.hooks.length; ++i)
+        _fn       : render,
+        hookIndex : 0,
+        hooks     : [],
+        hooksCleanups : [],
+        hookDeps      : [],
+        layoutEffects : [],
+        vnode     : null,
+        prevState : {},
+        prevProps : {},
+        _snapshot : null,
+    };
+
+}
+
+FunctionalComponent.prototype = new Component();
+FunctionalComponent.prototype.constructor = FunctionalComponent;
+
+/**
+ * Runs effects after initial mount.
+ * 
+ */
+FunctionalComponent.prototype.componentDidMount = function()
+{
+    for (let i = 0; i < this.__internals.hooks.length; ++i)
+    {
+        const effect = this.__internals.layoutEffects[i];
+
+        if (effect)
         {
-            const effect = this.__internals.layoutEffects[i];
-
-            if (effect)
+            try
             {
-                try
-                {
-                    effect();
-                }
-                catch (e) {}
+                effect();
             }
+            catch (e) {}
         }
-
-        this.__internals.layoutEffects = [];
     }
 
-    /**
-     * Runs effects after component update.
-     * 
-     */
-    componentDidUpdate()
-    {
-        for (let i = 0; i < this.__internals.hooks.length; ++i)
-        {
-            const effect = this.__internals.layoutEffects[i];
+    this.__internals.layoutEffects = [];
+}
 
-            if (effect)
+/**
+ * Runs effects after component update.
+ * 
+ */
+FunctionalComponent.prototype.componentDidUpdate = function()
+{
+    for (let i = 0; i < this.__internals.hooks.length; ++i)
+    {
+        const effect = this.__internals.layoutEffects[i];
+
+        if (effect)
+        {
+            try
             {
-                try
-                {
-                    effect();
-                }
-                catch (e) {}
+                effect();
             }
+            catch (e) {}
         }
-
-        this.__internals.layoutEffects = [];
     }
 
-    /**
-     * Runs effects before unmounting.
-     * 
-     */
-    componentWillUnmount()
-    {
-        for (let i = 0; i < this.__internals.hooks.length; ++i)
-        {
-            const cleanup = this.__internals.hooksCleanups[i];
+    this.__internals.layoutEffects = [];
+}
 
-            if (cleanup)
+/**
+ * Runs effects before unmounting.
+ * 
+ */
+FunctionalComponent.prototype.componentWillUnmount = function()
+{
+    for (let i = 0; i < this.__internals.hooks.length; ++i)
+    {
+        const cleanup = this.__internals.hooksCleanups[i];
+
+        if (cleanup)
+        {
+            try
             {
-                try
-                {
-                    cleanup();
-                }
-                catch (e) {}
+                cleanup();
             }
+            catch (e) {}
         }
     }
+}
 
-    /**
-     * Render function. Wrapper around original function
-     * 
-     */
-    render()
+/**
+ * Render function. Wrapper around original function
+ * 
+ */
+FunctionalComponent.prototype.render = function()
+{
+    const prevContext = RENDER_QUEUE.current;
+
+    try
     {
-        const prevContext = RENDER_QUEUE.current;
+        RENDER_QUEUE.current = this;
 
-        try
-        {
-            RENDER_QUEUE.current = this;
+        this.__internals.hookIndex = 0;
 
-            this.__internals.hookIndex = 0;
-
-            return this.__internals._fn(this.props);
-        }
-        finally
-        {
-            RENDER_QUEUE.current = prevContext;
-        }
+        return this.__internals._fn(this.props);
+    }
+    finally
+    {
+        RENDER_QUEUE.current = prevContext;
     }
 }
 
