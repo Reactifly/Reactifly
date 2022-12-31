@@ -26,7 +26,7 @@ export function commit(actions)
  * @param {object}  vndone  Vnode to replace text
  * @param {string}  text    Text to set
  */
-export function replaceText(vnode, text)
+function replaceText(vnode, text)
 {
     vnode.nodeValue = text;
 
@@ -39,10 +39,8 @@ export function replaceText(vnode, text)
  * @param {object}  vndone  Left Vnode to replace text
  * @param {object}  vndone  Right Vnode to replace with
  */
-export function replaceNode(left, right)
+function replaceNode(left, right)
 {
-    vDOM.nodeWillUnmount(left);
-
     removeEvents(left);
 
     let rDOMElement = createDomElement(right);
@@ -127,7 +125,7 @@ export function replaceNode(left, right)
  * @param {object}  parentVnode  Parent Vnode to append to
  * @param {object}  vndone       Vnode to append
  */
-export function appendChild(parentVnode, vnode)
+function appendChild(parentVnode, vnode)
 {
     let parentDOMElement = nodeElemParent(parentVnode);
     let DOMElement = createDomElement(vnode);
@@ -153,10 +151,8 @@ export function appendChild(parentVnode, vnode)
  * @param {object}  parentVnode  Parent Vnode to append to
  * @param {object}  vndone       Vnode to append
  */
-export function removeChild(parentVnode, vnode)
+function removeChild(parentVnode, vnode)
 {
-    vDOM.nodeWillUnmount(vnode);
-
     removeEvents(vnode);
 
     let parentDOMElement = vDOM.parentElem(vnode);
@@ -212,8 +208,7 @@ function removeEvents(vnode)
 // Problem with moving / inserting to index
 // is actual DOM index doesn't line up with the vnode index
 // if a vnode is nesting a fragment
-
-export function insertAtIndex(parentVnode, vnode, index)
+function insertAtIndex(parentVnode, vnode, index)
 {
     let vIndex = index;
     let dIndex = childDomIndex(parentVnode, index);
@@ -251,7 +246,7 @@ export function insertAtIndex(parentVnode, vnode, index)
     parentVnode.children.splice(vIndex, 0, vnode);
 }
 
-export function moveToIndex(parentVnode, vnode, index)
+function moveToIndex(parentVnode, vnode, index)
 {
     let vIndex = index;
     let dIndex = childDomIndex(parentVnode, index);
@@ -339,12 +334,12 @@ function moveFragmentDomEls(parentDOMElement, DOMElements, index, currIndex)
     }
 }
 
-export function setAttribute(vnode, name, value, previousValue)
+function setAttribute(vnode, name, value, previousValue)
 {
     setDomAttribute(vDOM.nodeElem(vnode), name, value, previousValue);
 }
 
-export function removeAttribute(vnode, name, previousValue)
+function removeAttribute(vnode, name, previousValue)
 {
     removeDomAttribute(vDOM.nodeElem(vnode), name, previousValue)
 }
@@ -366,7 +361,6 @@ function nodeElemParent(parent)
 
     return vDOM.nodeElem(parent);
 }
-
 
 /**
  * Returns the DOM index 

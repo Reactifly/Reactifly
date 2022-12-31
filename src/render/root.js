@@ -50,8 +50,8 @@ export class Root
     __renderFactory(jsxStr, rootProps)
     {
         const renderFunc = function()
-        {
-            return jsx('<Fragment>' + jsxStr + '</Fragment>', rootProps);
+        {            
+            return jsx(jsxStr, rootProps);
         };
 
         return renderFunc;
@@ -110,7 +110,7 @@ export class Root
 
             return;
         }
-
+        
         if (_.is_htmlElement(DOMElement))
         {
             parent.appendChild(DOMElement);

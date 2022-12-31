@@ -281,7 +281,7 @@ export let parentElem = (vnode) =>
         child = child.children[0];
     }
 
-    return isFragment(vnode) ? nodeElem(vnode.children[0]).parentNode : nodeElem(vnode).parentNode;
+    return isFragment(vnode) ? nodeElem(vnode.children[0]).parentNode : nodeElem(child).parentNode;
 }
 
 /**
@@ -342,7 +342,7 @@ function findThunkDomEl(vnode)
         {
             return nodeElem(child);
         }) :
-        nodeElem(vnode);
+        nodeElem(child);
 }
 
 /**

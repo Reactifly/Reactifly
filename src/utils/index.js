@@ -399,7 +399,7 @@ export function in_dom(element)
  */
 export function is_htmlElement(mixed_var)
 {
-    return !!(mixed_var && mixed_var.nodeType === 1);
+    return mixed_var && mixed_var.nodeType;
 }
 
 /**

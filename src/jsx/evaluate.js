@@ -17,19 +17,19 @@ export default function evaluate(str, obj, config)
 
     str = str + '';
 
-    var jsx = new innerClass(str, config);
+    let jsx = new innerClass(str, config);
 
-    var output = jsx.init();
+    let output = jsx.init();
 
     obj = genDepencies(obj);
 
-    var args = 'var args0 = arguments[0];';
+    let args = 'let args0 = arguments[0];';
 
-    for (var i in obj)
+    for (let i in obj)
     {
         if (i !== 'this')
         {
-            args += 'var ' + i + ' = args0["' + i + '"];';
+            args += 'let ' + i + ' = args0["' + i + '"];';
         }
     }
 
@@ -37,7 +37,7 @@ export default function evaluate(str, obj, config)
 
     try
     {
-        var fn;
+        let fn;
 
         if (CACHE_FNS[args])
         {
@@ -48,13 +48,19 @@ export default function evaluate(str, obj, config)
             fn = CACHE_FNS[args] = Function(args)
         }
 
-        var a = fn.call(obj.this, obj)
+        let result = fn.call(obj.this, obj);
+
+        if (typeof result === 'string')
+        {
+            return createElement('text', null, result);
+        }
         
-        return a;
+        return result;
     }
     catch (e)
     {
         console.error(e);
+        console.error(args);
     }
 }
 

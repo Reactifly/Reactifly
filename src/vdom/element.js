@@ -11,7 +11,7 @@ import _ from '../utils/index';
  * @returns {object}
  */
 export function createElement(tag, props)
-{
+{    
     if (arguments.length === 0)
     {
         return createEmptyVnode();
@@ -22,19 +22,19 @@ export function createElement(tag, props)
     let ref;
     let children = [];
 
-    _.foreach(props, function(key, prop)
+    _.foreach(props, function(k, prop)
     {
-        if (key == 'key')
+        if (k == 'key')
         {
             key = prop;
         }
-        else if (key == 'ref')
+        else if (k == 'ref')
         {
             ref = prop;
         }
         else
         {
-            normalizedProps[key] = prop;
+            normalizedProps[k] = prop;
         }
     });
 
@@ -49,11 +49,11 @@ export function createElement(tag, props)
         // Note: type may be undefined in development, must never error here.
         if (_.is_object(tag.defaultProps))
         {
-            _.foreach(tag.defaultProps, function(key, prop)
+            _.foreach(tag.defaultProps, function(k, prop)
             {
-                if (_.is_undefined(normalizedProps[key]))
+                if (_.is_undefined(normalizedProps[k]))
                 {
-                    normalizedProps[key] = prop;
+                    normalizedProps[k] = prop;
                 }
             });
         }
@@ -74,6 +74,11 @@ export function createElement(tag, props)
         }
 
         return createThunkVnode(tag, normalizedProps, children, key, ref);
+    }
+
+    if (tag === 'text')
+    {        
+        return createTextVnode(children.toString(), key);
     }
 
     children = normaliseChildren(children);
@@ -119,7 +124,9 @@ function normaliseChildren(children, propKeys, checkKeys)
 
     let fragmentcount = 0;
 
-    var ret = [];
+    let ret = [];
+
+    let warnKeys = false;
 
     if (_.is_array(children))
     {
@@ -156,14 +163,19 @@ function normaliseChildren(children, propKeys, checkKeys)
                 {
                     vnode.key = `_pk|${i}`;
                 }
-                else if (checkKeys && !propKeys && !vnode.key)
+                else if (checkKeys && !vnode.key)
                 {
-                    console.error('Warning: Each child in a list should have a unique "key" prop.');
+                    warnKeys = true;
                 }
 
                 ret.push(vnode);
             }
         });
+    }
+
+    if (warnKeys)
+    {
+        console.error('Warning: Each child in a list should have a unique "key" prop.');
     }
 
     return _.is_empty(ret) ? [createEmptyVnode()] : filterChildren(ret);
@@ -300,7 +312,7 @@ function createThunkVnode(fn, props, children, key, ref)
  * @returns {object}
  */
 function createFunctionalThunk(fn, props, children, key, ref)
-{
+{    
     let func = functionalComponent(fn);
 
     return {

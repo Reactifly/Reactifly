@@ -6,13 +6,6 @@ import _ from '../utils/index';
  * Base Component class. Provides `setState()` and `forceUpdate()`, which trigger rendering.
  * 
  * static getDerivedStateFromProps()
- * componentDidMount()
- * componentWillUnmount()
- * componentWillReceiveProps(nextProps)
- * getSnapshotBeforeUpdate(prevProps, prevState)
- * shouldComponentUpdate(nextProps, nextState)
- * componentWillUpdate(changedProps, changedState)
- * componentDidUpdate(prevProps, prevState, snapshot)
  * componentDidCatch()
  */
 export class Component

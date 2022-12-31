@@ -3,6 +3,8 @@ import * as vElem from '../vdom/utils';
 import * as thunk from '../vdom/thunk';
 import _ from '../utils/index';
 
+//shouldComponentUpdate(nextProps, nextState)
+
 /**
  * Patch previous/next render Vnodes (Recursive).
  * 
