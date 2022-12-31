@@ -177,6 +177,22 @@ export function array_merge()
 }
 
 /**
+ * Removes duplicates and returns new array.
+ *
+ * @param   {array} arr Array to run
+ * @returns {array}
+ */
+export function array_unique(arr)
+{
+    let onlyUnique = function(value, index, self)
+    {
+        return self.indexOf(value) === index;
+    }
+
+    return arr.filter(onlyUnique);
+}
+
+/**
  * Recursively delete from array/object.
  *
  * @param   {array}        keys    Keys in search order
@@ -427,16 +443,17 @@ export function is_constructable(mixed_var)
         return false;
     }
 
+    // Strict ES6 class
+    if (/^\s*class\s+\w+/.test(mixed_var.toString()))
+    {
+        return true;
+    }
+
     // Native arrow functions
+
     if (!mixed_var.prototype || !mixed_var.prototype.constructor)
     {
         return false;
-    }
-
-    // Strict ES6 class
-    if (is_class(mixed_var, true))
-    {
-        return true;
     }
 
     // If prototype is empty 
@@ -727,23 +744,32 @@ export function is_bool(mixed_var)
  */
 export function object_props(mixed_var, withMethods)
 {
-    withMethods = is_undefined(withMethods) ? true : false;
+    withMethods = typeof withMethods === 'undefined' ? true : false;
 
-    if (!is_object(mixed_var))
+    let keys     = Object.keys(mixed_var);   
+    let excludes = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf', 'length', 'name', 'arguments', 'caller', 'prototype', 'apply', 'bind', 'call'];
+
+    if (withMethods)
     {
-        return [];
+        let funcs = Object.getOwnPropertyNames(mixed_var);
+        let proto = mixed_var.prototype;
+
+        while(proto)
+        {
+            let protoFuncs = Object.getOwnPropertyNames(proto);
+
+            funcs = [...funcs, ...protoFuncs];
+
+            proto = Object.getPrototypeOf(proto);
+        }
+
+        keys = [...keys, ...funcs];
     }
 
-    // If prototype is empty 
-    let excludes = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf'];
-    let funcs = Object.getOwnPropertyNames(Object.getPrototypeOf(mixed_var));
-    let props = Object.keys(mixed_var);
-    let keys = withMethods ? [...funcs, ...props] : props;
-
-    return keys.filter(function(key)
+    return array_unique(keys.filter(function(key)
     {
         return !excludes.includes(key);
-    });
+    }));
 }
 
 /**
@@ -1179,6 +1205,7 @@ const _ = {
     array_delete,
     array_filter,
     array_merge,
+    array_unique,
     dotify,
     cloneDeep,
     mergeDeep,
