@@ -1,4 +1,69 @@
 /**
+ * Cached variable types.
+ *
+ * @var {string}
+ */
+
+// Standard
+const NULL_TAG   = '[object Null]';
+const UNDEF_TAG  = '[object Undefined]';
+const BOOL_TAG   = '[object Boolean]';
+const STRING_TAG  = '[object String]';
+const NUMBER_TAG = '[object Number]';
+const FUNC_TAG   = '[object Function]';
+const ARRAY_TAG  = '[object Array]';
+const ARGS_TAG   = '[object Arguments]';
+const NODELST_TAG = '[object NodeList]';
+const OBJECT_TAG = '[object Object]';
+const DATE_TAG   = '[object Date]';
+
+// Unusual
+const SET_TAG     = '[object Set]';
+const MAP_TAG    = '[object Map]';
+const REGEXP_TAG = '[object RegExp]';
+const SYMBOL_TAG  = '[object Symbol]';
+
+// Array buffer
+const ARRAY_BUFFER_TAG = '[object ArrayBuffer]';
+const DATAVIEW_TAG = '[object DataView]';
+const FLOAT32_TAG = '[object Float32Array]';
+const FLOAT64_TAG = '[object Float64Array]';
+const INT8_TAG = '[object Int8Array]';
+const INT16_TAG = '[object Int16Array]';
+const INT32_TAG = '[object Int32Array]';
+const UINT8_TAG = '[object Uint8Array]';
+const UINT8CLAMPED_TAG = '[object Uint8ClampedArray]';
+const UINT16_TAG = '[object Uint16Array]';
+const UINT32_TAG = '[object Uint32Array]';
+
+// Non-cloneable
+const ERROR_TAG  = '[object Error]';
+const WEAKMAP_TAG = '[object WeakMap]';
+
+// Arrayish _tags
+const ARRAYISH_TAGS = [ARRAY_TAG, ARGS_TAG, NODELST_TAG];
+
+// Object.prototype.toString
+const TO_STR = Object.prototype.toString;
+
+/**
+ * Gets the `toStringTag` of `value`.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the `toStringTag`.
+ */
+function getType(value)
+{
+    if (value == null)
+    {
+        return value === undefined ? '[object Undefined]' : '[object Null]'
+    }
+    
+    return TO_STR.call(value);
+}
+
+/**
  * Object with built in "dot.notation" set,get,isset,delete methods.
  *
  * @return {object}
@@ -407,133 +472,6 @@ export function in_dom(element)
     return false;
 }
 
-/**
- * Checks if variable is HTMLElement.
- *
- * @param   {mixed}  mixed_var  Variable to evaluate
- * @returns {boolean}
- */
-export function is_htmlElement(mixed_var)
-{
-    return mixed_var && mixed_var.nodeType;
-}
-
-/**
- * Is variable a function / constructor.
- *
- * @param   {mixed}  mixed_var  Variable to check
- * @returns {boolean}
- */
-export function is_callable(mixed_var)
-{
-    return Object.prototype.toString.call(mixed_var) === '[object Function]';
-}
-
-/**
- * Checks if variable is construable.
- *
- * @param   {mixed}  mixed_var  Variable to evaluate
- * @returns {boolean}
- */
-export function is_constructable(mixed_var)
-{
-    // Not a function
-    if (typeof mixed_var !== 'function' || mixed_var === null)
-    {
-        return false;
-    }
-
-    // Strict ES6 class
-    if (/^\s*class\s+\w+/.test(mixed_var.toString()))
-    {
-        return true;
-    }
-
-    // Native arrow functions
-
-    if (!mixed_var.prototype || !mixed_var.prototype.constructor)
-    {
-        return false;
-    }
-
-    // If prototype is empty 
-    let props = object_props(mixed_var.prototype);
-
-    return props.length >= 1;
-}
-
-/**
- * Checks if variable is a class declaration or extends a class and/or constructable function.
- *
- * @param   {mixed}                        mixed_var  Variable to evaluate
- * @oaram   {string | undefined | boolean} classname  Classname or strict if boolean provided
- * @param   {boolean}                      strict     If "true" only returns true on ES6 classes (default "false")
- * @returns {boolean}
- */
-export function is_class(mixed_var, classname, strict)
-{
-    // is_class(foo, true)
-    if (classname === true || classname === false)
-    {
-        strict = classname;
-        classname = null;
-    }
-    // is_class(foo, 'Bar') || is_class(foo, 'Bar', false)
-    else
-    {
-        strict = typeof strict === 'undefined' ? false : strict;
-    }
-
-    if (typeof mixed_var !== 'function' || !is_constructable(mixed_var))
-    {
-        return false;
-    }
-
-    let isES6 = /^\s*class\s+\w+/.test(mixed_var.toString());
-
-    if (classname)
-    {
-        if (!isES6 && strict)
-        {
-            return false;
-        }
-
-        if (mixed_var.name === classname || mixed_var.prototype.constructor.name === classname)
-        {
-            return true;
-        }
-
-        let protos = [];
-        let proto = mixed_var.prototype || Object.getPrototypeOf(mixed_var);
-        let ret = false;
-
-        while(proto && proto.constructor)
-        {
-            // recursive stopper
-            if (protos.includes.proto)
-            {
-                break;
-            }
-
-            protos.push(proto);
-
-            if (proto.constructor.name === classname)
-            {
-                ret = true;
-
-                break;
-            }
-
-            proto = proto.prototype || Object.getPrototypeOf(proto);
-        }
-    
-        return ret;
-    }
-
-    // ES6 class declaration depending on strict
-    
-    return strict ? isES6 : is_constructable(mixed_var);
-}
 
 /**
  * Returns function / class name
@@ -661,7 +599,7 @@ export function bool(mixed_var)
  */
 export function is_object(mixed_var)
 {
-    return mixed_var !== null && (Object.prototype.toString.call(mixed_var) === '[object Object]');
+    return mixed_var !== null && getType(mixed_var) === OBJECT_TAG;
 }
 
 /**
@@ -674,9 +612,9 @@ export function is_array(mixed_var, strict)
 {
     strict = typeof strict === 'undefined' ? false : strict;
 
-    let type = Object.prototype.toString.call(mixed_var);
+    let type = getType(mixed_var);
 
-    return !strict ? type === '[object Array]' || type === '[object Arguments]' || type === '[object NodeList]' : type === '[object Array]';
+    return !strict ? ARRAYISH_TAGS.includes(type) : type === ARRAY_TAG;
 }
 
 /**
@@ -687,7 +625,7 @@ export function is_array(mixed_var, strict)
  */
 export function is_string(mixed_var)
 {
-    return typeof mixed_var === 'string' || mixed_var instanceof String;
+    return getType(mixed_var) === STRING_TAG;
 }
 
 /**
@@ -698,7 +636,7 @@ export function is_string(mixed_var)
  */
 export function is_number(mixed_var)
 {
-    return typeof mixed_var === 'number' && !isNaN(mixed_var);
+    return !isNaN(mixed_var) && getType(mixed_var) === NUMBER_TAG;
 }
 
 /**
@@ -729,7 +667,7 @@ export function is_numeric(mixed_var)
  */
 export function is_undefined(mixed_var)
 {
-    return typeof mixed_var === 'undefined';
+    return getType(mixed_var) === UNDEF_TAG
 }
 
 /**
@@ -740,7 +678,7 @@ export function is_undefined(mixed_var)
  */
 export function is_null(mixed_var)
 {
-    return mixed_var === null;
+    return getType(mixed_var) === NULL_TAG;
 }
 
 /**
@@ -751,7 +689,185 @@ export function is_null(mixed_var)
  */
 export function is_bool(mixed_var)
 {
-    return mixed_var === false || mixed_var === true;
+    return getType(mixed_var) === BOOL_TAG;
+}
+
+export function is_date(mixed_var)
+{
+    return getType(mixed_var) === DATE_TAG;
+}
+
+export function is_regexp(mixed_var)
+{
+    return getType(mixed_var) === REGEXP_TAG;
+}
+
+export function is_symbol(mixed_var)
+{
+    return getType(mixed_var) === SYMBOL_TAG;
+}
+
+export function is_nodelist(mixed_var)
+{
+    return getType(mixed_var) === NODELST_TAG;
+}
+
+export function is_function(mixed_var)
+{
+    return getType(mixed_var) === FUNC_TAG;
+}
+
+export function is_args(mixed_var)
+{
+    return getType(mixed_var) === ARGS_TAG;
+}
+
+export function is_set(mixed_var)
+{
+    return getType(mixed_var) === SET_TAG;
+}
+
+export function is_map(mixed_var)
+{
+    return getType(mixed_var) === MAP_TAG;
+}
+
+export function is_buffer(mixed_var)
+{
+    return getType(mixed_var) === ARRAY_BUFFER_TAG;
+}
+
+export function is_dataview(mixed_var)
+{
+    return getType(mixed_var) === DATAVIEW_TAG;
+}
+
+/**
+ * Checks if variable is HTMLElement.
+ *
+ * @param   {mixed}  mixed_var  Variable to evaluate
+ * @returns {boolean}
+ */
+export function is_htmlElement(mixed_var)
+{
+    return mixed_var && mixed_var.nodeType;
+}
+
+/**
+ * Is variable a function / constructor.
+ *
+ * @param   {mixed}  mixed_var  Variable to check
+ * @returns {boolean}
+ */
+export function is_callable(mixed_var)
+{
+    return is_function(mixed_var);
+}
+
+/**
+ * Checks if variable is construable.
+ *
+ * @param   {mixed}  mixed_var  Variable to evaluate
+ * @returns {boolean}
+ */
+export function is_constructable(mixed_var)
+{
+    // Not a function
+    if (typeof mixed_var !== 'function' || mixed_var === null)
+    {
+        return false;
+    }
+
+    // Strict ES6 class
+    if (/^\s*class\s+\w+/.test(mixed_var.toString()))
+    {
+        return true;
+    }
+
+    // Native arrow functions
+
+    if (!mixed_var.prototype || !mixed_var.prototype.constructor)
+    {
+        return false;
+    }
+
+    // If prototype is empty 
+    let props = object_props(mixed_var.prototype);
+
+    return props.length >= 1;
+}
+
+/**
+ * Checks if variable is a class declaration or extends a class and/or constructable function.
+ *
+ * @param   {mixed}                        mixed_var  Variable to evaluate
+ * @oaram   {string | undefined | boolean} classname  Classname or strict if boolean provided
+ * @param   {boolean}                      strict     If "true" only returns true on ES6 classes (default "false")
+ * @returns {boolean}
+ */
+export function is_class(mixed_var, classname, strict)
+{
+    // is_class(foo, true)
+    if (classname === true || classname === false)
+    {
+        strict = classname;
+        classname = null;
+    }
+    // is_class(foo, 'Bar') || is_class(foo, 'Bar', false)
+    else
+    {
+        strict = typeof strict === 'undefined' ? false : strict;
+    }
+
+    if (typeof mixed_var !== 'function' || !is_constructable(mixed_var))
+    {
+        return false;
+    }
+
+    let isES6 = /^\s*class\s+\w+/.test(mixed_var.toString());
+
+    if (classname)
+    {
+        if (!isES6 && strict)
+        {
+            return false;
+        }
+
+        if (mixed_var.name === classname || mixed_var.prototype.constructor.name === classname)
+        {
+            return true;
+        }
+
+        let protos = [];
+        let proto = mixed_var.prototype || Object.getPrototypeOf(mixed_var);
+        let ret = false;
+
+        while(proto && proto.constructor)
+        {
+            // recursive stopper
+            if (protos.includes.proto)
+            {
+                break;
+            }
+
+            protos.push(proto);
+
+            if (proto.constructor.name === classname)
+            {
+                ret = true;
+
+                break;
+            }
+
+            proto = proto.prototype || Object.getPrototypeOf(proto);
+        }
+    
+        return ret;
+    }
+
+    // ES6 class declaration depending on strict
+    
+    return strict ? isES6 : is_constructable(mixed_var);
 }
 
 /**
@@ -962,6 +1078,175 @@ function cloneArray(arr, context)
     return ret;
 }
 
+function cloneDate(d)
+{
+    let r = new Date();
+
+    r.setTime(d.getTime());
+
+    return r;
+}
+
+function cloneSymbol(symbol)
+{
+    return Object(Symbol.prototype.valueOf.call(symbol));
+}
+
+function cloneRegExp(regexp)
+{
+    let reFlags = /\w*$/;
+
+    let result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
+    
+    result.lastIndex = regexp.lastIndex;
+    
+    return result;
+}
+
+function cloneMap(m, context)
+{
+    const ret = new Map();
+
+    m.forEach((v, k) =>
+    {
+        ret.set(k, cloneDeep(v, context));
+    });
+
+    return ret;
+}
+
+function cloneSet(s, context)
+{
+    const ret = new Set();
+
+    s.forEach((val, k) =>
+    {
+        ret.add(k, cloneDeep(v, context));
+    });
+
+    return ret;
+}
+
+function cloneArrayBuffer(arrayBuffer)
+{
+    const result = new arrayBuffer.constructor(arrayBuffer.byteLength)
+    
+    new Uint8Array(result).set(new Uint8Array(arrayBuffer));
+    
+    return result;
+}
+
+function cloneDataView(dataView)
+{
+    const buffer = cloneArrayBuffer(dataView.buffer);
+    
+    return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
+}
+
+/**
+ * Creates a clone of `buffer`.
+ *
+ * @param   {Buffer}   buffer   The buffer to clone.
+ * @param   {boolean} [isDeep]  Specify a deep clone.
+ * @returns {Buffer}   Returns  the cloned buffer.
+ */
+function cloneBuffer(buffer)
+{
+    const length = buffer.length;
+
+    const result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
+
+    buffer.copy(result);
+    
+    return result;
+}
+
+/**
+ * Creates a clone of `typedArray`.
+ *
+ * @private
+ * @param {Object} typedArray The typed array to clone.
+ * @param {boolean} [isDeep] Specify a deep clone.
+ * @returns {Object} Returns the cloned typed array.
+ */
+function cloneTypedArray(typedArray)
+{
+    const buffer = cloneArrayBuffer(typedArray.buffer);
+
+    return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+}
+
+
+function cloneVar(mixed_var, context)
+{
+    let tag = getType(mixed_var);
+
+    switch (tag)
+    {
+        case OBJECT_TAG:
+            return cloneObj(mixed_var, context);
+
+        case ARRAY_TAG:
+        case NODELST_TAG:
+        case ARGS_TAG:
+            return cloneArray(mixed_var, context);
+
+        case FUNC_TAG:
+            return cloneFunc(mixed_var, context);
+
+        case NULL_TAG:
+            return null;
+
+        case UNDEF_TAG:
+            return;
+
+        case BOOL_TAG:
+            return mixed_var === true ? true : false;
+
+        case STRING_TAG:
+            return mixed_var.slice();
+
+        case NUMBER_TAG:
+            let n = mixed_var;
+            return n;
+    
+        case REGEXP_TAG:
+            return cloneRegExp(mixed_var, context);
+
+        case SYMBOL_TAG:
+            return cloneSymbol(mixed_var);
+
+        case DATE_TAG:
+            return cloneDate(mixed_var);
+
+        case SET_TAG:
+            return cloneSet(mixed_var, context);
+
+        case MAP_TAG:
+            return cloneMap(mixed_var, context);
+
+        case ARRAY_BUFFER_TAG:
+            return cloneArrayBuffer(mixed_var);
+
+        case DATAVIEW_TAG:
+            return cloneDataView(mixed_var);
+
+        case ARRAY_BUFFER_TAG:
+            return cloneBuffer(mixed_var);
+
+        case FLOAT32_TAG: case FLOAT64_TAG:
+        case INT8_TAG: case INT16_TAG: case INT32_TAG:
+        case UINT8_TAG: case UINT8CLAMPED_TAG: case UINT16_TAG: case UINT32_TAG:
+            return cloneTypedArray(object);
+
+        case ERROR_TAG:
+        case WEAKMAP_TAG:
+            return {};
+    }
+
+    return mixed_var;
+}
+
 /**
  * Clones any variables
  * 
@@ -971,44 +1256,7 @@ function cloneArray(arr, context)
  */
 export function cloneDeep(mixed_var, context)
 {
-    if (is_object(mixed_var))
-    {
-        return cloneObj(mixed_var, context);
-    }
-    else if (is_array(mixed_var))
-    {
-        return cloneArray(mixed_var, context);
-    }
-    else if (is_callable(mixed_var))
-    {
-        return cloneFunc(mixed_var, context);
-    }
-    else if (is_string(mixed_var))
-    {
-        return mixed_var.slice();
-    }
-    else if (is_number(mixed_var))
-    {
-        let r = mixed_var;
-
-        return r;
-    }
-    else if (is_null(mixed_var))
-    {
-        return null;
-    }
-    else if (is_undefined(mixed_var))
-    {
-        return;
-    }
-    else if (is_bool(mixed_var))
-    {
-        return mixed_var === true ? true : false;
-    }
-
-    let r = mixed_var;
-
-    return r;
+    return cloneVar(mixed_var, context);
 }
 
 /**
@@ -1215,24 +1463,7 @@ export function map(obj, callback, args)
     return ret;
 }
 
-const _toString = Object.prototype.toString;
 
-/**
- * Gets the `toStringTag` of `value`.
- *
- * @private
- * @param {*} value The value to query.
- * @returns {string} Returns the `toStringTag`.
- */
-function getType(value)
-{
-    if (value == null)
-    {
-        return value === undefined ? '[object Undefined]' : '[object Null]'
-    }
-    
-    return _toString.call(value);
-}
 
 const _ = {
     is_object,
@@ -1264,7 +1495,7 @@ const _ = {
     array_merge,
     array_unique,
     dotify,
-    clone,
+    cloneDeep,
     mergeDeep,
     foreach,
     map,
