@@ -503,19 +503,28 @@ export function is_class(mixed_var, classname, strict)
             return true;
         }
 
-        let proto = mixed_var.prototype;
-
+        let protos = [];
+        let proto = mixed_var.prototype || Object.getPrototypeOf(mixed_var);
         let ret = false;
 
         while(proto && proto.constructor)
         {
-            if (proto.constructor.name === classname)
+            // recursive stopper
+            if (protos.includes.proto)
             {
-                ret = true;
                 break;
             }
 
-            proto = Object.getPrototypeOf(proto);
+            protos.push(proto);
+
+            if (proto.constructor.name === classname)
+            {
+                ret = true;
+
+                break;
+            }
+
+            proto = proto.prototype || Object.getPrototypeOf(proto);
         }
     
         return ret;
@@ -761,16 +770,25 @@ export function object_props(mixed_var, withMethods)
 
     if (withMethods)
     {
-        let funcs = Object.getOwnPropertyNames(mixed_var);
-        let proto = mixed_var.prototype;
+        let protos = [];
+        let funcs  = Object.getOwnPropertyNames(mixed_var);
+        let proto  = mixed_var.prototype || Object.getPrototypeOf(mixed_var);
 
         while(proto)
         {
+            // recursive stopper
+            if (protos.includes.proto)
+            {
+                break;
+            }
+
+            protos.push(proto);
+
             let protoFuncs = Object.getOwnPropertyNames(proto);
 
             funcs = [...funcs, ...protoFuncs];
 
-            proto = Object.getPrototypeOf(proto);
+            proto = proto.prototype || Object.getPrototypeOf(proto);
         }
 
         keys = [...keys, ...funcs];
@@ -883,7 +901,7 @@ export function is_equal(a, b)
  * @param   {object}  obj
  * @returns {object}
  */
-function cloneObj(obj)
+function cloneObj(obj, context)
 {
     // Handle date objects
     if (obj instanceof Date)
@@ -897,7 +915,7 @@ function cloneObj(obj)
 
     // Loop keys and functions
     let keys = object_props(obj);
-    let ret = {};
+    let ret  = {};
 
     if (keys.length === 0)
     {
@@ -906,7 +924,7 @@ function cloneObj(obj)
 
     foreach(keys, function(i, key)
     {
-        ret[key] = cloneDeep(obj[key], ret);
+        ret[key] = cloneDeep(obj[key], typeof context === 'undefined' ? ret : context);
     });
 
     return ret;
@@ -921,7 +939,7 @@ function cloneObj(obj)
  */
 function cloneFunc(func, context)
 {
-    context = typeof context === 'undefined' ? func : window;
+    context = typeof context === 'undefined' ? window : context;
 
     return func.bind(context);
 }
@@ -932,13 +950,13 @@ function cloneFunc(func, context)
  * @param   {array}  arr
  * @returns {array}
  */
-function cloneArray(arr)
+function cloneArray(arr, context)
 {
     let ret = [];
 
     foreach(arr, function(i, val)
     {
-        ret[i] = cloneDeep(val);
+        ret[i] = cloneDeep(val, context);
     });
 
     return ret;
@@ -955,11 +973,15 @@ export function cloneDeep(mixed_var, context)
 {
     if (is_object(mixed_var))
     {
-        return cloneObj(mixed_var);
+        return cloneObj(mixed_var, context);
     }
     else if (is_array(mixed_var))
     {
-        return cloneArray(mixed_var);
+        return cloneArray(mixed_var, context);
+    }
+    else if (is_callable(mixed_var))
+    {
+        return cloneFunc(mixed_var, context);
     }
     else if (is_string(mixed_var))
     {
@@ -983,10 +1005,6 @@ export function cloneDeep(mixed_var, context)
     {
         return mixed_var === true ? true : false;
     }
-    else if (is_callable(mixed_var))
-    {
-        return cloneFunc(mixed_var, context);
-    }
 
     let r = mixed_var;
 
@@ -1000,36 +1018,46 @@ export function cloneDeep(mixed_var, context)
  * @param   {object} ...sources
  * @returns {object}
  */
-export function mergeDeep(target, ...sources)
+export function mergeDeep()
 {
-    if (!sources.length) return target;
+    let args = Array.prototype.slice.call(arguments);
 
-    const source = sources.shift();
-
-    if (is_object(target) && is_object(source))
+    // No args
+    if (args.length === 0)
     {
-        for (const key in source)
-        {
-            if (is_object(source[key]))
-            {
-                if (!target[key]) Object.assign(target,
-                {
-                    [key]: {}
-                });
-
-                mergeDeep(target[key], source[key]);
-            }
-            else
-            {
-                Object.assign(target,
-                {
-                    [key]: source[key]
-                });
-            }
-        }
+        throw new Error('Nothing to merge.');
+    }
+    // Single arg
+    else if (args.length === 1)
+    {
+        return args[1];
     }
 
-    return mergeDeep(target, ...sources);
+    // Must be an object
+    if (!is_object(args[0]))
+    {
+        throw new Error('Arguments must be an object.');
+    }
+
+    // Remove first and cache
+    let first = args.shift();
+   
+    foreach(args, function(i, arg)
+    {
+        if (!is_object(arg))
+        {
+            throw new Error('Arguments must be an object.');
+        }
+
+        let cloned = cloneDeep(arg, first);
+
+        foreach(cloned, function(k, v)
+        {
+            first[k] = v;
+        });
+    });
+
+    return first;
 }
 
 /**
@@ -1187,6 +1215,25 @@ export function map(obj, callback, args)
     return ret;
 }
 
+const _toString = Object.prototype.toString;
+
+/**
+ * Gets the `toStringTag` of `value`.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the `toStringTag`.
+ */
+function getType(value)
+{
+    if (value == null)
+    {
+        return value === undefined ? '[object Undefined]' : '[object Null]'
+    }
+    
+    return _toString.call(value);
+}
+
 const _ = {
     is_object,
     is_array,
@@ -1217,7 +1264,7 @@ const _ = {
     array_merge,
     array_unique,
     dotify,
-    cloneDeep,
+    clone,
     mergeDeep,
     foreach,
     map,
