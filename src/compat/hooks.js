@@ -15,24 +15,24 @@ import { RENDER_QUEUE } from '../internal';
 
 export function useEffect(effect, deps)
 {
-    const i = RENDER_QUEUE.current.__internals.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals._hookIndex++;
 
-    if (!RENDER_QUEUE.current.__internals.hooks[i])
+    if (!RENDER_QUEUE.current.__internals._hooks[i])
     {
-        RENDER_QUEUE.current.__internals.hooks[i] = effect;
-        RENDER_QUEUE.current.__internals.hookDeps[i] = deps;
-        RENDER_QUEUE.current.__internals.hooksCleanups[i] = effect();
+        RENDER_QUEUE.current.__internals._hooks[i] = effect;
+        RENDER_QUEUE.current.__internals._hookDeps[i] = deps;
+        RENDER_QUEUE.current.__internals._hooksCleanups[i] = effect();
     }
     else
     {
-        if (deps && !is_equal(deps, RENDER_QUEUE.current.__internals.hookDeps[i]))
+        if (deps && !is_equal(deps, RENDER_QUEUE.current.__internals._hookDeps[i]))
         {
-            if (RENDER_QUEUE.current.__internals.hooksCleanups[i])
+            if (RENDER_QUEUE.current.__internals._hooksCleanups[i])
             {
-                RENDER_QUEUE.current.__internals.hooksCleanups[i]();
+                RENDER_QUEUE.current.__internals._hooksCleanups[i]();
             }
 
-            RENDER_QUEUE.current.__internals.hooksCleanups[i] = effect();
+            RENDER_QUEUE.current.__internals._hooksCleanups[i] = effect();
         }
     }
 }
@@ -61,15 +61,15 @@ function refHolderFactory(reference)
 
 export function useLayoutEffect(effect, deps)
 {
-    const i = RENDER_QUEUE.current.__internals.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals._hookIndex++;
 
     const thisHookContext = RENDER_QUEUE.current;
 
     useEffect(() =>
     {
-        thisHookContext.__internals.layoutEffects[i] = () =>
+        thisHookContext.__internals._layoutEffects[i] = () =>
         {
-            thisHookContext.__internals.hooksCleanups[i] = effect();
+            thisHookContext.__internals._hooksCleanups[i] = effect();
         };
 
     }, deps);
@@ -77,11 +77,11 @@ export function useLayoutEffect(effect, deps)
 
 export function useReducer(reducer, initialState, initialAction)
 {
-    const i = RENDER_QUEUE.current.__internals.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals._hookIndex++;
 
-    if (!RENDER_QUEUE.current.__internals.hooks[i])
+    if (!RENDER_QUEUE.current.__internals._hooks[i])
     {
-        RENDER_QUEUE.current.__internals.hooks[i] = {
+        RENDER_QUEUE.current.__internals._hooks[i] = {
             state: initialAction ? reducer(initialState, initialAction) : initialState
         };
     }
@@ -89,10 +89,10 @@ export function useReducer(reducer, initialState, initialAction)
     const thisHookContext = RENDER_QUEUE.current;
 
     return [
-        RENDER_QUEUE.current.__internals.hooks[i].state,
+        RENDER_QUEUE.current.__internals._hooks[i].state,
         useCallback(action =>
         {
-            thisHookContext.__internals.hooks[i].state = reducer(thisHookContext.__internals.hooks[i].state, action);
+            thisHookContext.__internals._hooks[i].state = reducer(thisHookContext.__internals._hooks[i].state, action);
 
             thisHookContext.setState();
         }, [])
@@ -101,11 +101,11 @@ export function useReducer(reducer, initialState, initialAction)
 
 export function useState(initial)
 {
-    const i = RENDER_QUEUE.current.__internals.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals._hookIndex++;
 
-    if (!RENDER_QUEUE.current.__internals.hooks[i])
+    if (!RENDER_QUEUE.current.__internals._hooks[i])
     {
-        RENDER_QUEUE.current.__internals.hooks[i] = {
+        RENDER_QUEUE.current.__internals._hooks[i] = {
             state: transformState(initial)
         };
     }
@@ -114,11 +114,11 @@ export function useState(initial)
 
     return [
 
-        RENDER_QUEUE.current.__internals.hooks[i].state,
+        RENDER_QUEUE.current.__internals._hooks[i].state,
 
         useCallback(newState =>
         {
-            thisHookContext.__internals.hooks[i].state = transformState(newState, thisHookContext.__internals.hooks[i].state);
+            thisHookContext.__internals._hooks[i].state = transformState(newState, thisHookContext.__internals._hooks[i].state);
 
             thisHookContext.forceUpdate();
 
@@ -133,19 +133,19 @@ function useCallback(cb, deps)
 
 function useMemo(factory, deps)
 {
-    const i = RENDER_QUEUE.current.__internals.hookIndex++;
+    const i = RENDER_QUEUE.current.__internals._hookIndex++;
 
     if (
-        !RENDER_QUEUE.current.__internals.hooks[i] ||
+        !RENDER_QUEUE.current.__internals._hooks[i] ||
         !deps ||
-        !is_equal(deps, RENDER_QUEUE.current.__internals.hookDeps[i])
+        !is_equal(deps, RENDER_QUEUE.current.__internals._hookDeps[i])
     )
     {
-        RENDER_QUEUE.current.__internals.hooks[i] = factory();
-        RENDER_QUEUE.current.__internals.hookDeps[i] = deps;
+        RENDER_QUEUE.current.__internals._hooks[i] = factory();
+        RENDER_QUEUE.current.__internals._hookDeps[i] = deps;
     }
 
-    return RENDER_QUEUE.current.__internals.hooks[i];
+    return RENDER_QUEUE.current.__internals._hooks[i];
 }
 
 // end public api
@@ -160,4 +160,4 @@ function transformState(state, prevState)
     return state;
 }
 
-// end HOOKS
+// end _HOOKS

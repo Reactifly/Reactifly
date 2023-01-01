@@ -44,9 +44,9 @@ export function Component(props, context)
 
 Component.prototype.__internals =
 {
-    vnode     : null,
-    prevState : {},
-    prevProps : {},
+    _vnode     : null,
+    _prevState : {},
+    _prevProps : {},
     _snapshot : null,
 };
 
@@ -93,13 +93,13 @@ Component.prototype.setState = function(key, value, callback)
 
         lifecycle.snapshotBeforeUpdate(this, this.props, this.state);
 
-        this.__internals.prevState = _.cloneDeep(this.state);
+        this.__internals._prevState = _.cloneDeep(this.state);
 
         this.state = newState;
 
-        thunkUpdate(this.__internals.vnode);
+        thunkUpdate(this.__internals._vnode);
 
-        lifecycle.didUpdate(this, this.__internals.prevState, this.props);
+        lifecycle.didUpdate(this, this.__internals._prevState, this.props);
     }
     else
     {
@@ -137,5 +137,5 @@ Component.prototype.jsx = function(jsxStr)
  */
 Component.prototype.forceUpdate = function()
 {
-    thunkUpdate(this.__internals.vnode);
+    thunkUpdate(this.__internals._vnode);
 }

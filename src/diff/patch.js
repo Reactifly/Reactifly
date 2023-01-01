@@ -129,7 +129,7 @@ function patchThunk(left, right, actions)
 
             diffThunk(left, right, actions);
 
-            actions.push(action('didUpdate', [component, component.__internals.prevProps, component.state]));
+            actions.push(action('didUpdate', [component, component.__internals._prevProps, component.state]));
         }
     }
     // Different components
@@ -161,7 +161,7 @@ function patchThunkProps(vnode, newProps)
 
     lifecycle.willUpdate(component, newProps, component.state);
 
-    component.__internals.prevProps = _.cloneDeep(vnode.props);
+    component.__internals._prevProps = _.cloneDeep(vnode.props);
 
     component.props = newProps;
 

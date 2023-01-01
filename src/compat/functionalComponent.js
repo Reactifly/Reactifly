@@ -1,38 +1,33 @@
 import { Component } from './Component';
 import { RENDER_QUEUE } from '../internal';
+import { extend } from '../utils/index';
 
 /**
  * Wrapper class around functional components.
  * 
  */
-function FunctionalComponent(render, props, context)
+function _FunctionalComponent(render, props, context)
 {
     this.props = props;
-
     this.context = context;
-
+    
     this.__internals._fn = render;
-    this.__internals.hookIndex = 0;
-    this.__internals.hooks = [];
-    this.__internals.hooksCleanups = [];
-    this.__internals.hookDeps = [];
-    this.__internals.layoutEffects = [];
-
-    console.log(this);
+    this.__internals._hookIndex = null;
+    this.__internals._hooks = [];
+    this.__internals._hooksCleanups = [];
+    this.__internals._hookDeps = [];
+    this.__internals._layoutEffects = [];
 }
-
-FunctionalComponent.prototype = new Component();
-FunctionalComponent.prototype.constructor = FunctionalComponent;
 
 /**
  * Runs effects after initial mount.
  * 
  */
-FunctionalComponent.prototype.componentDidMount = function()
+_FunctionalComponent.prototype.componentDidMount = function()
 {
-    for (let i = 0; i < this.__internals.hooks.length; ++i)
+    for (let i = 0; i < this.__internals._hooks.length; ++i)
     {
-        const effect = this.__internals.layoutEffects[i];
+        const effect = this.__internals._layoutEffects[i];
 
         if (effect)
         {
@@ -44,18 +39,18 @@ FunctionalComponent.prototype.componentDidMount = function()
         }
     }
 
-    this.__internals.layoutEffects = [];
+    this.__internals._layoutEffects = [];
 }
 
 /**
  * Runs effects after component update.
  * 
  */
-FunctionalComponent.prototype.componentDidUpdate = function()
+_FunctionalComponent.prototype.componentDidUpdate = function()
 {
-    for (let i = 0; i < this.__internals.hooks.length; ++i)
+    for (let i = 0; i < this.__internals._hooks.length; ++i)
     {
-        const effect = this.__internals.layoutEffects[i];
+        const effect = this.__internals._layoutEffects[i];
 
         if (effect)
         {
@@ -67,18 +62,18 @@ FunctionalComponent.prototype.componentDidUpdate = function()
         }
     }
 
-    this.__internals.layoutEffects = [];
+    this.__internals._layoutEffects = [];
 }
 
 /**
  * Runs effects before unmounting.
  * 
  */
-FunctionalComponent.prototype.componentWillUnmount = function()
+_FunctionalComponent.prototype.componentWillUnmount = function()
 {
-    for (let i = 0; i < this.__internals.hooks.length; ++i)
+    for (let i = 0; i < this.__internals._hooks.length; ++i)
     {
-        const cleanup = this.__internals.hooksCleanups[i];
+        const cleanup = this.__internals.__hooksCleanups[i];
 
         if (cleanup)
         {
@@ -95,7 +90,7 @@ FunctionalComponent.prototype.componentWillUnmount = function()
  * Render function. Wrapper around original function
  * 
  */
-FunctionalComponent.prototype.render = function()
+_FunctionalComponent.prototype.render = function()
 {
     const prevContext = RENDER_QUEUE.current;
 
@@ -103,7 +98,7 @@ FunctionalComponent.prototype.render = function()
     {
         RENDER_QUEUE.current = this;
 
-        this.__internals.hookIndex = 0;
+        this.__internals._hookIndex = 0;
 
         return this.__internals._fn(this.props);
     }
@@ -112,6 +107,8 @@ FunctionalComponent.prototype.render = function()
         RENDER_QUEUE.current = prevContext;
     }
 }
+
+const FunctionalComponent = extend(Component, _FunctionalComponent);
 
 /**
  * Functional component callback

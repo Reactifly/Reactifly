@@ -43,7 +43,37 @@ const TO_STR = Object.prototype.toString;
 // Regex for HTMLElement types
 const HTML_REGXP = /^\[object HTML\w+Element\]$/;
 
-let CURR_CLONE = null;
+/**
+ * Object with built in "dot.notation" set,get,isset,delete methods.
+ *
+ * @return {object}
+ */
+const __MAP = function()
+{
+    return this;
+}
+
+__MAP.prototype = {};
+
+__MAP.prototype.set = function(key, value)
+{
+    array_set(key, value, this);
+};
+
+__MAP.prototype.get = function(key)
+{
+    return array_get(key, this);
+};
+
+__MAP.prototype.delete = function(key)
+{
+    array_delete(key, this);
+};
+
+__MAP.prototype.isset = function(key)
+{
+    return array_has(key, this);
+};
 
 /**
  * Foreach.
@@ -1031,7 +1061,90 @@ export function bool(mixed_var)
     return false;
 }
 
+/**
+ * Triggers a native event on an element.
+ *
+ * @param  {HTMLElement}  el    Target element
+ * @param  {string}       type  Valid event name
+ */
+export function triggerEvent(el, type)
+{
+    if ('createEvent' in document)
+    {
+        var evt = document.createEvent("HTMLEvents");
+
+        evt.initEvent(type, false, true);
+
+        el.dispatchEvent(evt);
+    }
+    else
+    {
+        el.fireEvent(type);
+    }
+}
+
+/**
+ * Returns an immutable object with set,get,isset,delete methods that accept dot.notation.
+ *
+ * @returns {object}
+ */
+export function obj()
+{
+    return new __MAP;
+}
+
+export function extend(baseFunc, extendFunc, withSuper)
+{
+    if (!is_function(baseFunc) || !is_function(extendFunc))
+    {
+        throw new Error('Arguments should be function declarations.');
+    }
+
+    if (!is_constructable(baseFunc) || !is_constructable(extendFunc))
+    {
+        throw new Error('Arguments should construable function declarations.');
+    }
+
+    const _base = function(){};
+    
+    const _constructor = function()
+    {
+        let _this = mergeDeep(new _base, baseFunc.prototype, extendFunc.prototype);
+
+        let args = Array.prototype.slice.call(arguments);
+
+        baseFunc.bind(_this).apply(_this, args);
+
+        extendFunc.bind(_this).apply(_this, args);
+
+        return _this;
+    }
+
+    const _fakeProto = function() {};
+
+    Object.defineProperty(_fakeProto, 'name', {value: baseFunc.name, writable: false});
+
+    _constructor.prototype = new _fakeProto;
+
+    _constructor.prototype.__is_class = true;
+
+    // set the function name
+    Object.defineProperty(_constructor, 'name', {value: extendFunc.name, writable: false});
+
+    _constructor.prototype.name = extendFunc.name;
+
+    // Set constructor
+    _base.prototype.constructor = _constructor;
+
+    return _constructor;
+}
+
 /* BEGIN PRIVATE API */
+
+function __newCall(Cls)
+{
+    return new (Function.prototype.bind.apply(Cls, arguments));
+}
 
 /**
  * Gets the `toStringTag` of `value`.
@@ -1472,70 +1585,6 @@ function __cloneTypedArray(typedArray)
     return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
 }
 
-/**
- * Triggers a native event on an element.
- *
- * @param  {HTMLElement}  el    Target element
- * @param  {string}       type  Valid event name
- */
-export function triggerEvent(el, type)
-{
-    if ('createEvent' in document)
-    {
-        var evt = document.createEvent("HTMLEvents");
-
-        evt.initEvent(type, false, true);
-
-        el.dispatchEvent(evt);
-    }
-    else
-    {
-        el.fireEvent(type);
-    }
-}
-
-/**
- * Returns an immutable object with set,get,isset,delete methods that accept dot.notation.
- *
- * @returns {object}
- */
-export function obj()
-{
-    return new __MAP;
-}
-
-/**
- * Object with built in "dot.notation" set,get,isset,delete methods.
- *
- * @return {object}
- */
-const __MAP = function()
-{
-    return this;
-}
-
-__MAP.prototype = {};
-
-__MAP.prototype.set = function(key, value)
-{
-    array_set(key, value, this);
-};
-
-__MAP.prototype.get = function(key)
-{
-    return array_get(key, this);
-};
-
-__MAP.prototype.delete = function(key)
-{
-    array_delete(key, this);
-};
-
-__MAP.prototype.isset = function(key)
-{
-    return array_has(key, this);
-};
-
 const _ = 
 {
     // Traversal
@@ -1590,6 +1639,7 @@ const _ =
     bool,
     triggerEvent,
     obj,
+    extend,
 };
 
 export default _;

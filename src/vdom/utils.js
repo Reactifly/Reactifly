@@ -243,10 +243,10 @@ export let componentNode = (component, vnode) =>
 {
     if (!_.is_undefined(vnode))
     {
-        component.__internals.vnode = vnode;
+        component.__internals._vnode = vnode;
     }
 
-    return component.__internals.vnode;
+    return component.__internals._vnode;
 }
 
 
@@ -357,7 +357,7 @@ export let pointVnodeThunk = (vnode, component) =>
     vnode.__internals._component = component;
 
     // point component -> vnode
-    component.__internals.vnode = vnode;
+    component.__internals._vnode = vnode;
 }
 
 /**
