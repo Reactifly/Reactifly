@@ -14,19 +14,6 @@ import _ from '../utils/index';
 export function Component(props, context)
 {
     /**
-     * Internal use
-     *
-     * @var {object}
-     */
-    this.__internals =
-    {
-        vnode     : null,
-        prevState : {},
-        prevProps : {},
-        _snapshot : null,
-    };
-
-    /**
      * State obj
      *
      * @var {object}
@@ -54,6 +41,14 @@ export function Component(props, context)
      */
     this.context = context;
 }
+
+Component.prototype.__internals =
+{
+    vnode     : null,
+    prevState : {},
+    prevProps : {},
+    _snapshot : null,
+};
 
 /**
  * Update component state and re-render.

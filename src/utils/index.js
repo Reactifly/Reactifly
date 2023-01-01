@@ -1504,10 +1504,6 @@ export function obj()
     return new __MAP;
 }
 
-
-
-
-
 /**
  * Object with built in "dot.notation" set,get,isset,delete methods.
  *
@@ -1540,29 +1536,19 @@ __MAP.prototype.isset = function(key)
     return array_has(key, this);
 };
 
+const _ = 
+{
+    // Traversal
+    foreach,
+    map,
 
-const _ = {
-    is_object,
-    is_array,
-    is_string,
-    is_number,
-    is_numeric,
-    is_undefined,
-    is_null,
-    is_bool,
-    is_htmlElement,
-    is_callable,
-    is_constructable,
-    is_class,
-    is_empty,
-    is_equal,
-    in_dom,
-    size,
-    bool,
+    // Obj
     object_props,
-    callable_name,
-    triggerEvent,
-    obj,
+    dotify,
+    cloneDeep,
+    mergeDeep,
+    
+    // Array
     array_set,
     array_get,
     array_has,
@@ -1570,11 +1556,40 @@ const _ = {
     array_filter,
     array_merge,
     array_unique,
-    dotify,
-    cloneDeep,
-    mergeDeep,
-    foreach,
-    map,
+
+    // Validation
+    is_htmlElement,
+    is_undefined,
+    is_null,
+    is_bool,
+    is_function,
+    is_object,
+    is_array,
+    is_nodelist,
+    is_args,
+    is_string,
+    is_number,
+    is_numeric,
+    is_date,
+    is_regexp,
+    is_set,
+    is_map,
+    is_symbol,
+    is_buffer,
+    is_dataview,
+    is_callable,
+    is_constructable,
+    is_class,
+    is_empty,
+    is_equal,
+    in_dom,
+
+    // Utility
+    size,
+    callable_name,
+    bool,
+    triggerEvent,
+    obj,
 };
 
 export default _;

@@ -11,20 +11,14 @@ function FunctionalComponent(render, props, context)
 
     this.context = context;
 
-    this.__internals =
-    {
-        _fn       : render,
-        hookIndex : 0,
-        hooks     : [],
-        hooksCleanups : [],
-        hookDeps      : [],
-        layoutEffects : [],
-        vnode     : null,
-        prevState : {},
-        prevProps : {},
-        _snapshot : null,
-    };
+    this.__internals._fn = render;
+    this.__internals.hookIndex = 0;
+    this.__internals.hooks = [];
+    this.__internals.hooksCleanups = [];
+    this.__internals.hookDeps = [];
+    this.__internals.layoutEffects = [];
 
+    console.log(this);
 }
 
 FunctionalComponent.prototype = new Component();
