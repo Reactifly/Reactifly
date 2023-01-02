@@ -1,4 +1,5 @@
 import { Component } from './Component';
+import { extend } from '../utils/index';
 
 /**
  * Fragment component.
@@ -10,5 +11,4 @@ export function Fragment(p, context)
     this.context = context;
 }
 
-Fragment.prototype = new Component();
-Fragment.prototype.constructor = Fragment;
+extend(Component, Fragment);

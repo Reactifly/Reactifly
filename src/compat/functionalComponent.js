@@ -121,8 +121,6 @@ export function functionalComponent(fn)
     {
         let component = new FunctionalComponent(fn, props);
 
-        console.log(component);
-
         return component;
     }
 

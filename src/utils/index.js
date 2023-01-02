@@ -1125,10 +1125,9 @@ export function extend(baseFunc, extendFunc, callSuper)
 
             let _this = this;
 
-            reactifly._.foreach(constructors, function(i, constr)
+            foreach(constructors, function(i, constr)
             {
                 constr.bind(_this).apply(_this, args);
-
             });
 
             oldConstructor.bind(this).apply(this, args);
