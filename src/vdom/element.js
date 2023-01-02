@@ -58,14 +58,21 @@ export function createElement(tag, props)
             });
         }
 
-        // Children was supplied as prop during JSX parse
-        if (children.length >= 1)
-        {            
-            normalizedProps.children = normaliseChildren(children, true);
+        if (_.is_class(tag, 'Fragment'))
+        {
+            children = normaliseChildren(children, false, true);
         }
         else
         {
-            children = [createEmptyVnode()];
+            // Children was supplied as prop during JSX parse
+            if (children.length >= 1)
+            {            
+                normalizedProps.children = normaliseChildren(children, true);
+            }
+            else
+            {
+                children = [createEmptyVnode()];
+            }
         }
 
         if (!_.is_constructable(tag))
@@ -293,7 +300,7 @@ function createThunkVnode(fn, props, children, key, ref)
     return {
         type: _type,
         fn,
-        children : null,
+        children,
         props,
         key,
         __internals:
