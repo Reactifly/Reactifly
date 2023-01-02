@@ -6,7 +6,10 @@
   "minify": {
     "mangle": {
       "properties": {
-        "regex": "^_[^_]"
+        "regex": "^_[^_]",
+        "reserved": [
+          "__internals"
+        ]
       }
     },
     "compress": {
@@ -16,13 +19,6 @@
   },
   "props": {
     "cname": 6,
-    "props": {
-      "$__internals": "__internals",
-      "$_vnode": "__v",
-      "$_domEl": "__de",
-      "$_children": "__k",
-      "$_context": "c",
-      "$_hook": "__h"
-    }
+    "props": {}
   }
 }

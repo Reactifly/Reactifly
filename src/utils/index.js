@@ -1093,58 +1093,88 @@ export function obj()
     return new __MAP;
 }
 
-export function extend(baseFunc, extendFunc, withSuper)
+/**
+ * Extends a function with prototype inheritance.
+ *
+ * @param   {function}           baseFunc    Base function to extend
+ * @param   {function}           extendFunc  Function to get extended.
+ * @param   {undefined|boolean}  callSuper   If true "extendFunc" is treated as a constructor and the BaseFunc / any nested prototypes will get instantiated. (default true)
+ * @returns {function}
+ */
+export function extend(baseFunc, extendFunc, callSuper)
 {
-    if (!is_function(baseFunc) || !is_function(extendFunc))
-    {
-        throw new Error('Arguments should be function declarations.');
-    }
+    callSuper = is_undefined(callSuper) ? true : callSuper;
 
-    if (!is_constructable(baseFunc) || !is_constructable(extendFunc))
-    {
-        throw new Error('Arguments should construable function declarations.');
-    }
-
-    const _base = function(){};
+    const constructors = __protoConstructors(baseFunc);
+    const baseConstructor = baseFunc.prototype.constructor;
+    const oldConstructor = extendFunc.prototype.constructor;
+    const oldProto = extendFunc.prototype;
+    const newProto = function(){};
     
-    const _constructor = function()
+    newProto.prototype = oldProto;
+
+    Object.setPrototypeOf(oldProto, baseFunc.prototype);
+
+    Object.setPrototypeOf(extendFunc, newProto);
+
+    if (callSuper)
     {
-        let _this = mergeDeep(new _base, baseFunc.prototype, extendFunc.prototype);
+        extendFunc = function()
+        {
+            let args = Array.prototype.slice.call(arguments);
 
-        let args = Array.prototype.slice.call(arguments);
+            let _this = this;
 
-        baseFunc.bind(_this).apply(_this, args);
+            reactifly._.foreach(constructors, function(i, constr)
+            {
+                constr.bind(_this).apply(_this, args);
 
-        extendFunc.bind(_this).apply(_this, args);
+            });
 
-        return _this;
+            oldConstructor.bind(this).apply(this, args);
+        };
     }
 
-    const _fakeProto = function() {};
+    extendFunc.prototype = oldProto;
 
-    Object.defineProperty(_fakeProto, 'name', {value: baseFunc.name, writable: false});
-
-    _constructor.prototype = new _fakeProto;
-
-    _constructor.prototype.__is_class = true;
-
-    // set the function name
-    Object.defineProperty(_constructor, 'name', {value: extendFunc.name, writable: false});
-
-    _constructor.prototype.name = extendFunc.name;
-
-    // Set constructor
-    _base.prototype.constructor = _constructor;
-
-    return _constructor;
+    return extendFunc;
 }
+
+
 
 /* BEGIN PRIVATE API */
 
-function __newCall(Cls)
+/**
+ * Returns an array of prototype constructors nested inside a function.
+ *
+ * @private
+ * @param   {function}  func  Function to loop
+ * @returns {array}
+ */
+function __protoConstructors(func)
 {
-    return new (Function.prototype.bind.apply(Cls, arguments));
+    let protos = [];
+    let proto = func.prototype || Object.getPrototypeOf(func);
+
+    while(proto && proto.constructor)
+    {
+        // recursive stopper
+        if (protos.includes.proto)
+        {
+            break;
+        }
+
+        protos.push(proto.constructor);
+
+        proto = proto.prototype || Object.getPrototypeOf(proto);
+    }
+
+    // Remove empty object prototype
+    protos.pop();
+
+    return protos.reverse();
 }
+
 
 /**
  * Gets the `toStringTag` of `value`.
