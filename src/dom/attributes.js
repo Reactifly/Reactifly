@@ -41,7 +41,7 @@ const CSS_PREFIXABLE = [
 ];
 
 export function setDomAttribute(DOMElement, name, value, previousValue)
-{    
+{
     switch (name)
     {
         // Skip
@@ -122,7 +122,7 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
                         break;
                 }
             }
-            
+
             break;
     }
 }

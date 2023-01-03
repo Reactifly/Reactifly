@@ -11,7 +11,7 @@ import _ from '../utils/index';
  * @returns {object}
  */
 export function createElement(tag, props)
-{    
+{
     if (arguments.length === 0)
     {
         return createEmptyVnode();
@@ -66,7 +66,7 @@ export function createElement(tag, props)
         {
             // Children was supplied as prop during JSX parse
             if (children.length >= 1)
-            {            
+            {
                 normalizedProps.children = normaliseChildren(children, true);
             }
             else
@@ -84,7 +84,7 @@ export function createElement(tag, props)
     }
 
     if (tag === 'text')
-    {        
+    {
         return createTextVnode(children.toString(), key);
     }
 
@@ -163,7 +163,7 @@ function normaliseChildren(children, propKeys, checkKeys)
                 squashFragment(vnode, ret, fragmentcount);
 
                 fragmentcount++;
-            }            
+            }
             else
             {
                 if (propKeys && !vnode.key)
@@ -289,12 +289,12 @@ function createEmptyVnode()
  * @returns {object}
  */
 function createThunkVnode(fn, props, children, key, ref)
-{    
+{
     if (!_.is_class(fn, 'Component'))
     {
-        throw new Error('[' +_.callable_name(fn) +'] is not a valid Component. Class or construable components must extend [Reactifly.Component]');
+        throw new Error('[' + _.callable_name(fn) + '] is not a valid Component. Class or construable components must extend [Reactifly.Component]');
     }
-    
+
     let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
 
     return {
@@ -324,13 +324,13 @@ function createThunkVnode(fn, props, children, key, ref)
  * @returns {object}
  */
 function createFunctionalThunk(fn, props, children, key, ref)
-{    
+{
     let func = functionalComponent(fn);
 
     return {
         type: 'thunk',
         fn: func,
-        children : null,
+        children: null,
         props,
         key,
         __internals:

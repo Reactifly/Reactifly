@@ -45,8 +45,8 @@ export function thunkRender(component)
 export function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
-    let left      = vnode.children[0];
-    let right     = jsxFactory(component);
+    let left = vnode.children[0];
+    let right = jsxFactory(component);
 
     diff(left, right);
 }

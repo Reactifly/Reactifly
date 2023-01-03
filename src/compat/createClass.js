@@ -9,12 +9,12 @@ import _ from '../utils/index';
  */
 export function createClass(obj)
 {
-	if (!_.is_object(obj))
-	{
-		throw new Error('Cannot create class with provided var type ['+ typeof obj +']. An object must be used to create a Reactifly class.');
-	}
+    if (!_.is_object(obj))
+    {
+        throw new Error('Cannot create class with provided var type [' + typeof obj + ']. An object must be used to create a Reactifly class.');
+    }
 
-	let _component = !obj.constructor ? function(){} : obj.constructor;
+    let _component = !obj.constructor ? function() {} : obj.constructor;
 
     let props = _.object_props(obj);
 

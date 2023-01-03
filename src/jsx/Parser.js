@@ -1,5 +1,4 @@
-const VOID_TAGS =
-{
+const VOID_TAGS = {
     'area': true,
     'base': true,
     'basefont': true,
@@ -20,8 +19,7 @@ const VOID_TAGS =
     'wbr': true,
 };
 
-const SPECIAL_TAGS =
-{
+const SPECIAL_TAGS = {
     'xmp': true,
     'style': true,
     'script': true,
@@ -31,8 +29,7 @@ const SPECIAL_TAGS =
     '#comment': true,
 };
 
-const HIDDEN_TAGS =
-{
+const HIDDEN_TAGS = {
     'style': true,
     'script': true,
     'noscript': true,
@@ -51,8 +48,7 @@ const Parser = function(jsx, f)
     this.getOne = f;
 }
 
-Parser.prototype =
-{
+Parser.prototype = {
     parse: function()
     {
         return parse(this.input, this.getOne)
@@ -111,8 +107,7 @@ function lexer(string, getOne)
 
     var lastNode;
 
-    do
-    {
+    do {
         if (--breakIndex === 0)
         {
             break
@@ -120,13 +115,13 @@ function lexer(string, getOne)
         var arr = getCloseTag(string)
 
         if (arr)
-        { 
+        {
             //Handle closing tags
             string = string.replace(arr[0], '')
             const node = stack.pop()
             // Handle the following two special cases:
-                //1. option will automatically remove element nodes and form their nodeValue into new text nodes
-                //2. table will collect tr or text nodes that are not wrapped by thead, tbody, tfoot into a new tbody element
+            //1. option will automatically remove element nodes and form their nodeValue into new text nodes
+            //2. table will collect tr or text nodes that are not wrapped by thead, tbody, tfoot into a new tbody element
             if (node.type === 'option')
             {
                 node.children = [
@@ -155,7 +150,7 @@ function lexer(string, getOne)
             addNode(node)
             var selfClose = !!(node.isVoidTag || SPECIAL_TAGS[node.type])
             if (!selfClose)
-            { 
+            {
                 //Put it here to add children
                 stack.push(node)
             }
@@ -388,7 +383,7 @@ function insertTbody(nodes)
 
 
 function getCloseTag(string)
-{    
+{
     if (string.indexOf("</") === 0)
     {
         var match = string.match(/\<\/([\w\.]+)>/);
@@ -417,10 +412,9 @@ function getOpenTag(string)
             var l = string.indexOf('-->')
             if (l === -1)
             {
-                throw('Comment node is not closed: [' + string.slice(0, 100) + ']');
+                throw ('Comment node is not closed: [' + string.slice(0, 100) + ']');
             }
-            var node =
-            {
+            var node = {
                 type: '#comment',
                 nodeValue: string.slice(4, l)
             }
@@ -468,7 +462,7 @@ function getOpenTag(string)
             }
 
             if (!node.isVoidTag && SPECIAL_TAGS[tag])
-            { 
+            {
                 //If it is script, style, xmp and other elements
                 var closeTag = '</' + tag + '>'
                 var j = string.indexOf(closeTag)

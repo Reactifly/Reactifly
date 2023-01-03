@@ -177,7 +177,7 @@ function patchThunkProps(vnode, newProps)
  */
 function diffThunk(left, right, actions)
 {
-    let component  = vDom.nodeComponent(left);
+    let component = vDom.nodeComponent(left);
     let rightchild = thunk.thunkRender(component);
     right.children = [rightchild];
 

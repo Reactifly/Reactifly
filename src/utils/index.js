@@ -1,21 +1,21 @@
 // Standard
-const NULL_TAG   = '[object Null]';
-const UNDEF_TAG  = '[object Undefined]';
-const BOOL_TAG   = '[object Boolean]';
-const STRING_TAG  = '[object String]';
+const NULL_TAG = '[object Null]';
+const UNDEF_TAG = '[object Undefined]';
+const BOOL_TAG = '[object Boolean]';
+const STRING_TAG = '[object String]';
 const NUMBER_TAG = '[object Number]';
-const FUNC_TAG   = '[object Function]';
-const ARRAY_TAG  = '[object Array]';
-const ARGS_TAG   = '[object Arguments]';
+const FUNC_TAG = '[object Function]';
+const ARRAY_TAG = '[object Array]';
+const ARGS_TAG = '[object Arguments]';
 const NODELST_TAG = '[object NodeList]';
 const OBJECT_TAG = '[object Object]';
-const DATE_TAG   = '[object Date]';
+const DATE_TAG = '[object Date]';
 
 // Unusual
-const SET_TAG     = '[object Set]';
-const MAP_TAG    = '[object Map]';
+const SET_TAG = '[object Set]';
+const MAP_TAG = '[object Map]';
 const REGEXP_TAG = '[object RegExp]';
-const SYMBOL_TAG  = '[object Symbol]';
+const SYMBOL_TAG = '[object Symbol]';
 
 // Array buffer
 const ARRAY_BUFFER_TAG = '[object ArrayBuffer]';
@@ -31,7 +31,7 @@ const UINT16_TAG = '[object Uint16Array]';
 const UINT32_TAG = '[object Uint32Array]';
 
 // Non-cloneable
-const ERROR_TAG  = '[object Error]';
+const ERROR_TAG = '[object Error]';
 const WEAKMAP_TAG = '[object WeakMap]';
 
 // Arrayish _tags
@@ -88,12 +88,12 @@ export function foreach(obj, callback, args)
     if (typeof obj !== 'object' || obj === null) return;
 
     let isArray = TO_STR.call(obj) === '[object Array]',
-    i    = 0,
-    keys = isArray ? null : Object.keys(obj),
-    len  = isArray ? obj.length : keys.length,
-    key,
-    value;
-        
+        i = 0,
+        keys = isArray ? null : Object.keys(obj),
+        len = isArray ? obj.length : keys.length,
+        key,
+        value;
+
     var thisArg = typeof args !== 'undefined' && TO_STR.call(args) !== '[object Array]' ? args : obj;
 
     if (TO_STR.call(args) === '[object Array]')
@@ -241,16 +241,16 @@ export function object_props(mixed_var, withMethods)
 {
     withMethods = typeof withMethods === 'undefined' ? true : false;
 
-    let keys     = Object.keys(mixed_var);   
+    let keys = Object.keys(mixed_var);
     let excludes = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf', 'length', 'name', 'arguments', 'caller', 'prototype', 'apply', 'bind', 'call'];
 
     if (withMethods)
     {
         let protos = [];
-        let funcs  = Object.getOwnPropertyNames(mixed_var);
-        let proto  = mixed_var.prototype || Object.getPrototypeOf(mixed_var);
+        let funcs = Object.getOwnPropertyNames(mixed_var);
+        let proto = mixed_var.prototype || Object.getPrototypeOf(mixed_var);
 
-        while(proto)
+        while (proto)
         {
             // recursive stopper
             if (protos.includes.proto)
@@ -317,7 +317,7 @@ export function dotify(obj)
  * @returns {mixed}
  */
 export function cloneDeep(mixed_var, context)
-{    
+{
     return __cloneVar(mixed_var, context);
 }
 
@@ -351,7 +351,7 @@ export function mergeDeep()
 
     // Remove first and cache
     let first = args.shift();
-   
+
     foreach(args, function(i, arg)
     {
         if (!is_object(arg))
@@ -818,7 +818,7 @@ export function is_class(mixed_var, classname, strict)
         let proto = mixed_var.prototype || Object.getPrototypeOf(mixed_var);
         let ret = false;
 
-        while(proto && proto.constructor)
+        while (proto && proto.constructor)
         {
             // recursive stopper
             if (protos.includes.proto)
@@ -837,12 +837,12 @@ export function is_class(mixed_var, classname, strict)
 
             proto = proto.prototype || Object.getPrototypeOf(proto);
         }
-    
+
         return ret;
     }
 
     // ES6 class declaration depending on strict
-    
+
     return strict ? isES6 : is_constructable(mixed_var);
 }
 
@@ -1109,8 +1109,8 @@ export function extend(baseFunc, extendFunc, callSuper)
     const baseConstructor = baseFunc.prototype.constructor;
     const oldConstructor = extendFunc.prototype.constructor;
     const oldProto = extendFunc.prototype;
-    const newProto = function(){};
-    
+    const newProto = function() {};
+
     newProto.prototype = oldProto;
 
     Object.setPrototypeOf(oldProto, baseFunc.prototype);
@@ -1155,7 +1155,7 @@ function __protoConstructors(func)
     let protos = [];
     let proto = func.prototype || Object.getPrototypeOf(func);
 
-    while(proto && proto.constructor)
+    while (proto && proto.constructor)
     {
         // recursive stopper
         if (protos.includes.proto)
@@ -1188,7 +1188,7 @@ function __getType(value)
     {
         return value === undefined ? '[object Undefined]' : '[object Null]'
     }
-    
+
     return TO_STR.call(value);
 }
 
@@ -1411,7 +1411,7 @@ function __cloneVar(mixed_var, context)
         case NUMBER_TAG:
             let n = mixed_var;
             return n;
-    
+
         case REGEXP_TAG:
             return __cloneRegExp(mixed_var, context);
 
@@ -1436,9 +1436,15 @@ function __cloneVar(mixed_var, context)
         case ARRAY_BUFFER_TAG:
             return __cloneBuffer(mixed_var);
 
-        case FLOAT32_TAG: case FLOAT64_TAG:
-        case INT8_TAG: case INT16_TAG: case INT32_TAG:
-        case UINT8_TAG: case UINT8CLAMPED_TAG: case UINT16_TAG: case UINT32_TAG:
+        case FLOAT32_TAG:
+        case FLOAT64_TAG:
+        case INT8_TAG:
+        case INT16_TAG:
+        case INT32_TAG:
+        case UINT8_TAG:
+        case UINT8CLAMPED_TAG:
+        case UINT16_TAG:
+        case UINT32_TAG:
             return __cloneTypedArray(object);
 
         case ERROR_TAG:
@@ -1469,7 +1475,7 @@ function __cloneObj(obj, context)
 
     // Loop keys and functions
     let keys = object_props(obj);
-    let ret  = {};
+    let ret = {};
 
     if (keys.length === 0)
     {
@@ -1535,9 +1541,9 @@ function __cloneRegExp(regexp)
     let reFlags = /\w*$/;
 
     let result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
-    
+
     result.lastIndex = regexp.lastIndex;
-    
+
     return result;
 }
 
@@ -1568,16 +1574,16 @@ function __cloneSet(s, context)
 function __cloneArrayBuffer(arrayBuffer)
 {
     const result = new arrayBuffer.constructor(arrayBuffer.byteLength)
-    
+
     new Uint8Array(result).set(new Uint8Array(arrayBuffer));
-    
+
     return result;
 }
 
 function __cloneDataView(dataView)
 {
     const buffer = __cloneArrayBuffer(dataView.buffer);
-    
+
     return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
 }
 
@@ -1595,7 +1601,7 @@ function __cloneBuffer(buffer)
     const result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
 
     buffer.copy(result);
-    
+
     return result;
 }
 
@@ -1614,8 +1620,7 @@ function __cloneTypedArray(typedArray)
     return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
 }
 
-const _ = 
-{
+const _ = {
     // Traversal
     foreach,
     map,
@@ -1625,7 +1630,7 @@ const _ =
     dotify,
     cloneDeep,
     mergeDeep,
-    
+
     // Array
     array_set,
     array_get,

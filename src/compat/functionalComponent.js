@@ -10,7 +10,7 @@ function _FunctionalComponent(render, props, context)
 {
     this.props = props;
     this.context = context;
-    
+
     this.__internals._fn = render;
     this.__internals._hookIndex = null;
     this.__internals._hooks = [];

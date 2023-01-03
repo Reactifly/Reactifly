@@ -3,8 +3,8 @@ import { commit } from './commit';
 import { is_empty } from '../utils/index';
 
 export function diff(left, right)
-{    
-	let actions = { current: [] };
+{
+    let actions = { current: [] };
 
     patch(left, right, actions.current);
 

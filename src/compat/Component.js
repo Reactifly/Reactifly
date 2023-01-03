@@ -18,12 +18,11 @@ export function Component(props, context)
      *
      * @var {object}
      */
-    this.__internals =
-    {
-        _vnode     : null,
-        _prevState : {},
-        _prevProps : {},
-        _snapshot : null,
+    this.__internals = {
+        _vnode: null,
+        _prevState: {},
+        _prevProps: {},
+        _snapshot: null,
     };
 
     /**
@@ -68,7 +67,7 @@ export function Component(props, context)
  */
 Component.prototype.setState = function(key, value, callback)
 {
-    let changes  = {};
+    let changes = {};
     let newState = _.cloneDeep(this.state);
 
     // setState({ 'foo.bar' : 'foo' })
@@ -77,8 +76,8 @@ Component.prototype.setState = function(key, value, callback)
         if (_.is_function(key))
         {
             callback = value;
-            value    = null;
-            key      = update(newState, this.props);
+            value = null;
+            key = update(newState, this.props);
         }
         else if (!_.is_object(key))
         {

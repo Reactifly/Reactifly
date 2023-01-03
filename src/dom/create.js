@@ -144,7 +144,7 @@ function createThunk(vnode, parentDOMElement)
 }
 
 function createFragment(vnode, parentDOMElement)
-{    
+{
     let ret = [];
 
     _.foreach(vnode.children, function(i, child)

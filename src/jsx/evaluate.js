@@ -56,7 +56,7 @@ export default function evaluate(str, obj, config)
         }
 
         console.log(args);
-        
+
         return result;
     }
     catch (e)

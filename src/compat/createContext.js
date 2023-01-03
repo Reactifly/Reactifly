@@ -6,8 +6,7 @@ export function createContext(defaultValue, contextId)
 {
     contextId = '__cC' + i++;
 
-    const context =
-    {
+    const context = {
         _id: contextId,
         _defaultValue: defaultValue,
 
@@ -28,7 +27,7 @@ export function createContext(defaultValue, contextId)
             if (!this.getChildContext)
             {
                 let subs = [];
-                let ctx  = {};
+                let ctx = {};
 
                 ctx[contextId] = this;
 
@@ -45,13 +44,13 @@ export function createContext(defaultValue, contextId)
                 this.sub = c =>
                 {
                     subs.push(c);
-                    
+
                     let old = c.componentWillUnmount;
 
                     c.componentWillUnmount = () =>
                     {
                         subs.splice(subs.indexOf(c), 1);
-                        
+
                         if (old)
                         {
                             old.call(c);
