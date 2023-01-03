@@ -74,7 +74,13 @@ Component.prototype.setState = function(key, value, callback)
     // setState({ 'foo.bar' : 'foo' })
     if (arguments.length === 1)
     {
-        if (!_.is_object(key))
+        if (_.is_function(key))
+        {
+            callback = value;
+            value    = null;
+            key      = update(newState, this.props);
+        }
+        else if (!_.is_object(key))
         {
             throw new Error('StateError: State should be an object with [dot.notation] keys. e.g. [setState({"foo.bar" : "baz"})]');
         }

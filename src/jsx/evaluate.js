@@ -54,6 +54,8 @@ export default function evaluate(str, obj, config)
         {
             return createElement('text', null, result);
         }
+
+        console.log(args);
         
         return result;
     }

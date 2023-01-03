@@ -182,7 +182,7 @@ function normaliseChildren(children, propKeys, checkKeys)
 
     if (warnKeys)
     {
-        console.error('Warning: Each child in a list should have a unique "key" prop.');
+        console.error('Warning: Each child in a list should have a unique [key] prop.');
     }
 
     return _.is_empty(ret) ? [createEmptyVnode()] : filterChildren(ret);
@@ -292,7 +292,7 @@ function createThunkVnode(fn, props, children, key, ref)
 {    
     if (!_.is_class(fn, 'Component'))
     {
-        throw new Error('Class components must extend [Reactifly.Component].');
+        throw new Error('[' +_.callable_name(fn) +'] is not a valid Component. Class or construable components must extend [Reactifly.Component]');
     }
     
     let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';

@@ -1,4 +1,5 @@
-const VOID_TAGS = {
+const VOID_TAGS =
+{
     'area': true,
     'base': true,
     'basefont': true,
@@ -19,7 +20,8 @@ const VOID_TAGS = {
     'wbr': true,
 };
 
-const SPECIAL_TAGS = {
+const SPECIAL_TAGS =
+{
     'xmp': true,
     'style': true,
     'script': true,
@@ -29,7 +31,8 @@ const SPECIAL_TAGS = {
     '#comment': true,
 };
 
-const HIDDEN_TAGS = {
+const HIDDEN_TAGS =
+{
     'style': true,
     'script': true,
     'noscript': true,
@@ -48,18 +51,21 @@ const Parser = function(jsx, f)
     this.getOne = f;
 }
 
-Parser.prototype = {
+Parser.prototype =
+{
     parse: function()
     {
         return parse(this.input, this.getOne)
     }
 }
-var rsp = /\s/
+
+var rsp = /\s/;
+
 /**
  * 
  * 
  * @param {any} string 
- * @param {any} getOne 只返回一个节点
+ * @param {any} getOne returns only one node
  * @returns 
  */
 function parse(string, getOne)
@@ -103,8 +109,10 @@ function lexer(string, getOne)
         }
     }
 
-    var lastNode
-    do {
+    var lastNode;
+
+    do
+    {
         if (--breakIndex === 0)
         {
             break
@@ -112,12 +120,13 @@ function lexer(string, getOne)
         var arr = getCloseTag(string)
 
         if (arr)
-        { //处理关闭标签
+        { 
+            //Handle closing tags
             string = string.replace(arr[0], '')
             const node = stack.pop()
-            //处理下面两种特殊情况：
-            //1. option会自动移除元素节点，将它们的nodeValue组成新的文本节点
-            //2. table会将没有被thead, tbody, tfoot包起来的tr或文本节点，收集到一个新的tbody元素中
+            // Handle the following two special cases:
+                //1. option will automatically remove element nodes and form their nodeValue into new text nodes
+                //2. table will collect tr or text nodes that are not wrapped by thead, tbody, tfoot into a new tbody element
             if (node.type === 'option')
             {
                 node.children = [
@@ -146,7 +155,8 @@ function lexer(string, getOne)
             addNode(node)
             var selfClose = !!(node.isVoidTag || SPECIAL_TAGS[node.type])
             if (!selfClose)
-            { //放到这里可以添加孩子
+            { 
+                //Put it here to add children
                 stack.push(node)
             }
             if (getOne && selfClose && !stack.length)
@@ -159,7 +169,7 @@ function lexer(string, getOne)
 
         var text = ''
         do {
-            //处理<div><<<<<<div>的情况
+            // Handle the situation of <div><<<<<<<div>
             const index = string.indexOf('<')
             if (index === 0)
             {
@@ -172,25 +182,25 @@ function lexer(string, getOne)
                 break
             }
         } while (string.length);
-        //处理<div>{aaa}</div>,<div>xxx{aaa}xxx</div>,<div>xxx</div>{aaa}sss的情况
-        const index = string.indexOf('<') //判定它后面是否存在标签
-        const bindex = string.indexOf('{') //判定它后面是否存在jsx
+        //Handle the situation of <div>{aaa}</div>, <div>xxx{aaa}xxx</div>, <div>xxx</div>{aaa}sss
+        const index = string.indexOf('<') //Determine whether there is a label after it
+        const bindex = string.indexOf('{') //Determine whether there is jsx behind it
         const aindex = string.indexOf('}')
 
         let hasJSX = (bindex < aindex) && (index === -1 || bindex < index)
         if (hasJSX)
         {
             if (bindex !== 0)
-            { // 收集jsx之前的文本节点
+            { // Collect text nodes before jsx
                 text += string.slice(0, bindex)
                 string = string.slice(bindex)
             }
             addText(lastNode, text, addNode)
-            string = string.slice(1) //去掉前面{
+            string = string.slice(1) //remove first "{"
             var arr = parseCode(string)
             addNode(makeJSX(arr[1]))
             lastNode = false
-            string = string.slice(arr[0].length + 1) //去掉后面的}
+            string = string.slice(arr[0].length + 1) // remove trailing "}"
         }
         else
         {
@@ -231,10 +241,12 @@ function addText(lastNode, text, addNode)
     }
 }
 
-//它用于解析{}中的内容，如果遇到不匹配的}则返回, 根据标签切割里面的内容 
+//It is used to parse the content in {}, if it encounters an unmatched },
+// it will return, and cut the content according to the label
 function parseCode(string)
-{ // <div id={ function(){<div/>} }>
-    var word = '', //用于匹配前面的单词
+{
+    // <div id={ function(){<div/>} }>
+    var word = '', //used to match the preceding word
         braceIndex = 1,
         codeIndex = 0,
         nodes = [],
@@ -284,7 +296,7 @@ function parseCode(string)
                         empty = false
                         word = c + word
                         if (word.length > 7)
-                        { //性能优化
+                        { //performance optimization
                             break
                         }
                     } while (--index >= 0);
@@ -294,7 +306,7 @@ function parseCode(string)
                         collectJSX(string, codeIndex, i, nodes)
                         var chunk = lexer(chunkString, true)
                         nodes.push(chunk[1])
-                        i += (chunk[0].length - 1) //因为已经包含了<, 需要减1
+                        i += (chunk[0].length - 1) //Because it already contains <, need to subtract 1
                         codeIndex = i + 1
                     }
 
@@ -319,7 +331,7 @@ function collectJSX(string, codeIndex, i, nodes)
 {
     var nodeValue = string.slice(codeIndex, i)
     if (/\S/.test(nodeValue))
-    { //将{前面的东西放进去
+    { // Put the things in front of { into it
         nodes.push(
         {
             type: '#jsx',
@@ -376,13 +388,14 @@ function insertTbody(nodes)
 
 
 function getCloseTag(string)
-{
+{    
     if (string.indexOf("</") === 0)
     {
-        var match = string.match(/\<\/(\w+)>/)
+        var match = string.match(/\<\/([\w\.]+)>/);
+
         if (match)
         {
-            var tag = match[1]
+            var tag = match[1];
             string = string.slice(3 + tag.length)
             return [match[0],
             {
@@ -390,6 +403,7 @@ function getCloseTag(string)
             }]
         }
     }
+
     return null
 }
 
@@ -397,22 +411,23 @@ function getOpenTag(string)
 {
     if (string.indexOf("<") === 0)
     {
-        var i = string.indexOf('<!--') //处理注释节点
+        var i = string.indexOf('<!--') //Process comment node
         if (i === 0)
         {
             var l = string.indexOf('-->')
             if (l === -1)
             {
-                thow('注释节点没有闭合 ' + string.slice(0, 100))
+                throw('Comment node is not closed: [' + string.slice(0, 100) + ']');
             }
-            var node = {
+            var node =
+            {
                 type: '#comment',
                 nodeValue: string.slice(4, l)
             }
 
             return [string.slice(0, l + 3), node]
         }
-        var match = string.match(/\<(\w[^\s\/\>]*)/) //处理元素节点
+        var match = string.match(/\<(\w[^\s\/\>]*)/) // Process the element node
         if (match)
         {
             var leftContent = match[0],
@@ -423,8 +438,10 @@ function getOpenTag(string)
                 children: []
             }
 
-            string = string.replace(leftContent, '') //去掉标签名(rightContent)
-            var arr = getAttrs(string) //处理属性
+            string = string.replace(leftContent, '') // Remove the label name (rightContent)
+
+            var arr = getAttrs(string) //processing properties
+
             if (arr)
             {
                 node.props = arr[1]
@@ -433,7 +450,8 @@ function getOpenTag(string)
             }
 
             if (string[0] === '>')
-            { //处理开标签的边界符
+            {
+                //Handle open tag boundary characters
                 leftContent += '>'
                 string = string.slice(1)
                 if (VOID_TAGS[node.type])
@@ -442,14 +460,16 @@ function getOpenTag(string)
                 }
             }
             else if (string.slice(0, 2) === '/>')
-            { //处理开标签的边界符
+            {
+                // Handle the boundary character of the open label
                 leftContent += '/>'
                 string = string.slice(2)
                 node.isVoidTag = true
             }
 
             if (!node.isVoidTag && SPECIAL_TAGS[tag])
-            { //如果是script, style, xmp等元素
+            { 
+                //If it is script, style, xmp and other elements
                 var closeTag = '</' + tag + '>'
                 var j = string.indexOf(closeTag)
                 var nodeValue = string.slice(0, j)
@@ -513,8 +533,9 @@ function getAttrs(string)
                 {
                     if (!attrName)
                     {
-                        throw '必须指定属性名'
+                        throw 'Property name must be specified.';
                     }
+
                     state = 'AttrQuoteOrJSX'
                 }
                 else if (c === '{')
@@ -573,7 +594,8 @@ function getAttrs(string)
                 break
         }
     }
-    throw '必须关闭标签'
+
+    throw 'tab must be closed';
 }
 
 function makeJSX(JSXNode)
