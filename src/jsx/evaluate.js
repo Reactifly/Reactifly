@@ -2,13 +2,71 @@ import Parser from './Parser';
 import { createElement } from '../vdom/element';
 import { Fragment } from '../compat/Fragment';
 import { RENDER_QUEUE } from '../internal';
+import { sandbox } from './sandbox';
+import _ from '../utils/index';
 
 const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_FNS = {};
 const CACHE_STR = {};
 export const COMPONENT_CACHE = {};
 
-export default function evaluate(str, obj, config)
+const GLOBAL_CONTEXT = 
+{
+    h : createElement,
+    Fragment  : Fragment
+};
+
+const RESERVED_KEYS =
+[
+    'render',
+    'children',
+    '__internals',
+    'reactifly',
+    'Fragment',
+    'this',
+    'jsx',
+    'state',
+    'defaultProps',
+    'forceUpdate',
+    'getState',
+    'setState',
+    'componentDidCatch',
+    'componentDidMount',
+    'componentDidUpdate',
+    'componentWillUnmount',
+    'getSnapshotBeforeUpdate',
+    'getDerivedStateFromProps',
+    'componentWillReceiveProps',
+    'shouldComponentUpdate',
+    'componentWillUpdate',
+    'context',
+];
+
+function genDepencies(depencies)
+{
+    depencies = !depencies ? {...GLOBAL_CONTEXT} : { ...depencies, ...GLOBAL_CONTEXT };
+
+    for (let key in COMPONENT_CACHE)
+    {
+        depencies[key] = COMPONENT_CACHE[key];
+    }
+
+    let component = RENDER_QUEUE.current;
+
+    let props = _.object_props(component);
+
+    _.foreach(props, function(i, k)
+    {
+        if (!RESERVED_KEYS.includes(k))
+        {
+            depencies[k] = component[k];
+        }
+    });
+
+    return depencies;
+}
+
+export default function evaluate(str, depencies)
 {
     if (str === null || typeof str === 'undefined' || (typeof str === 'string' && str.trim() === ''))
     {
@@ -17,119 +75,50 @@ export default function evaluate(str, obj, config)
 
     str = str + '';
 
-    let jsx = new innerClass(str, config);
+    let jsx = new innerClass(str);
 
     let output = jsx.init();
 
-    obj = genDepencies(obj);
+    depencies = genDepencies(depencies);
 
-    let args = 'let args0 = arguments[0];';
-
-    for (let i in obj)
-    {
-        if (i !== 'this')
-        {
-            args += 'let ' + i + ' = args0["' + i + '"];';
-        }
-    }
-
-    args += 'return ' + output;
-
-    try
-    {
-        let fn;
-
-        if (CACHE_FNS[args])
-        {
-            fn = CACHE_FNS[args]
-        }
-        else
-        {
-            fn = CACHE_FNS[args] = Function(args)
-        }
-
-        let result = fn.call(obj.this, obj);
-
-        if (typeof result === 'string')
-        {
-            return createElement('text', null, result);
-        }
-
-        console.log(args);
-
-        return result;
-    }
-    catch (e)
-    {
-        console.error(e);
-        console.error(args);
-    }
+    return sandbox(output, depencies, RENDER_QUEUE.current);
 }
 
-function genDepencies(obj)
-{
-    obj = !obj ? {} : obj;
-
-    obj.reactifly = { createElement: createElement };
-    obj.Fragment = Fragment;
-
-    for (let key in COMPONENT_CACHE)
-    {
-        obj[key] = COMPONENT_CACHE[key];
-    }
-
-    let hasProps = typeof obj.props !== 'undefined' || (obj['this'] && obj['this'].props);
-
-    if (!hasProps && RENDER_QUEUE.current && RENDER_QUEUE.current.props)
-    {
-        obj.props = RENDER_QUEUE.current.props;
-    }
-
-    return obj;
-}
 
 function innerClass(str, config)
 {
     config = config || {};
-    config.ns = 'reactifly';
     this.input = str;
-    this.ns = config.ns
     this.type = config.type
 }
 
 innerClass.prototype = {
     init: function()
     {
-        if (typeof Parser === 'function')
+        var useCache = this.input.length < 720
+        if (useCache && CACHE_STR[this.input])
         {
-            var useCache = this.input.length < 720
-            if (useCache && CACHE_STR[this.input])
-            {
-                return CACHE_STR[this.input]
-            }
-            var array = (new Parser(this.input)).parse();
+            return CACHE_STR[this.input]
+        }
+        var array = (new Parser(this.input)).parse();
 
-            var evalString = this.genChildren([array])
-            if (useCache)
-            {
-                return CACHE_STR[this.input] = evalString
-            }
-            return evalString
-        }
-        else
+        var evalString = this.genChildren([array])
+        
+        if (useCache)
         {
-            throw 'need Parser https://github.com/RubyLouvre/jsx-parser'
+            return CACHE_STR[this.input] = evalString
         }
+        
+        return evalString
+        
     },
     genTag: function(el)
     {
-        var children = this.genChildren(el.children, el);
-        var ns = this.ns;
+        let children = this.genChildren(el.children, el);
+        let props    = this.genProps(el.props, el);
         var type = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
 
-        return ns + '.createElement(' + type +
-            ',' + this.genProps(el.props, el) +
-            ',' + children + ')'
+        return `h(${type},${props},${children})`;
     },
     genProps: function(props, el)
     {
@@ -142,7 +131,7 @@ innerClass.prototype = {
 
         for (var i in props)
         {
-            ret += JSON.stringify(i) + ':' + this.genPropValue(props[i]) + ',\n';
+            ret += JSON.stringify(i) + ':' + this.genPropValue(props[i]) + ',';
         }
 
         ret = ret.replace(/\,\n$/, '') + '}';
@@ -176,10 +165,9 @@ innerClass.prototype = {
     {
         if (obj)
         {
-
             if (obj.isVoidTag || !obj.children.length)
             {
-                return 'null'
+                return 'null';
             }
         }
 
@@ -188,14 +176,14 @@ innerClass.prototype = {
         for (var i = 0, el; el = children[i++];)
         {
             if (el.type === '#jsx')
-            {
+            {                
                 if (Array.isArray(el.nodeValue))
                 {
-                    ret[ret.length] = this.genChildren(el.nodeValue, null, ' ')
+                    ret[ret.length] = this.genChildren(el.nodeValue, null, ' ');
                 }
                 else
                 {
-                    ret[ret.length] = el.nodeValue
+                    ret[ret.length] = el.nodeValue;
                 }
             }
             else if (el.type === '#text')
@@ -208,6 +196,6 @@ innerClass.prototype = {
             }
         }
 
-        return ret.join(join || ',')
+        return ret.join(join || ',');
     }
 };

@@ -1,4 +1,4 @@
-import { thunkUpdate, renderContext } from '../vdom/thunk';
+import { thunkUpdate } from '../vdom/thunk';
 import { jsx as parseJSX } from '../jsx/index';
 import * as lifecycle from '../vdom/lifecycle';
 import _ from '../utils/index';
@@ -135,9 +135,7 @@ Component.prototype.getState = function(key)
  */
 Component.prototype.jsx = function(jsxStr)
 {
-    const context = renderContext(this);
-
-    return parseJSX(jsxStr, { ...context, this: this });
+    return parseJSX(jsxStr);
 }
 
 /**

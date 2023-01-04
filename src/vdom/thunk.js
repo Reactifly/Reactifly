@@ -68,9 +68,7 @@ function jsxFactory(component)
 
     const jsxStr = component.render();
 
-    const context = renderContext(component);
-
-    const result = parseJSX(jsxStr, { ...context, this: component });
+    const result = parseJSX(jsxStr);
 
     if (_.is_array(result))
     {
@@ -78,26 +76,4 @@ function jsxFactory(component)
     }
 
     return result;
-}
-
-/**
- * Returns component context variables/dependencies for render function.
- * 
- * @param   {object} component
- * @returns {object}
- */
-export function renderContext(component)
-{
-    let ret = {};
-    let props = _.object_props(component);
-
-    _.foreach(props, function(i, key)
-    {
-        if (key !== 'render' && key !== 'children')
-        {
-            ret[key] = component[key];
-        }
-    });
-
-    return ret;
 }
