@@ -43,6 +43,9 @@ const TO_STR = Object.prototype.toString;
 // Regex for HTMLElement types
 const HTML_REGXP = /^\[object HTML\w+Element\]$/;
 
+// Excludes
+const PROTO_EXCLUDES = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf', 'length', 'name', 'arguments', 'caller', 'prototype', 'apply', 'bind', 'call'];
+
 /**
  * Object with built in "dot.notation" set,get,isset,delete methods.
  *
@@ -242,7 +245,6 @@ export function object_props(mixed_var, withMethods)
     withMethods = typeof withMethods === 'undefined' ? true : false;
 
     let keys = Object.keys(mixed_var);
-    let excludes = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf', 'length', 'name', 'arguments', 'caller', 'prototype', 'apply', 'bind', 'call'];
 
     if (withMethods)
     {
@@ -272,7 +274,7 @@ export function object_props(mixed_var, withMethods)
 
     return array_unique(keys.filter(function(key)
     {
-        return !excludes.includes(key);
+        return !PROTO_EXCLUDES.includes(key);
     }));
 }
 
@@ -1105,11 +1107,10 @@ export function extend(baseFunc, extendFunc, callSuper)
 {
     callSuper = is_undefined(callSuper) ? true : callSuper;
 
-    const constructors = __protoConstructors(baseFunc);
-    const baseConstructor = baseFunc.prototype.constructor;
     const oldConstructor = extendFunc.prototype.constructor;
-    const oldProto = extendFunc.prototype;
+    const constructors   = [...__protoConstructors(baseFunc), oldConstructor];
     const newProto = function() {};
+    const oldProto = extendFunc.prototype;
     const fncName  = extendFunc.name;
 
     newProto.prototype = oldProto;
@@ -1133,18 +1134,49 @@ export function extend(baseFunc, extendFunc, callSuper)
                     constr.bind(_this).apply(_this, args);
                 }
             });
-
-            oldConstructor.bind(this).apply(this, args);
         };
     }
 
     extendFunc.prototype = oldProto;
+
+    __applyStatics(constructors, extendFunc);
+
+    extendFunc.prototype.constructor = extendFunc;
 
     Object.defineProperty(extendFunc, 'name', {value: fncName, writable: false});
 
     return extendFunc;
 }
 
+/**
+ * Apply static properties to extended function.
+ *
+ * @private
+ * @param  {array}     constructors  Array of prototype chain constructors
+ * @param  {function}  func          Function to apply props to
+ */
+function __applyStatics(constructors, func)
+{
+    foreach(constructors, function(i, constructor)
+    {
+        let props = Object.keys(constructor).filter(key => !PROTO_EXCLUDES.includes(key));
+
+        if (props.length)
+        {
+            foreach(props, function(i, key)
+            {
+                let prop = constructor[key];
+
+                if (reactifly._.is_function(prop))
+                {
+                    prop = prop.bind(func);
+                }
+
+                func[key] = prop;
+            });
+        }
+    });
+}
 
 
 /* BEGIN PRIVATE API */

@@ -2,6 +2,7 @@ import { createDomElement } from '../dom/create';
 import { createElement } from '../vdom/element';
 import { diff } from '../diff/index';
 import { jsx } from '../jsx/index';
+import { GLOBAL_CONTEXT } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -80,6 +81,8 @@ export class Root
 
         this.htmlRootEl._reactiflyRootVnode = vnode;
 
+        GLOBAL_CONTEXT.current = null;
+        
         console.log(vnode);
     }
 

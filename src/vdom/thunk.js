@@ -26,9 +26,7 @@ export function thunkInstantiate(vnode)
 
         if (isContext)
         {
-            console.log(component.getChildContext()._contextRef);
-
-            GLOBAL_CONTEXT.current = component;
+            GLOBAL_CONTEXT.current = fn._contextRef;
         }
     }
 
@@ -56,14 +54,11 @@ function __context(component)
 
         return context.Provider.props ? context.Provider.props.value : context._defaultValue;
     }
-
-    if (GLOBAL_CONTEXT.current)
+    else if (GLOBAL_CONTEXT.current)
     {
         let context = GLOBAL_CONTEXT.current;
 
-        console.log(GLOBAL_CONTEXT.current);
-
-        return context.props ? context.props.value : context._defaultValue;
+        return context.Provider.props ? context.Provider.props.value : context._defaultValue;
     }
 
     return null;
@@ -92,6 +87,8 @@ export function thunkUpdate(vnode)
     let right = jsxFactory(component);
 
     diff(left, right);
+
+    GLOBAL_CONTEXT.current = null;
 }
 
 /**
