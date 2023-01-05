@@ -1,6 +1,28 @@
 import _ from '../utils/index';
 
 /**
+ * Checks if vnode is a context provider.
+ *  
+ * @param   {object}  vnode
+ * @returns {boolean}
+ */
+export let isContextProvder = (vnode) =>
+{
+    return isThunk(vnode) && _.is_class(vnode.fn, 'Provider') && vnode.fn.prototype._isValidCtxProvider;
+}  
+
+/**
+ * Checks if argument is valid reactifly Vnode 
+ *  
+ * @param   {object}  vnode
+ * @returns {boolean}
+ */
+export let isValidVnode = (vnode) =>
+{
+    return vnode != null && vnode.__internals && vnode.__internals._isValidVnode;
+}    
+
+/**
  * Checks if Vnode is mounted.
  *  
  * @param   {object}  vnode

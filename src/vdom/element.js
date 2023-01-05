@@ -100,7 +100,8 @@ export function createElement(tag, props)
         __internals:
         {
             _domEl: null,
-            _prevAttrs: ''
+            _prevAttrs: '',
+            _isValidVnode: true
         }
     }
 }
@@ -256,7 +257,8 @@ function createTextVnode(text, key)
         key: key,
         __internals:
         {
-            _domEl: null
+            _domEl: null,
+            _isValidVnode: true
         }
     }
 }
@@ -273,7 +275,8 @@ function createEmptyVnode()
         key: null,
         __internals:
         {
-            _domEl: null
+            _domEl: null,
+            _isValidVnode: true
         }
     }
 }
@@ -309,6 +312,7 @@ function createThunkVnode(fn, props, children, key, ref)
             _component: null,
             _name: _.callable_name(fn),
             _fn: null,
+            _isValidVnode: true
         }
     }
 }
@@ -339,10 +343,9 @@ function createFunctionalThunk(fn, props, children, key, ref)
             _component: null,
             _name: _.callable_name(fn),
             _fn: fn,
+            _isValidVnode: true
         }
     }
 }
-
-
 
 export default createElement;

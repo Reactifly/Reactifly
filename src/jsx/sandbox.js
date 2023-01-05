@@ -225,8 +225,6 @@ export function sandbox(source, sandbox, _this)
     
     alienate();
 
-    console.log(sandbox);
-
     let ret;
 
     try 

@@ -73,6 +73,7 @@ Component.prototype.setState = function(key, value, callback)
     // setState({ 'foo.bar' : 'foo' })
     if (arguments.length === 1)
     {
+        // setState(function, callback)
         if (_.is_function(key))
         {
             callback = value;
@@ -88,6 +89,7 @@ Component.prototype.setState = function(key, value, callback)
     }
     else
     {
+        //setState('foo.bar', 'baz', callback)
         changes[key] = value;
     }
 

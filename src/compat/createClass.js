@@ -23,7 +23,5 @@ export function createClass(obj)
         _component.prototype[key] = obj[key];
     });
 
-    _.extend(Component, _component);
-
-    return _component;
+    return _.extend(Component, _component);
 }

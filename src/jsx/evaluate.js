@@ -6,7 +6,6 @@ import { sandbox } from './sandbox';
 import _ from '../utils/index';
 
 const R_COMPONENT = /^(this|[A-Z])/;
-const CACHE_FNS = {};
 const CACHE_STR = {};
 export const COMPONENT_CACHE = {};
 
@@ -96,10 +95,12 @@ innerClass.prototype = {
     init: function()
     {
         var useCache = this.input.length < 720
+        
         if (useCache && CACHE_STR[this.input])
-        {
+        {            
             return CACHE_STR[this.input]
         }
+        
         var array = (new Parser(this.input)).parse();
 
         var evalString = this.genChildren([array])

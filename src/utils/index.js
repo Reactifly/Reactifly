@@ -1110,6 +1110,7 @@ export function extend(baseFunc, extendFunc, callSuper)
     const oldConstructor = extendFunc.prototype.constructor;
     const oldProto = extendFunc.prototype;
     const newProto = function() {};
+    const fncName  = extendFunc.name;
 
     newProto.prototype = oldProto;
 
@@ -1127,7 +1128,10 @@ export function extend(baseFunc, extendFunc, callSuper)
 
             foreach(constructors, function(i, constr)
             {
-                constr.bind(_this).apply(_this, args);
+                if (constr.name !== 'Object')
+                {
+                    constr.bind(_this).apply(_this, args);
+                }
             });
 
             oldConstructor.bind(this).apply(this, args);
@@ -1135,6 +1139,8 @@ export function extend(baseFunc, extendFunc, callSuper)
     }
 
     extendFunc.prototype = oldProto;
+
+    Object.defineProperty(extendFunc, 'name', {value: fncName, writable: false});
 
     return extendFunc;
 }
@@ -1167,9 +1173,6 @@ function __protoConstructors(func)
 
         proto = proto.prototype || Object.getPrototypeOf(proto);
     }
-
-    // Remove empty object prototype
-    protos.pop();
 
     return protos.reverse();
 }

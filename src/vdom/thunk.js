@@ -1,7 +1,7 @@
-import { nodeComponent } from './utils';
+import * as vDOM from '../vdom/utils';
 import { jsx as parseJSX } from '../jsx/index';
 import { diff } from '../diff/index';
-import { RENDER_QUEUE } from '../internal';
+import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -12,18 +12,61 @@ import _ from '../utils/index';
  */
 export function thunkInstantiate(vnode)
 {
-    let component = nodeComponent(vnode);
+    let component = vDOM.nodeComponent(vnode);
 
     if (!component)
     {
         let { fn, props } = vnode;
 
-        component = _.is_constructable(fn) ? new fn(props) : fn(props);
+        let isContext = vDOM.isContextProvder(vnode);
+
+        let context = isContext ? null : __context(fn);
+
+        component = _.is_constructable(fn) ? new fn(props, context) : fn(props, context);
+
+        if (isContext)
+        {
+            console.log(component.getChildContext()._contextRef);
+
+            GLOBAL_CONTEXT.current = component;
+        }
     }
 
     vnode.children = [jsxFactory(component)];
 
     return component;
+}
+
+/**
+ * Component context.
+ * 
+ * @param   {object}        component
+ * @returns {object|array}
+ */
+function __context(component)
+{
+    if (component.contextType)
+    {
+        if (!component.contextType.Provider || !component.contextType.Consumer)
+        {
+            throw new Error('Context Error: [contextType] must be a valid context from [createContext()]');
+        }
+
+        let context = component.contextType.Provider._contextRef;
+
+        return context.Provider.props ? context.Provider.props.value : context._defaultValue;
+    }
+
+    if (GLOBAL_CONTEXT.current)
+    {
+        let context = GLOBAL_CONTEXT.current;
+
+        console.log(GLOBAL_CONTEXT.current);
+
+        return context.props ? context.props.value : context._defaultValue;
+    }
+
+    return null;
 }
 
 /**
@@ -61,12 +104,27 @@ function jsxFactory(component)
 {
     RENDER_QUEUE.current = component;
 
+    // Functional component wrapper
     if (component.__internals._fn)
     {
         return component.render();
     }
 
     const jsxStr = component.render();
+
+    if (!_.is_string(jsxStr))
+    {
+        if (vDOM.isValidVnode(jsxStr))
+        {
+            return jsxStr;
+        }
+        else if (_.is_array(jsxStr) && jsxStr.length === 1 && vDOM.isValidVnode(jsxStr[0]))
+        {
+            return jsxStr[0];
+        }
+
+        throw new Error('Component Error: [Component.render()] should return JSX or a valid Component.');
+    }
 
     const result = parseJSX(jsxStr);
 

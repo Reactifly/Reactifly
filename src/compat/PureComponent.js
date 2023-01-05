@@ -4,7 +4,7 @@ import { is_equal, extend } from '../utils/index';
 /**
  * Component class with a predefined `shouldComponentUpdate` implementation
  */
-export function PureComponent(p)
+function PureComponent(p)
 {
     this.props = p;
 }
@@ -18,4 +18,6 @@ PureComponent.prototype.shouldComponentUpdate = function(props, state)
 // so we're including anway
 PureComponent.prototype.isPureReactComponent = true;
 
-extend(Component, PureComponent);
+PureComponent = extend(Component, PureComponent);
+
+export { PureComponent };

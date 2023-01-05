@@ -117,9 +117,9 @@ const FunctionalComponent = extend(Component, _FunctionalComponent);
  */
 export function functionalComponent(fn)
 {
-    const factory = function(props)
+    const factory = function(props, context)
     {
-        let component = new FunctionalComponent(fn, props);
+        let component = new FunctionalComponent(fn, props, context);
 
         return component;
     }
