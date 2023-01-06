@@ -1,4 +1,4 @@
-import evaluate, { COMPONENT_CACHE } from './evaluate';
+import parse, { COMPONENT_CACHE } from './parser';
 import { is_object, is_undefined, callable_name } from '../utils/index';
 
 export function jsx(jsx, vars)
@@ -8,7 +8,7 @@ export function jsx(jsx, vars)
         throw new Error('Variables should be supplied to [jsx] as an object e.g [jsx("<div class={name} />", {name: "foo"})]');
     }
 
-    return evaluate(jsx, vars);
+    return parse(jsx, vars);
 }
 
 export function register(component, key)
