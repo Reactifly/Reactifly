@@ -8,7 +8,7 @@ import _ from '../utils/index';
  */
 export let isContextProvder = (vnode) =>
 {
-    return isThunk(vnode) && _.is_class(vnode.fn, 'Provider') && vnode.fn.prototype._isValidCtxProvider;
+    return isThunk(vnode) && _.is_class(vnode.fn, 'Provider') && vnode.fn._isValidCtxProvider;
 }  
 
 /**

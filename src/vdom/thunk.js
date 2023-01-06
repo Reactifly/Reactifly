@@ -18,15 +18,13 @@ export function thunkInstantiate(vnode)
     {
         let { fn, props } = vnode;
 
-        let isContext = vDOM.isContextProvder(vnode);
-
-        let context = isContext ? null : __context(fn);
-
+        let context = childContext(fn);
+        
         component = _.is_constructable(fn) ? new fn(props, context) : fn(props, context);
 
-        if (isContext)
+        if (component.getChildContext != null)
         {
-            GLOBAL_CONTEXT.current = fn._contextRef;
+            GLOBAL_CONTEXT.current = component.getChildContext();
         }
     }
 
@@ -41,27 +39,29 @@ export function thunkInstantiate(vnode)
  * @param   {object}        component
  * @returns {object|array}
  */
-function __context(component)
+function childContext(component)
 {
+    let ret = null;
+
     if (component.contextType)
     {
-        if (!component.contextType.Provider || !component.contextType.Consumer)
+        let context = component.contextType;
+
+        if (!GLOBAL_CONTEXT.current)
         {
-            throw new Error('Context Error: [contextType] must be a valid context from [createContext()]');
+            ret = context._defaultValue;
         }
+        else
+        {
+            let provider = GLOBAL_CONTEXT.current;
 
-        let context = component.contextType.Provider._contextRef;
+            ret = provider.props ? provider.props.value : context._defaultValue;
 
-        return context.Provider.props ? context.Provider.props.value : context._defaultValue;
+            provider.sub(component);
+        }
     }
-    else if (GLOBAL_CONTEXT.current)
-    {
-        let context = GLOBAL_CONTEXT.current;
-
-        return context.Provider.props ? context.Provider.props.value : context._defaultValue;
-    }
-
-    return null;
+    
+    return ret;
 }
 
 /**
@@ -98,7 +98,7 @@ export function thunkUpdate(vnode)
  * @returns {object|array}
  */
 function jsxFactory(component)
-{
+{    
     RENDER_QUEUE.current = component;
 
     // Functional component wrapper
@@ -106,22 +106,8 @@ function jsxFactory(component)
     {
         return component.render();
     }
-
+    
     const jsxStr = component.render();
-
-    if (!_.is_string(jsxStr))
-    {
-        if (vDOM.isValidVnode(jsxStr))
-        {
-            return jsxStr;
-        }
-        else if (_.is_array(jsxStr) && jsxStr.length === 1 && vDOM.isValidVnode(jsxStr[0]))
-        {
-            return jsxStr[0];
-        }
-
-        throw new Error('Component Error: [Component.render()] should return JSX or a valid Component.');
-    }
 
     const result = parseJSX(jsxStr);
 

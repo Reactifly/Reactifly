@@ -4,6 +4,24 @@ import { extend } from '../utils/index';
 
 let i = 0;
 
+/**
+ * Create context.
+ * 
+ * @param  {mixed}             defaultValue
+ * @param  {string|undefined}  contextId     (optional)
+ * 
+ * The defaultValue argument is only used when a component does not have a matching Provider above it in the tree.
+ * This default value can be helpful for testing components in isolation without wrapping them.
+ * Note: passing undefined as a Provider value does not cause consuming components to use defaultValue.
+ * 
+ * 
+ * All consumers that are descendants of a Provider will re-render whenever the Provider’s value prop changes.
+ * The propagation from Provider to its descendant consumers (including .contextType and useContext) 
+ * is not subject to the shouldComponentUpdate method, 
+ * so the consumer is updated even when an ancestor component skips an update.
+ * 
+ * @see https://reactjs.org/docs/context.html#contextprovider
+ */
 export function createContext(defaultValue, contextId)
 {
     contextId = '__cC' + i++;
@@ -66,10 +84,8 @@ export function createContext(defaultValue, contextId)
 
     Provider.prototype.render = function ()
     {
-        return this.props.children;
+        return '<Fragment>{this.props.children}</Fragment>';
     }
-
-    Provider.prototype._isValidCtxProvider = true;
 
     Provider = extend(Component, Provider);
 
