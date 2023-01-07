@@ -9,7 +9,7 @@ const R_COMPONENT = /^(this|[A-Z])/;
 const CACHE_STR = {};
 export const COMPONENT_CACHE = {};
 
-const GLOBAL_CONTEXT = 
+const GLOBAL_DEPENCIES = 
 {
     h : createElement,
     Fragment  : Fragment
@@ -61,7 +61,7 @@ export default function parse(str, depencies)
 
 function genDepencies(depencies)
 {
-    depencies = !depencies ? {...GLOBAL_CONTEXT} : { ...depencies, ...GLOBAL_CONTEXT };
+    depencies = !depencies ? {...GLOBAL_DEPENCIES} : { ...depencies, ...GLOBAL_DEPENCIES };
 
     for (let key in COMPONENT_CACHE)
     {
@@ -133,14 +133,23 @@ innerClass.prototype = {
 
         for (var i in props)
         {
+            if (i === 'spreadAttribute') continue;
+
             ret += JSON.stringify(i) + ':' + this.genPropValue(props[i]) + ',';
         }
 
         ret = ret.replace(/\,\n$/, '') + '}';
 
-        if (el.spreadAttribute)
+        if (props.spreadAttribute)
         {
-            return 'Object.assign({},' + el.spreadAttribute + ',' + ret + ')';
+            let spread = props.spreadAttribute;
+
+            if (spread.type && spread.type === '#jsx')
+            {
+                spread = spread.nodeValue;
+            }
+
+            return 'Object.assign({},' + spread + ',' + ret + ')';
         }
 
         return ret;

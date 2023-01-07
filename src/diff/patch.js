@@ -4,8 +4,6 @@ import * as thunk from '../vdom/thunk';
 import * as lifecycle from '../vdom/lifecycle';
 import _ from '../utils/index';
 
-//shouldComponentUpdate(nextProps, nextState)
-
 /**
  * Patch previous/next render Vnodes (Recursive).
  * 

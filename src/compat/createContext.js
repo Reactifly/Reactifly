@@ -1,6 +1,5 @@
 import { Component } from './Component';
-import { thunkUpdate } from '../vdom/thunk';
-import { extend } from '../utils/index';
+import { extend, is_constructable, foreach } from '../utils/index';
 
 let i = 0;
 
@@ -56,10 +55,15 @@ export function createContext(defaultValue, contextId)
     }
 
     Provider.prototype.shouldComponentUpdate = function(_props)
-    {
+    {        
         if (this.props.value !== _props.value)
-        {
-            subs.some(thunkUpdate);
+        {            
+            foreach(subs, function(i, child)
+            {
+                child.context = _props.value;
+            });
+
+            return true;
         }
 
         return false;

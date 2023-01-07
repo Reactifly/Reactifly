@@ -19,12 +19,17 @@ export function thunkInstantiate(vnode)
         let { fn, props } = vnode;
 
         let context = childContext(fn);
-        
+
         component = _.is_constructable(fn) ? new fn(props, context) : fn(props, context);
 
         if (component.getChildContext != null)
         {
             GLOBAL_CONTEXT.current = component.getChildContext();
+        }
+
+        if (component.context)
+        {
+            subscribeToContext(fn, component);
         }
     }
 
@@ -56,12 +61,24 @@ function childContext(component)
             let provider = GLOBAL_CONTEXT.current;
 
             ret = provider.props ? provider.props.value : context._defaultValue;
-
-            provider.sub(component);
         }
     }
     
     return ret;
+}
+
+/**
+ * Subscribes component to context changes.
+ * 
+ * @param  {function}  fn         Uninstantiated component function
+ * @param  {object}    component  Instantiated component
+ */
+function subscribeToContext(fn, component)
+{
+    if (fn.contextType && GLOBAL_CONTEXT.current)
+    {
+        GLOBAL_CONTEXT.current.sub(component);
+    }
 }
 
 /**
@@ -106,7 +123,7 @@ function jsxFactory(component)
     {
         return component.render();
     }
-    
+
     const jsxStr = component.render();
 
     const result = parseJSX(jsxStr);

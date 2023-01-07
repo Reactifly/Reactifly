@@ -78,7 +78,7 @@ Component.prototype.setState = function(key, value, callback)
         {
             callback = value;
             value = null;
-            key = update(newState, this.props);
+            key = key(newState, this.props);
         }
         else if (!_.is_object(key))
         {
@@ -148,4 +148,6 @@ Component.prototype.jsx = function(jsxStr)
 Component.prototype.forceUpdate = function()
 {
     thunkUpdate(this.__internals._vnode);
+
+    lifecycle.didUpdate(this, this.state, this.props);
 }

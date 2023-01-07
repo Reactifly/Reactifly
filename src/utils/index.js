@@ -320,7 +320,11 @@ export function dotify(obj)
  */
 export function cloneDeep(mixed_var, context)
 {
-    return __cloneVar(mixed_var, context);
+    let ret = __cloneVar(mixed_var, context, false);
+
+    CURR_CLONES = new WeakMap();
+
+    return ret;
 }
 
 /**
@@ -1407,6 +1411,8 @@ function __equalTraverseable(a, b)
     return ret;
 }
 
+let CURR_CLONES = new WeakMap();
+
 /**
  * Clone's variable with context.
  * 
@@ -1414,19 +1420,21 @@ function __equalTraverseable(a, b)
  * @param   {mixed}  context    Context when cloning recursive objects and arrays.
  * @returns {mixed}
  */
-function __cloneVar(mixed_var, context)
+function __cloneVar(mixed_var, context, isDeep)
 {
+    isDeep = is_undefined(isDeep) ? true : isDeep;
+
     let tag = __getType(mixed_var);
 
     switch (tag)
     {
         case OBJECT_TAG:
-            return __cloneObj(mixed_var, context);
+            return __cloneObj(mixed_var, context, isDeep);
 
         case ARRAY_TAG:
         case NODELST_TAG:
         case ARGS_TAG:
-            return __cloneArray(mixed_var, context);
+            return __cloneArray(mixed_var, context, isDeep);
 
         case FUNC_TAG:
             return __cloneFunc(mixed_var, context);
@@ -1496,8 +1504,8 @@ function __cloneVar(mixed_var, context)
  * @param   {object}  obj
  * @returns {object}
  */
-function __cloneObj(obj, context)
-{
+function __cloneObj(obj, context, isDeep)
+{    
     // Handle date objects
     if (obj instanceof Date)
     {
@@ -1517,9 +1525,16 @@ function __cloneObj(obj, context)
         return ret;
     }
 
+    if (CURR_CLONES.has(obj))
+    {
+        return CURR_CLONES.get(obj);
+    }
+
+    CURR_CLONES.set(obj, ret);
+
     foreach(keys, function(i, key)
     {
-        ret[key] = cloneDeep(obj[key], typeof context === 'undefined' ? ret : context);
+        ret[key] = __cloneVar(obj[key], typeof context === 'undefined' ? ret : context);
     });
 
     return ret;
@@ -1549,9 +1564,18 @@ function __cloneArray(arr, context)
 {
     let ret = [];
 
+    let cacheKey = {array: arr};
+
+    if (CURR_CLONES.has(cacheKey))
+    {
+        return CURR_CLONES.get(cacheKey);
+    }
+
+    CURR_CLONES.set(cacheKey, ret);
+
     foreach(arr, function(i, val)
     {
-        ret[i] = cloneDeep(val, context);
+        ret[i] = __cloneVar(val, context);
     });
 
     return ret;
@@ -1588,7 +1612,7 @@ function __cloneMap(m, context)
 
     m.forEach((v, k) =>
     {
-        ret.set(k, cloneDeep(v, context));
+        ret.set(k, __cloneVar(v, context));
     });
 
     return ret;
@@ -1600,7 +1624,7 @@ function __cloneSet(s, context)
 
     s.forEach((val, k) =>
     {
-        ret.add(k, cloneDeep(v, context));
+        ret.add(k, __cloneVar(v, context));
     });
 
     return ret;

@@ -221,7 +221,7 @@ export function sandbox(source, sandbox, _this)
         sandboxed += `${field} = ${SANDBOX_NAME}['${field}'],\n`;
     }
 
-    sandboxed += `undefined;\n${resetEnv()}\n return ${source};`;
+    sandboxed += `undefined;\n\n return ${source};`;
     
     alienate();
 
@@ -234,6 +234,7 @@ export function sandbox(source, sandbox, _this)
     catch(e)
     {
         console.log(e);
+        console.log(sandboxed);
     }
     
     unalienate();

@@ -3,6 +3,7 @@ import * as vDOM from '../vdom/utils';
 import { thunkInstantiate } from '../vdom/thunk';
 import { setDomAttribute } from './attributes';
 import { didMount } from '../vdom/lifecycle';
+import { GLOBAL_CONTEXT } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -75,6 +76,7 @@ function createHTMLElement(vnode)
     {
         ref(DOMElement);
     }
+    
     _.foreach(attributes, function(prop, value)
     {
         setDomAttribute(DOMElement, prop, value);
@@ -84,6 +86,8 @@ function createHTMLElement(vnode)
 
     _.foreach(children, function(i, child)
     {
+        GLOBAL_CONTEXT.current = null;
+
         if (!_.is_empty(child))
         {
             let childDOMElem = createDomElement(child, DOMElement);
