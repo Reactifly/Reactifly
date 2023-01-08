@@ -48,7 +48,7 @@ export default function parse(str, depencies)
         return createElement();
     }
 
-    str = str + '';
+    str = cleanStr(str + '');
 
     let jsx = new innerClass(str);
 
@@ -57,6 +57,11 @@ export default function parse(str, depencies)
     depencies = genDepencies(depencies);
 
     return sandbox(output, depencies, RENDER_QUEUE.current);
+}
+
+function cleanStr(str)
+{
+    return str.split(/\n|  /g).filter(block => block !== '').join(' ');
 }
 
 function genDepencies(depencies)
@@ -82,8 +87,6 @@ function genDepencies(depencies)
 
     return depencies;
 }
-
-
 
 function innerClass(str, config)
 {

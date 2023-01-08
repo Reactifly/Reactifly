@@ -2,6 +2,8 @@ import { isEmpty, isFragment } from './utils';
 import { functionalComponent } from '../compat/functionalComponent';
 import _ from '../utils/index';
 
+let CURR_TAG = null;
+
 /**
  * JSX create element.
  *  
@@ -37,6 +39,8 @@ export function createElement(tag, props)
             normalizedProps[k] = prop;
         }
     });
+
+    CURR_TAG = tag;
 
     if (arguments.length > 2)
     {
@@ -150,7 +154,13 @@ function normaliseChildren(children, propKeys, checkKeys)
             }
             else if (_.is_callable(vnode))
             {
-                throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
+                if (CURR_TAG.name !== 'Consumer')
+                {
+                    throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
+                }
+
+                ret.push(vnode);
+                
             }
             // Inline function, map or props.children
             else if (_.is_array(vnode))

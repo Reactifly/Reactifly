@@ -78,13 +78,14 @@ function parse(string, getOne)
     return ret
 }
 
-function lexer(string, getOne)
+function lexer(string, getOne, inJsxFunc)
 {
     var tokens = []
     var breakIndex = 120
     var stack = []
     var origString = string
     var origLength = string.length
+    inJsxFunc = typeof inJsxFunc === 'undefined' ? false : inJsxFunc;
 
     stack.last = function()
     {
@@ -134,67 +135,98 @@ function lexer(string, getOne)
             {
                 insertTbody(node.children)
             }
+
             lastNode = null
+
             if (getOne && ret.length === 1 && !stack.length)
             {
+
                 return [origString.slice(0, origLength - string.length), ret[0]]
             }
+
             continue
         }
 
-        var arr = getOpenTag(string)
+        var arr = getOpenTag(string);
+
         if (arr)
         {
             string = string.replace(arr[0], '')
             var node = arr[1]
+            
             addNode(node)
+            
             var selfClose = !!(node.isVoidTag || SPECIAL_TAGS[node.type])
+            
             if (!selfClose)
             {
                 //Put it here to add children
                 stack.push(node)
             }
+
             if (getOne && selfClose && !stack.length)
             {
                 return [origString.slice(0, origLength - string.length), node]
             }
-            lastNode = node
+
+            lastNode = node;
+
             continue
         }
 
-        var text = ''
+        var text = '';
+
         do {
             // Handle the situation of <div><<<<<<<div>
-            const index = string.indexOf('<')
+            const index = string.indexOf('<');
+
             if (index === 0)
             {
                 text += string.slice(0, 1)
                 string = string.slice(1)
-
             }
             else
             {
                 break
             }
         } while (string.length);
-        //Handle the situation of <div>{aaa}</div>, <div>xxx{aaa}xxx</div>, <div>xxx</div>{aaa}sss
-        const index = string.indexOf('<') //Determine whether there is a label after it
-        const bindex = string.indexOf('{') //Determine whether there is jsx behind it
-        const aindex = string.indexOf('}')
 
-        let hasJSX = (bindex < aindex) && (index === -1 || bindex < index)
-        if (hasJSX)
+        //Handle the situation of <div>{aaa}</div>, <div>xxx{aaa}xxx</div>, <div>xxx</div>{aaa}sss
+
+        const index     = string.indexOf('<') // Determine whether there is a label after it
+        const bindex    = string.indexOf('{') //Determine whether there is jsx behind it
+        const aindex    = string.indexOf('}')
+
+        let hasJSX = (bindex < aindex) && (index === -1 || bindex < index);
+        
+        /// Handle inner text when inside a JSX function <div>foo</div>
+        if (inJsxFunc && index !== 0 && bindex !== 0 && aindex !== 0 && lastNode)
+        {
+            text = string.split('<').shift();
+
+            string = string.slice(string.indexOf('<'));
+
+            addText(lastNode, text, addNode);
+        }
+        else if (hasJSX)
         {
             if (bindex !== 0)
-            { // Collect text nodes before jsx
+            { 
+                // Collect text nodes before jsx
                 text += string.slice(0, bindex)
                 string = string.slice(bindex)
             }
+            
             addText(lastNode, text, addNode)
+            
             string = string.slice(1) //remove first "{"
-            var arr = parseCode(string)
+            
+            var arr = parseCode(string);
+            
             addNode(makeJSX(arr[1]))
+            
             lastNode = false
+            
             string = string.slice(arr[0].length + 1) // remove trailing "}"
         }
         else
@@ -209,10 +241,12 @@ function lexer(string, getOne)
                 text += string.slice(0, index)
                 string = string.slice(index)
             }
+
             addText(lastNode, text, addNode)
         }
 
     } while (string.length);
+
     return ret
 }
 
@@ -299,7 +333,7 @@ function parseCode(string)
                     if (word === '' || /(=>|return|\{|\(|\[|\,)$/.test(word) && /\<\w/.test(chunkString))
                     {
                         collectJSX(string, codeIndex, i, nodes)
-                        var chunk = lexer(chunkString, true)
+                        var chunk = lexer(chunkString, true, true);
                         nodes.push(chunk[1])
                         i += (chunk[0].length - 1) //Because it already contains <, need to subtract 1
                         codeIndex = i + 1
@@ -395,7 +429,7 @@ function getCloseTag(string)
             return [match[0],
             {
                 type: tag
-            }]
+            }];
         }
     }
 

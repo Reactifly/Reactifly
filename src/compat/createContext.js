@@ -1,5 +1,5 @@
 import { Component } from './Component';
-import { extend, is_constructable, foreach } from '../utils/index';
+import { extend, is_function, foreach, is_array } from '../utils/index';
 
 let i = 0;
 
@@ -36,10 +36,19 @@ export function createContext(defaultValue, contextId)
  
     const Consumer = function(props, contextValue)
     {
-        // return props.children(
-        //  context[contextId] ? context[contextId].props.value : defaultValue
-        // );
-        return props.children(contextValue);
+        if (!props.children || !is_array(props.children) || props.children.length !== 1)
+        {
+            throw new Error('Context.Consumers must return a function as their child.');
+        }
+
+        let callback = props.children[0];
+
+        if (!is_function(callback))
+        {
+            throw new Error('Context.Consumers must return a function as their child.');
+        }
+
+        return callback(ctx[contextId] ? ctx[contextId].props.value : defaultValue);
     };
 
     function Provider(props)
