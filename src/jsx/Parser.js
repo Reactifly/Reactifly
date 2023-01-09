@@ -5,9 +5,11 @@ import { RENDER_QUEUE } from '../internal';
 import { sandbox } from './sandbox';
 import _ from '../utils/index';
 
-const R_COMPONENT = /^(this|[A-Z])/;
-const CACHE_STR = {};
 export const COMPONENT_CACHE = {};
+
+const R_COMPONENT = /^(this|[A-Z])/;
+
+const CACHE_STR = {};
 
 const GLOBAL_DEPENCIES = 
 {
@@ -41,6 +43,13 @@ const RESERVED_KEYS =
     'context',
 ];
 
+/**
+ * Parse 
+ *
+ *
+ *
+ *
+ */
 export default function parse(str, depencies)
 {
     if (str === null || typeof str === 'undefined' || (typeof str === 'string' && str.trim() === ''))
@@ -50,20 +59,32 @@ export default function parse(str, depencies)
 
     str = cleanStr(str + '');
 
-    let jsx = new innerClass(str);
+    let jsx = new Parser(str);
 
-    let output = jsx.init();
+    let output = jsx.parse();
 
     depencies = genDepencies(depencies);
 
     return sandbox(output, depencies, RENDER_QUEUE.current);
 }
 
+/**
+ * Cleans whitespace from string.
+ *
+ * @param  {string}  input
+ * @return {string}
+ */
 function cleanStr(str)
 {
     return str.split(/\n|  /g).filter(block => block !== '').join(' ');
 }
 
+/**
+ * Generates object of depencies for JSX parsing.
+ *
+ * @param  {object}  input  depencies
+ * @return {object}
+ */
 function genDepencies(depencies)
 {
     depencies = !depencies ? {...GLOBAL_DEPENCIES} : { ...depencies, ...GLOBAL_DEPENCIES };
@@ -88,128 +109,143 @@ function genDepencies(depencies)
     return depencies;
 }
 
-function innerClass(str, config)
+/**
+ * Parser. Parses tokenized input into 'createElement' statement. 
+ *
+ * @param  {string}  str     JSX  string
+ * @return {object}  config  Options
+ */
+function Parser(str, config)
 {
     config = config || {};
+    
     this.input = str;
+    
     this.type = config.type
 }
 
-innerClass.prototype = {
-    init: function()
+/**
+ * Inn
+ *
+ * @param  {string}  str     JSX  string
+ * @return {object}  config  Options
+ */
+Parser.prototype.parse = function()
+{
+    var useCache = this.input.length < 720;
+
+    if (useCache && CACHE_STR[this.input])
+    {            
+        return CACHE_STR[this.input];
+    }
+
+    var array = (new Tokenizer(this.input)).parse();
+
+    var evalString = this.genChildren([array]);
+
+    if (useCache)
     {
-        var useCache = this.input.length < 720
-        
-        if (useCache && CACHE_STR[this.input])
-        {            
-            return CACHE_STR[this.input]
-        }
-        
-        var array = (new Tokenizer(this.input)).parse();
+        return CACHE_STR[this.input] = evalString;
+    }
 
-        var evalString = this.genChildren([array])
-        
-        if (useCache)
-        {
-            return CACHE_STR[this.input] = evalString
-        }
-        
-        return evalString
-        
-    },
-    genTag: function(el)
+    return evalString;
+}
+
+Parser.prototype.genTag = function(el)
+{
+    let children = this.genChildren(el.children, el);
+    let props    = this.genProps(el.props, el);
+    var type     = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
+
+    return `h(${type},${props},${children})`;
+}
+
+Parser.prototype.genProps = function(props, el)
+{
+    if (!props && !el.spreadAttribute)
     {
-        let children = this.genChildren(el.children, el);
-        let props    = this.genProps(el.props, el);
-        var type = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
+        return 'null';
+    }
 
-        return `h(${type},${props},${children})`;
-    },
-    genProps: function(props, el)
+    var ret = '{';
+
+    for (var i in props)
     {
-        if (!props && !el.spreadAttribute)
-        {
-            return 'null';
-        }
+        if (i === 'spreadAttribute') continue;
 
-        var ret = '{';
+        ret += JSON.stringify(i) + ':' + this.genPropValue(props[i]) + ',';
+    }
 
-        for (var i in props)
-        {
-            if (i === 'spreadAttribute') continue;
+    ret = ret.replace(/\,\n$/, '') + '}';
 
-            ret += JSON.stringify(i) + ':' + this.genPropValue(props[i]) + ',';
-        }
-
-        ret = ret.replace(/\,\n$/, '') + '}';
-
-        if (props.spreadAttribute)
-        {
-            let spread = props.spreadAttribute;
-
-            if (spread.type && spread.type === '#jsx')
-            {
-                spread = spread.nodeValue;
-            }
-
-            return 'Object.assign({},' + spread + ',' + ret + ')';
-        }
-
-        return ret;
-    },
-    genPropValue: function(val)
+    if (props.spreadAttribute)
     {
-        if (typeof val === 'string')
+        let spread = props.spreadAttribute;
+
+        if (spread.type && spread.type === '#jsx')
         {
-            return JSON.stringify(val)
+            spread = spread.nodeValue;
+        }
+
+        return 'Object.assign({},' + spread + ',' + ret + ')';
+    }
+
+    return ret;
+}
+
+Parser.prototype.genPropValue = function(val)
+{
+    if (typeof val === 'string')
+    {
+        return JSON.stringify(val)
+    }
+    if (val)
+    {
+        if (Array.isArray(val.nodeValue))
+        {
+            return this.genChildren(val.nodeValue)
         }
         if (val)
         {
-            if (Array.isArray(val.nodeValue))
-            {
-                return this.genChildren(val.nodeValue)
-            }
-            if (val)
-            {
-                return val.nodeValue
-            }
+            return val.nodeValue
         }
-    },
-    genChildren: function(children, obj, join)
-    {
-        if (obj)
-        {
-            if (obj.isVoidTag || !obj.children.length)
-            {
-                return 'null';
-            }
-        }
-
-        var ret = [];
-
-        for (var i = 0, el; el = children[i++];)
-        {
-            if (el.type === '#jsx')
-            {                
-                if (Array.isArray(el.nodeValue))
-                {
-                    ret[ret.length] = this.genChildren(el.nodeValue, null, ' ');
-                }
-                else
-                {
-                    ret[ret.length] = el.nodeValue;
-                }
-            }
-            else if (el.type === '#text')
-            {
-                ret[ret.length] = JSON.stringify(el.nodeValue)
-            }
-            else if (el)
-            {
-                ret[ret.length] = this.genTag(el)
-            }
-        }
-
-        return ret.join(join || ',');
     }
-};
+}
+
+Parser.prototype.genChildren = function(children, obj, join)
+{
+    if (obj)
+    {
+        if (obj.isVoidTag || !obj.children.length)
+        {
+            return 'null';
+        }
+    }
+
+    var ret = [];
+
+    for (var i = 0, el; el = children[i++];)
+    {
+        if (el.type === '#jsx')
+        {                
+            if (Array.isArray(el.nodeValue))
+            {
+                ret[ret.length] = this.genChildren(el.nodeValue, null, ' ');
+            }
+            else
+            {
+                ret[ret.length] = el.nodeValue;
+            }
+        }
+        else if (el.type === '#text')
+        {
+            ret[ret.length] = JSON.stringify(el.nodeValue)
+        }
+        else if (el)
+        {
+            ret[ret.length] = this.genTag(el)
+        }
+    }
+
+    return ret.join(join || ',');
+}
