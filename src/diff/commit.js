@@ -175,6 +175,11 @@ function removeChild(parentVnode, vnode)
     parentVnode.children.splice(parentVnode.children.indexOf(vnode), 1);
 }
 
+/**
+ * Remove events from a vnode. Note this is recursive to clear child event listeners.
+ * 
+ * @param {object}  vndone  Vnode to replace text
+ */
 function removeEvents(vnode)
 {
     if (vDOM.isThunk(vnode) || vDOM.isFragment(vnode))
@@ -206,9 +211,17 @@ function removeEvents(vnode)
     }
 }
 
-// Problem with moving / inserting to index
-// is actual DOM index doesn't line up with the vnode index
-// if a vnode is nesting a fragment
+/**
+ * Insert a vnode at index and insert into DOM.
+ * 
+ * Note the actual DOM index may be different from the Vdom due
+ * to fragments, thunks etc... The function will check this and ensure
+ * the correct index is found.
+ *
+ * @param  {object}   parentVnode  Parent vnode
+ * @param  {object}   vnode        Vnode to insert at index
+ * @param  {integer}  index        Virtual index to insert at
+ */
 function insertAtIndex(parentVnode, vnode, index)
 {
     let vIndex = index;
@@ -247,6 +260,17 @@ function insertAtIndex(parentVnode, vnode, index)
     parentVnode.children.splice(vIndex, 0, vnode);
 }
 
+/**
+ * Move a child Vnode to a different index.
+ * 
+ * Note the actual DOM index may be different from the Vdom due
+ * to fragments, thunks etc... The function will check this and ensure
+ * the correct index is found.
+ *
+ * @param  {object}   parentVnode  Parent vnode
+ * @param  {object}   vnode        Vnode to move at index
+ * @param  {integer}  index        Virtual index to move to
+ */
 function moveToIndex(parentVnode, vnode, index)
 {
     let vIndex = index;
@@ -299,6 +323,13 @@ function moveToIndex(parentVnode, vnode, index)
     }
 }
 
+/**
+ * Move's fragment Dom Els
+ *
+ * @param  {HtmlElement}   parentDOMElement  Parent DOM element
+ * @param  {array}         DOMElements       Array of child DOM elements
+ * @param  {integer}       index             Index to move to
+ */
 function moveFragmentDomEls(parentDOMElement, DOMElements, index, currIndex)
 {
     // Nothing to do
@@ -335,21 +366,36 @@ function moveFragmentDomEls(parentDOMElement, DOMElements, index, currIndex)
     }
 }
 
+/**
+ * Remove attrubuts on native Vnode.
+ *
+ * @param  {object}  vnode          Parent vnode
+ * @param  {string}  name           Attribute name
+ * @param  {mixed}   value          Value to set
+ * @param  {mixed}   previousValue  Previous val
+ */
 function setAttribute(vnode, name, value, previousValue)
 {
     setDomAttribute(vDOM.nodeElem(vnode), name, value, previousValue);
 }
 
+/**
+ * Remove attrubuts on native Vnode.
+ *
+ * @param  {object}  vnode          Parent vnode
+ * @param  {string}  name           Attribute name
+ * @param  {mixed}   value          Value to set
+ * @param  {mixed}   previousValue  Previous val
+ */
 function removeAttribute(vnode, name, previousValue)
 {
     removeDomAttribute(vDOM.nodeElem(vnode), name, previousValue)
 }
 
 /**
- * Returns the actual parent DOMElement of a parent node.
- *  
- * @param   {object}  parent
- * @returns {HTMLElement}
+ * Helper function to find parent from thunk if it exists.
+ *
+ * @param  {object}  parent  Vnode
  */
 function nodeElemParent(parent)
 {
