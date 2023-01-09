@@ -44,10 +44,10 @@ const RESERVED_KEYS =
 ];
 
 /**
- * Parse 
+ * Parse's JSX tokens
  *
- *
- *
+ * @param  {string}  str     JSX  string
+ * @return {object}  config  Options
  *
  */
 export default function parse(str, depencies)
@@ -125,10 +125,9 @@ function Parser(str, config)
 }
 
 /**
- * Inn
+ * Parse current string.
  *
- * @param  {string}  str     JSX  string
- * @return {object}  config  Options
+ * @returns {object}
  */
 Parser.prototype.parse = function()
 {
@@ -151,6 +150,12 @@ Parser.prototype.parse = function()
     return evalString;
 }
 
+/**
+ * Generates 'createElement' string tag
+ *
+ * @param   {object}  el  Token element
+ * @returns {strng}
+ */
 Parser.prototype.genTag = function(el)
 {
     let children = this.genChildren(el.children, el);
@@ -160,6 +165,13 @@ Parser.prototype.genTag = function(el)
     return `h(${type},${props},${children})`;
 }
 
+/**
+ * Generates props from token
+ *
+ * @param   {object}  props  Prop values
+ * @param   {object}  el     Target token
+ * @returns {strng}
+ */
 Parser.prototype.genProps = function(props, el)
 {
     if (!props && !el.spreadAttribute)
@@ -193,6 +205,12 @@ Parser.prototype.genProps = function(props, el)
     return ret;
 }
 
+/**
+ * Generates props value.
+ *
+ * @param   {mixed}  val  Prop values
+ * @returns {strng}
+ */
 Parser.prototype.genPropValue = function(val)
 {
     if (typeof val === 'string')
@@ -212,6 +230,14 @@ Parser.prototype.genPropValue = function(val)
     }
 }
 
+
+/**
+ * Generates children for tag.
+ *
+ * @param  {array}  Children  Array of child tokens.
+ * @param  {strng}  obj       Parant token
+ * @param  {string} join      Optional join string
+ */
 Parser.prototype.genChildren = function(children, obj, join)
 {
     if (obj)
