@@ -11,36 +11,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 import { is_equal } from '../utils/index';
+
 import { RENDER_QUEUE } from '../internal';
 
-
 /**
- * @param {import('./internal').PreactContext} context
+ * Essentially a passthrough to current context provider value.
+ * 
+ * @param   {object}  context  Context object using 'createContext'
+ * @returns {mixed}
  */
 export function useContext(context)
 {
-    const provider = currentComponent.context[context._id];
-    // We could skip this call here, but than we'd not call
-    // `options._hook`. We need to do that in order to make
-    // the devtools aware of this hook.
-    /** @type {import('./internal').ContextHookState} */
-    const state = getHookState(currentIndex++, 9);
-    // The devtools needs access to the context object to
-    // be able to pull of the default value when no provider
-    // is present in the tree.
-    state._context = context;
-
-    if (!provider) return context._defaultValue;
-    // This is probably not safe to convert to "!"
-    if (state._value == null)
+    if (context[context._id])
     {
-        state._value = true;
-        provider.sub(currentComponent);
+        let provider = context[context._id];
+
+        if (provider.props.value)
+        {
+            return provider.props.value;
+        }
     }
-    return provider.props.value;
+
+    return context._defaultValue;
 }
-
-
 
 export function useEffect(effect, deps)
 {

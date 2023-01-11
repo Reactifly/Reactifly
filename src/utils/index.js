@@ -1112,10 +1112,10 @@ export function extend(baseFunc, extendFunc, callSuper)
     callSuper = is_undefined(callSuper) ? true : callSuper;
 
     const oldConstructor = extendFunc.prototype.constructor;
-    const constructors   = [...__protoConstructors(baseFunc), oldConstructor];
+    const constructors = [...__protoConstructors(baseFunc), oldConstructor];
     const newProto = function() {};
     const oldProto = extendFunc.prototype;
-    const fncName  = extendFunc.name;
+    const fncName = extendFunc.name;
 
     newProto.prototype = oldProto;
 
@@ -1147,7 +1147,7 @@ export function extend(baseFunc, extendFunc, callSuper)
 
     extendFunc.prototype.constructor = extendFunc;
 
-    Object.defineProperty(extendFunc, 'name', {value: fncName, writable: false});
+    Object.defineProperty(extendFunc, 'name', { value: fncName, writable: false });
 
     return extendFunc;
 }
@@ -1505,7 +1505,7 @@ function __cloneVar(mixed_var, context, isDeep)
  * @returns {object}
  */
 function __cloneObj(obj, context, isDeep)
-{    
+{
     // Handle date objects
     if (obj instanceof Date)
     {
@@ -1564,7 +1564,7 @@ function __cloneArray(arr, context)
 {
     let ret = [];
 
-    let cacheKey = {array: arr};
+    let cacheKey = { array: arr };
 
     if (CURR_CLONES.has(cacheKey))
     {

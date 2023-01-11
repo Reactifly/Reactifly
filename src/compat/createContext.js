@@ -21,20 +21,19 @@ let i = 0;
  * 
  * @see https://reactjs.org/docs/context.html#contextprovider
  */
-export function createContext(defaultValue, contextId)
+export function createContext(defaultValue)
 {
-    contextId = '__cC' + i++;
+    let contextId = '__cC' + i++;
 
-    const context =
-    {
+    const context = {
         _id: contextId,
         _defaultValue: defaultValue,
+        _provider: null,
     };
 
     let subs = [];
-    let ctx = {};
- 
-    const Consumer = function(props, contextValue)
+
+    const Consumer = function(props)
     {
         if (!props.children || !is_array(props.children) || props.children.length !== 1)
         {
@@ -48,25 +47,23 @@ export function createContext(defaultValue, contextId)
             throw new Error('Context.Consumers must return a function as their child.');
         }
 
-        return callback(ctx[contextId] ? ctx[contextId].props.value : defaultValue);
+        return callback(context[contextId] ? context[contextId].props.value : defaultValue);
     };
 
     function Provider(props)
     {
         this.props = props;
-
-        ctx[contextId] = this;
     }
 
     Provider.prototype.getChildContext = function()
     {
-        return ctx[contextId];
+        return context[contextId];
     }
 
     Provider.prototype.shouldComponentUpdate = function(_props)
-    {        
+    {
         if (this.props.value !== _props.value)
-        {            
+        {
             foreach(subs, function(i, child)
             {
                 child.context = _props.value;
@@ -79,7 +76,7 @@ export function createContext(defaultValue, contextId)
     }
 
     Provider.prototype.sub = function(c)
-    {        
+    {
         subs.push(c);
 
         let old = c.componentWillUnmount;
@@ -95,8 +92,10 @@ export function createContext(defaultValue, contextId)
         };
     }
 
-    Provider.prototype.render = function ()
+    Provider.prototype.render = function()
     {
+        context[contextId] = this;
+
         return '<Fragment>{this.props.children}</Fragment>';
     }
 

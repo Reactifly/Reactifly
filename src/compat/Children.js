@@ -8,8 +8,7 @@ function toChildArray(children, out)
 {
     out = out || [];
 
-    if (children == null || typeof children == 'boolean')
-    {}
+    if (children == null || typeof children == 'boolean') {}
     else if (Array.isArray(children))
     {
         children.some(child =>
@@ -30,7 +29,7 @@ const mapFn = (children, fn) =>
     return toChildArray(toChildArray(children).map(fn));
 };
 
-// This API is completely unnecessary for Preact, so it's basically passthrough.
+// This API is completely unnecessary for Reactifly, so it's basically passthrough.
 export const Children = {
     map: mapFn,
     forEach: mapFn,

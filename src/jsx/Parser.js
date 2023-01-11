@@ -1,24 +1,47 @@
 import Tokenizer from './Tokenizer';
 import { createElement } from '../vdom/element';
 import { Fragment } from '../compat/Fragment';
-import { RENDER_QUEUE } from '../internal';
 import { sandbox } from './sandbox';
+import { RENDER_QUEUE } from '../internal';
 import _ from '../utils/index';
 
-export const COMPONENT_CACHE = {};
+/**
+ * Bindings / variable caching.
+ *
+ * @var  {object}
+ */
+export const BINDINGS_CACHE = {};
 
+/**
+ * Component regex.
+ *
+ * @var  {object}
+ */
 const R_COMPONENT = /^(this|[A-Z])/;
 
+/**
+ * Cache.
+ *
+ * @var  {object}
+ */
 const CACHE_STR = {};
 
-const GLOBAL_DEPENCIES = 
-{
-    h : createElement,
-    Fragment  : Fragment
+/**
+ * Global decencies.
+ *
+ * @var  {object}
+ */
+const GLOBAL_BINDINGS = {
+    h: createElement,
+    Fragment: Fragment
 };
 
-const RESERVED_KEYS =
-[
+/**
+ * Reserved words that get removed.
+ *
+ * @var  {object}
+ */
+const RESERVED_KEYS = [
     'render',
     'children',
     '__internals',
@@ -46,11 +69,10 @@ const RESERVED_KEYS =
 /**
  * Parse's JSX tokens
  *
- * @param  {string}  str     JSX  string
- * @return {object}  config  Options
- *
+ * @param   {string}  str     JSX  string
+ * @returns {object}  config  Options
  */
-export default function parse(str, depencies)
+export default function parse(str, bindings)
 {
     if (str === null || typeof str === 'undefined' || (typeof str === 'string' && str.trim() === ''))
     {
@@ -63,9 +85,9 @@ export default function parse(str, depencies)
 
     let output = jsx.parse();
 
-    depencies = genDepencies(depencies);
+    bindings = genBindings(bindings);
 
-    return sandbox(output, depencies, RENDER_QUEUE.current);
+    return sandbox(output, bindings, RENDER_QUEUE.current);
 }
 
 /**
@@ -80,18 +102,18 @@ function cleanStr(str)
 }
 
 /**
- * Generates object of depencies for JSX parsing.
+ * Generates object of bindings for JSX parsing.
  *
- * @param  {object}  input  depencies
+ * @param  {object}  input  bindings
  * @return {object}
  */
-function genDepencies(depencies)
+function genBindings(bindings)
 {
-    depencies = !depencies ? {...GLOBAL_DEPENCIES} : { ...depencies, ...GLOBAL_DEPENCIES };
+    bindings = !bindings ? { ...GLOBAL_BINDINGS } : { ...bindings, ...GLOBAL_BINDINGS };
 
-    for (let key in COMPONENT_CACHE)
+    for (let key in BINDINGS_CACHE)
     {
-        depencies[key] = COMPONENT_CACHE[key];
+        bindings[key] = BINDINGS_CACHE[key];
     }
 
     let component = RENDER_QUEUE.current;
@@ -102,26 +124,21 @@ function genDepencies(depencies)
     {
         if (!RESERVED_KEYS.includes(k))
         {
-            depencies[k] = component[k];
+            bindings[k] = component[k];
         }
     });
 
-    return depencies;
+    return bindings;
 }
 
 /**
  * Parser. Parses tokenized input into 'createElement' statement. 
  *
- * @param  {string}  str     JSX  string
- * @return {object}  config  Options
+ * @param  {string}  str  JSX  string
  */
-function Parser(str, config)
+function Parser(str)
 {
-    config = config || {};
-    
     this.input = str;
-    
-    this.type = config.type
 }
 
 /**
@@ -131,23 +148,23 @@ function Parser(str, config)
  */
 Parser.prototype.parse = function()
 {
-    var useCache = this.input.length < 720;
+    let useCache = this.input.length < 720;
 
     if (useCache && CACHE_STR[this.input])
-    {            
+    {
         return CACHE_STR[this.input];
     }
 
-    var array = (new Tokenizer(this.input)).parse();
+    var array = (new Tokenizer(this.input)).tokenize();
 
-    var evalString = this.genChildren([array]);
+    var funcString = this.genChildren([array]);
 
     if (useCache)
     {
-        return CACHE_STR[this.input] = evalString;
+        return CACHE_STR[this.input] = funcString;
     }
 
-    return evalString;
+    return funcString;
 }
 
 /**
@@ -159,8 +176,8 @@ Parser.prototype.parse = function()
 Parser.prototype.genTag = function(el)
 {
     let children = this.genChildren(el.children, el);
-    let props    = this.genProps(el.props, el);
-    var type     = R_COMPONENT.test(el.type) ? el.type : JSON.stringify(el.type);
+    let props = this.genProps(el.props, el);
+    var type = R_COMPONENT.test(el.type) ? el.type : `"${el.type}"`;
 
     return `h(${type},${props},${children})`;
 }
@@ -253,7 +270,7 @@ Parser.prototype.genChildren = function(children, obj, join)
     for (var i = 0, el; el = children[i++];)
     {
         if (el.type === '#jsx')
-        {                
+        {
             if (Array.isArray(el.nodeValue))
             {
                 ret[ret.length] = this.genChildren(el.nodeValue, null, ' ');

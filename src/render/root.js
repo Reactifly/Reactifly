@@ -82,7 +82,7 @@ export class Root
         this.htmlRootEl._reactiflyRootVnode = vnode;
 
         GLOBAL_CONTEXT.current = null;
-        
+
         console.log(vnode);
     }
 

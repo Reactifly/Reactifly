@@ -18,16 +18,15 @@ export function thunkInstantiate(vnode)
     {
         let { fn, props } = vnode;
 
-        let context = childContext(fn);
+        let contextVal = childContext(fn);
 
-        component = _.is_constructable(fn) ? new fn(props, context) : fn(props, context);
+        component = _.is_constructable(fn) ? new fn(props, contextVal) : fn(props, contextVal);
 
         if (component.getChildContext != null)
         {
             GLOBAL_CONTEXT.current = component.getChildContext();
         }
-
-        if (component.context)
+        else
         {
             subscribeToContext(fn, component);
         }
@@ -44,13 +43,13 @@ export function thunkInstantiate(vnode)
  * @param   {object}        component
  * @returns {object|array}
  */
-function childContext(component)
+function childContext(componentFunc)
 {
     let ret = null;
 
-    if (component.contextType)
+    if (componentFunc.contextType)
     {
-        let context = component.contextType;
+        let context = componentFunc.contextType;
 
         if (!GLOBAL_CONTEXT.current)
         {
@@ -63,7 +62,7 @@ function childContext(component)
             ret = provider.props ? provider.props.value : context._defaultValue;
         }
     }
-    
+
     return ret;
 }
 
@@ -75,7 +74,7 @@ function childContext(component)
  */
 function subscribeToContext(fn, component)
 {
-    if (fn.contextType && GLOBAL_CONTEXT.current)
+    if (fn.contextType || GLOBAL_CONTEXT.current)
     {
         GLOBAL_CONTEXT.current.sub(component);
     }
@@ -99,13 +98,15 @@ export function thunkRender(component)
  */
 export function thunkUpdate(vnode)
 {
+    const prevContext = GLOBAL_CONTEXT.current;
+
     let component = vnode.__internals._component;
     let left = vnode.children[0];
     let right = jsxFactory(component);
 
     diff(left, right);
 
-    GLOBAL_CONTEXT.current = null;
+    GLOBAL_CONTEXT.current = prevContext;
 }
 
 /**
@@ -115,7 +116,7 @@ export function thunkUpdate(vnode)
  * @returns {object|array}
  */
 function jsxFactory(component)
-{    
+{
     RENDER_QUEUE.current = component;
 
     // Functional component wrapper

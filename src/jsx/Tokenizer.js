@@ -1,3 +1,8 @@
+/**
+ * Void tags.
+ * 
+ * @var {object}
+ */
 const VOID_TAGS = {
     'area': true,
     'base': true,
@@ -19,6 +24,11 @@ const VOID_TAGS = {
     'wbr': true,
 };
 
+/**
+ * Special tags.
+ * 
+ * @var {object}
+ */
 const SPECIAL_TAGS = {
     'xmp': true,
     'style': true,
@@ -29,6 +39,11 @@ const SPECIAL_TAGS = {
     '#comment': true,
 };
 
+/**
+ * Hidden tags.
+ * 
+ * @var {object}
+ */
 const HIDDEN_TAGS = {
     'style': true,
     'script': true,
@@ -36,49 +51,77 @@ const HIDDEN_TAGS = {
     'template': true,
 };
 
-const Tokenizer = function(jsx, f)
+/**
+ * Whitespace REGEX
+ * 
+ * @var {regex}
+ */
+const RGX_BLANKS = /\s/;
+
+/**
+ * Tbodys REGEX
+ * 
+ * @var {regex}
+ */
+const RGX_TBODY = /^(tbody|thead|tfoot)$/;
+
+/**
+ * JSX Tokenizer.
+ * 
+ * @param  {string}   jsx           Jsx to parse
+ * @param  {boolean}  returnSingle  Returns single object
+ */
+const Tokenizer = function(jsx)
 {
     if (!(this instanceof Tokenizer))
     {
-        return parse(jsx, f)
+        return parse(jsx, returnSingle)
     }
 
     this.input = jsx;
-
-    this.getOne = f;
 }
 
+/**
+ * Tokenize current input.
+ * 
+ */
 Tokenizer.prototype = {
-    parse: function()
+    tokenize: function()
     {
-        return parse(this.input, this.getOne)
+        return parse(this.input);
     }
 }
 
-var rsp = /\s/;
-
 /**
+ * Parses input.
  * 
- * 
- * @param {any} string 
- * @param {any} getOne returns only one node
- * @returns 
+ * @param   {any}           string 
+ * @param   {boolean}       returnString Returns string instead of nested tokens
+ * @returns {array|string}
  */
-function parse(string, getOne)
+function parse(string, returnString)
 {
-    getOne = (getOne === void 666 || getOne === true);
+    returnString = typeof returnString === 'undefined' ? true : returnString;
 
-    var ret = lexer(string, getOne)
+    var ret = lexer(string, returnString);
 
-    if (getOne)
+    if (returnString)
     {
-        return typeof ret[0] === 'string' ? ret[1] : ret[0]
+        return typeof ret[0] === 'string' ? ret[1] : ret[0];
     }
 
     return ret
 }
 
-function lexer(string, getOne, inJsxFunc)
+/**
+ * Recursively parses string using while.
+ * 
+ * @param    {string}        string        Input string
+ * @param    {boolean}       returnString  Returns string instead of nested tokens
+ * @param    {boolean}       inJsxFunc     If we're inside an inline JSX function
+ * @returns  {string|array}
+ */
+function lexer(string, returnStr, inJsxFunc)
 {
     var tokens = []
     var breakIndex = 120
@@ -138,7 +181,7 @@ function lexer(string, getOne, inJsxFunc)
 
             lastNode = null
 
-            if (getOne && ret.length === 1 && !stack.length)
+            if (returnStr && ret.length === 1 && !stack.length)
             {
 
                 return [origString.slice(0, origLength - string.length), ret[0]]
@@ -153,18 +196,18 @@ function lexer(string, getOne, inJsxFunc)
         {
             string = string.replace(arr[0], '')
             var node = arr[1]
-            
+
             addNode(node)
-            
+
             var selfClose = !!(node.isVoidTag || SPECIAL_TAGS[node.type])
-            
+
             if (!selfClose)
             {
                 //Put it here to add children
                 stack.push(node)
             }
 
-            if (getOne && selfClose && !stack.length)
+            if (returnStr && selfClose && !stack.length)
             {
                 return [origString.slice(0, origLength - string.length), node]
             }
@@ -193,12 +236,12 @@ function lexer(string, getOne, inJsxFunc)
 
         //Handle the situation of <div>{aaa}</div>, <div>xxx{aaa}xxx</div>, <div>xxx</div>{aaa}sss
 
-        const index     = string.indexOf('<') // Determine whether there is a label after it
-        const bindex    = string.indexOf('{') //Determine whether there is jsx behind it
-        const aindex    = string.indexOf('}')
+        const index = string.indexOf('<') // Determine whether there is a label after it
+        const bindex = string.indexOf('{') //Determine whether there is jsx behind it
+        const aindex = string.indexOf('}')
 
         let hasJSX = (bindex < aindex) && (index === -1 || bindex < index);
-        
+
         /// Handle inner text when inside a JSX function <div>foo</div>
         if (inJsxFunc && index !== 0 && bindex !== 0 && aindex !== 0 && lastNode)
         {
@@ -211,22 +254,22 @@ function lexer(string, getOne, inJsxFunc)
         else if (hasJSX)
         {
             if (bindex !== 0)
-            { 
+            {
                 // Collect text nodes before jsx
                 text += string.slice(0, bindex)
                 string = string.slice(bindex)
             }
-            
+
             addText(lastNode, text, addNode)
-            
+
             string = string.slice(1) //remove first "{"
-            
+
             var arr = parseCode(string);
-            
+
             addNode(makeJSX(arr[1]))
-            
+
             lastNode = false
-            
+
             string = string.slice(arr[0].length + 1) // remove trailing "}"
         }
         else
@@ -314,11 +357,11 @@ function parseCode(string)
                         index = i - 1
                     do {
                         c = string.charAt(index)
-                        if (empty && rsp.test(c))
+                        if (empty && RGX_BLANKS.test(c))
                         {
                             continue
                         }
-                        if (rsp.test(c))
+                        if (RGX_BLANKS.test(c))
                         {
                             break
                         }
@@ -369,15 +412,13 @@ function collectJSX(string, codeIndex, i, nodes)
     }
 }
 
-var rtbody = /^(tbody|thead|tfoot)$/
-
 function insertTbody(nodes)
 {
     var tbody = false
     for (var i = 0, n = nodes.length; i < n; i++)
     {
         var node = nodes[i]
-        if (rtbody.test(node.nodeName))
+        if (RGX_TBODY.test(node.nodeName))
         {
             tbody = false
             continue
@@ -414,7 +455,6 @@ function insertTbody(nodes)
         }
     }
 }
-
 
 function getCloseTag(string)
 {
@@ -550,7 +590,7 @@ function getAttrs(string)
                 {
                     return [string.slice(0, i), props]
                 }
-                if (rsp.test(c))
+                if (RGX_BLANKS.test(c))
                 {
                     if (attrName)
                     {

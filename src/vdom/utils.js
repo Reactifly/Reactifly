@@ -9,7 +9,7 @@ import _ from '../utils/index';
 export let isContextProvder = (vnode) =>
 {
     return isThunk(vnode) && _.is_class(vnode.fn, 'Provider') && vnode.fn._isValidCtxProvider;
-}  
+}
 
 /**
  * Checks if argument is valid reactifly Vnode 
@@ -20,7 +20,7 @@ export let isContextProvder = (vnode) =>
 export let isValidVnode = (vnode) =>
 {
     return vnode != null && vnode.__internals && vnode.__internals._isValidVnode;
-}    
+}
 
 /**
  * Checks if Vnode is mounted.

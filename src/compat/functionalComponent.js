@@ -1,5 +1,5 @@
 import { Component } from './Component';
-import { RENDER_QUEUE } from '../internal';
+import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
 import { extend } from '../utils/index';
 
 /**
@@ -92,7 +92,7 @@ _FunctionalComponent.prototype.componentWillUnmount = function()
  */
 _FunctionalComponent.prototype.render = function()
 {
-    const prevContext = RENDER_QUEUE.current;
+    const prevContext = GLOBAL_CONTEXT.current;
 
     try
     {
@@ -104,7 +104,7 @@ _FunctionalComponent.prototype.render = function()
     }
     finally
     {
-        RENDER_QUEUE.current = prevContext;
+        GLOBAL_CONTEXT.current = prevContext;
     }
 }
 

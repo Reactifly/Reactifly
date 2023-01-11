@@ -68,6 +68,8 @@ function createTextNode(vnode, text)
 
 function createHTMLElement(vnode)
 {
+    const thisContext = GLOBAL_CONTEXT.current;
+
     let { tagName, attributes, children, ref } = vnode;
 
     let DOMElement = createNativeElement(tagName);
@@ -76,7 +78,7 @@ function createHTMLElement(vnode)
     {
         ref(DOMElement);
     }
-    
+
     _.foreach(attributes, function(prop, value)
     {
         setDomAttribute(DOMElement, prop, value);
@@ -86,8 +88,6 @@ function createHTMLElement(vnode)
 
     _.foreach(children, function(i, child)
     {
-        GLOBAL_CONTEXT.current = null;
-
         if (!_.is_empty(child))
         {
             let childDOMElem = createDomElement(child, DOMElement);
@@ -103,6 +103,8 @@ function createHTMLElement(vnode)
             }
         }
     });
+
+    GLOBAL_CONTEXT.current = thisContext;
 
     return DOMElement;
 }

@@ -67,7 +67,7 @@ var dupProto = function(constructor)
     var fakeProto = Object.create(null);
 
     var pnames = Object.getOwnPropertyNames(constructor.prototype);
-    
+
     for (var i = 0; i < pnames.length; i++)
     {
         if (pnames[i] !== 'arguments' && pnames[i] !== 'caller')
@@ -75,7 +75,7 @@ var dupProto = function(constructor)
             fakeProto[pnames[i]] = constructor.prototype[pnames[i]];
         }
     }
-    
+
     return fakeProto;
 };
 
@@ -89,8 +89,7 @@ var redirectProto = function(constructor, proto)
         {
             constructor.prototype[pnames[i]] = proto[pnames[i]];
         }
-        catch (e)
-        {}
+        catch (e) {}
     }
 };
 
@@ -109,8 +108,7 @@ var dupProperties = function(obj)
             {
                 delete obj[pnames[i]];
             }
-            catch (e)
-            {}
+            catch (e) {}
         }
     }
     return fakeObj;
@@ -125,8 +123,7 @@ var resetProperties = function(obj, fakeObj)
         {
             obj[pnames[i]] = fakeObj[pnames[i]];
         }
-        catch (e)
-        {}
+        catch (e) {}
     }
 };
 
@@ -142,8 +139,7 @@ var removeAddedProperties = function(obj, fakeObj)
             {
                 delete obj[pnames[i]];
             }
-            catch (e)
-            {}
+            catch (e) {}
         }
     }
 };
@@ -179,8 +175,7 @@ var unalienate = function()
 
 const SANDBOX_NAME = '$sandbox$';
 
-const DISSALOWEDES =
-{
+const DISSALOWEDES = {
     // disallowed
     global: undefined,
     process: undefined,
@@ -194,15 +189,14 @@ const DISSALOWEDES =
     Function: undefined
 };
 
-// protection might not be complete!
 
 // Evaluate code as a String (`source`) without letting global variables get
 // used or modified. The `sandbox` is an object containing variables we want
 // to pass in.
 export function sandbox(source, sandbox, _this)
-{        
+{
     _this = _this || null;
-    
+
     sandbox = sandbox || Object.create(null);
 
     for (let i = 0; i < builtinsStr.length; ++i)
@@ -212,31 +206,31 @@ export function sandbox(source, sandbox, _this)
         sandbox[key] = builtins[i];
     }
 
-    sandbox = {...sandbox, ...DISSALOWEDES};
+    sandbox = { ...sandbox, ...DISSALOWEDES };
 
     let sandboxed = 'this.constructor.constructor = function () {};\nvar ';
-        
+
     for (var field in sandbox)
     {
         sandboxed += `${field} = ${SANDBOX_NAME}['${field}'],\n`;
     }
 
-    sandboxed += `undefined;\n\n return ${source};`;
-    
+    sandboxed += `undefined;\n${resetEnv()}\n return ${source};`;
+
     alienate();
 
     let ret;
 
-    try 
+    try
     {
         ret = Function(SANDBOX_NAME, sandboxed).call(_this, sandbox);
     }
-    catch(e)
+    catch (e)
     {
         console.log(e);
         console.log(sandboxed);
     }
-    
+
     unalienate();
 
     return ret;

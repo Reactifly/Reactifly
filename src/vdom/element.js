@@ -160,7 +160,7 @@ function normaliseChildren(children, propKeys, checkKeys)
                 }
 
                 ret.push(vnode);
-                
+
             }
             // Inline function, map or props.children
             else if (_.is_array(vnode))
