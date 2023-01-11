@@ -26,7 +26,7 @@ export function useContext(context)
     {
         return context._defaultValue;
     }
-    
+
     let provider = GLOBAL_CONTEXT.current;
 
     return provider.props ? provider.props.value : context._defaultValue;

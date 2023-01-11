@@ -23,7 +23,7 @@ export function thunkInstantiate(vnode)
         component = _.is_constructable(fn) ? new fn(props, contextVal) : fn(props, contextVal);
 
         if (component.getChildContext != null)
-        {            
+        {
             GLOBAL_CONTEXT.current = component.getChildContext();
         }
         else

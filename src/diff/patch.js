@@ -2,6 +2,7 @@ import { action } from './commit';
 import * as vDom from '../vdom/utils';
 import * as thunk from '../vdom/thunk';
 import * as lifecycle from '../vdom/lifecycle';
+import { GLOBAL_CONTEXT } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -175,11 +176,20 @@ function patchThunkProps(vnode, newProps)
  */
 function diffThunk(left, right, actions)
 {
+    const thisContext = GLOBAL_CONTEXT.current;
+
     let component = vDom.nodeComponent(left);
     let rightchild = thunk.thunkRender(component);
     right.children = [rightchild];
 
+    if (component.getChildContext)
+    {
+        GLOBAL_CONTEXT.current = component.getChildContext();
+    }
+
     patchChildren(left, right, actions);
+
+    GLOBAL_CONTEXT.current = thisContext;
 }
 
 /**
