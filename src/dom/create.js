@@ -128,6 +128,8 @@ function appendFragment(parentDOMElement, children)
 
 function createThunk(vnode, parentDOMElement)
 {
+    const thisContext = GLOBAL_CONTEXT.current;
+
     // Skip this it's already been rendered if it's coming from a patch
     if (vDOM.isThunkInstantiated(vnode))
     {
@@ -145,6 +147,8 @@ function createThunk(vnode, parentDOMElement)
     vDOM.pointVnodeThunk(vnode, component);
 
     didMount(component);
+
+    GLOBAL_CONTEXT.current = thisContext;
 
     return DOMElement;
 }

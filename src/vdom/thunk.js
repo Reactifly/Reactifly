@@ -23,7 +23,7 @@ export function thunkInstantiate(vnode)
         component = _.is_constructable(fn) ? new fn(props, contextVal) : fn(props, contextVal);
 
         if (component.getChildContext != null)
-        {
+        {            
             GLOBAL_CONTEXT.current = component.getChildContext();
         }
         else
@@ -74,7 +74,7 @@ function childContext(componentFunc)
  */
 function subscribeToContext(fn, component)
 {
-    if (fn.contextType || GLOBAL_CONTEXT.current)
+    if (fn.contextType && GLOBAL_CONTEXT.current)
     {
         GLOBAL_CONTEXT.current.sub(component);
     }
@@ -98,15 +98,11 @@ export function thunkRender(component)
  */
 export function thunkUpdate(vnode)
 {
-    const prevContext = GLOBAL_CONTEXT.current;
-
     let component = vnode.__internals._component;
     let left = vnode.children[0];
     let right = jsxFactory(component);
 
     diff(left, right);
-
-    GLOBAL_CONTEXT.current = prevContext;
 }
 
 /**

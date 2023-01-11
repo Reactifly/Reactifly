@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { is_equal } from '../utils/index';
 
-import { RENDER_QUEUE } from '../internal';
+import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
 
 /**
  * Essentially a passthrough to current context provider value.
@@ -22,17 +22,14 @@ import { RENDER_QUEUE } from '../internal';
  */
 export function useContext(context)
 {
-    if (context[context._id])
+    if (!GLOBAL_CONTEXT.current)
     {
-        let provider = context[context._id];
-
-        if (provider.props.value)
-        {
-            return provider.props.value;
-        }
+        return context._defaultValue;
     }
+    
+    let provider = GLOBAL_CONTEXT.current;
 
-    return context._defaultValue;
+    return provider.props ? provider.props.value : context._defaultValue;
 }
 
 export function useEffect(effect, deps)

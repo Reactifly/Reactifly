@@ -28,7 +28,6 @@ export function createContext(defaultValue)
     const context = {
         _id: contextId,
         _defaultValue: defaultValue,
-        _provider: null,
     };
 
     let subs = [];
@@ -53,6 +52,8 @@ export function createContext(defaultValue)
     function Provider(props)
     {
         this.props = props;
+
+        context[contextId] = this;
     }
 
     Provider.prototype.getChildContext = function()
