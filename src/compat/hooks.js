@@ -22,14 +22,17 @@ import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
  */
 export function useContext(context)
 {
-    if (!GLOBAL_CONTEXT.current)
+    if (GLOBAL_CONTEXT.current)
     {
-        return context._defaultValue;
+        let provider = GLOBAL_CONTEXT.current;
+
+        if (provider === context[context._id])
+        {
+            return provider.props ? provider.props.value : context._defaultValue;
+        }
     }
 
-    let provider = GLOBAL_CONTEXT.current;
-
-    return provider.props ? provider.props.value : context._defaultValue;
+    return context._defaultValue;
 }
 
 export function useEffect(effect, deps)

@@ -5,4 +5,6 @@ export * from './functionalComponent';
 export * from './Children';
 export * from './hooks';
 export * from './createContext';
+export * from './memo';
+export * from './forwardRef';
 export * from './createClass';

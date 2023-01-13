@@ -1,6 +1,6 @@
 import { Component } from './Component';
 import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
-import { extend } from '../utils/index';
+import { extend, is_function } from '../utils/index';
 
 /**
  * Wrapper class around functional components.

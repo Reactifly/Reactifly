@@ -28,7 +28,7 @@ export function createElement(tag, props)
     {
         if (k == 'key')
         {
-            key = prop;
+            key = prop + '';
         }
         else if (k == 'ref')
         {
@@ -177,11 +177,11 @@ function normaliseChildren(children, propKeys, checkKeys)
             }
             else
             {
-                if (propKeys && !vnode.key)
+                if (propKeys && _.is_undefined(vnode.key))
                 {
                     vnode.key = `_pk|${i}`;
                 }
-                else if (checkKeys && !vnode.key)
+                else if (checkKeys && _.is_undefined(vnode.key))
                 {
                     warnKeys = true;
                 }
@@ -315,6 +315,7 @@ function createThunkVnode(fn, props, children, key, ref)
         fn,
         children,
         props,
+        ref,
         key,
         __internals:
         {
@@ -346,6 +347,7 @@ function createFunctionalThunk(fn, props, children, key, ref)
         fn: func,
         children: null,
         props,
+        ref,
         key,
         __internals:
         {

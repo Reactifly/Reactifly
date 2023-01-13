@@ -146,6 +146,13 @@ function createThunk(vnode, parentDOMElement)
     // Point vnode
     vDOM.pointVnodeThunk(vnode, component);
 
+    let _ref = vnode.ref;
+    
+    if (_ref)
+    {
+        _ref(DOMElement);
+    }
+
     didMount(component);
 
     GLOBAL_CONTEXT.current = thisContext;

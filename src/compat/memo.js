@@ -1,5 +1,6 @@
-import { createElement } from 'reactifly';
-import { is_equal } from '../utils/index';
+import { Component } from './Component';
+import { createElement } from '../vdom/element';
+import { is_equal, extend } from '../utils/index';
 
 /**
  * Memoize a component, so that it only updates when the props actually have
@@ -9,13 +10,21 @@ import { is_equal } from '../utils/index';
  * @param   {(prev: object, next: object) => boolean}             [comparer] Custom equality function (optional)
  * @returns {import('./functionalComponent').FunctionalComponent}
  */
-export function memo(c, comparer)
+export function memo(ComponentFunc, comparer)
 {
-    function shouldUpdate(nextProps)
+    function Memo(props)
+    {        
+        this.props = props;
+
+        this.ComponentFunc = ComponentFunc;
+    }
+
+    Memo.prototype.shouldComponentUpdate = function(nextProps)
     {
         let ref = this.props.ref;
 
         let updateRef = ref == nextProps.ref;
+
         if (!updateRef && ref)
         {
             ref.call ? ref(null) : (ref.current = null);
@@ -23,21 +32,27 @@ export function memo(c, comparer)
 
         if (!comparer)
         {
-            return is_equal(this.props, nextProps);
+            return !is_equal(this.props, nextProps);
         }
 
         return !comparer(this.props, nextProps) || !updateRef;
     }
 
-    function Memoed(props)
+    Memo.prototype.render = function()
     {
-        this.shouldComponentUpdate = shouldUpdate;
-
-        return createElement(c, props);
+        return `<ComponentFunc {...this.props} />`;
     }
 
-    Memoed.displayName = 'Memo(' + (c.displayName || c.name) + ')';
-    Memoed.prototype.isReactComponent = true;
+    Memo = extend(Component, Memo);
+
+    function Memoed(props)
+    {
+        return createElement(Memo, props);
+    }
+
+    Memoed.displayName = 'Memo(' + (ComponentFunc.displayName || ComponentFunc.name) + ')';
+        
     Memoed._forwarded = true;
+    
     return Memoed;
 }

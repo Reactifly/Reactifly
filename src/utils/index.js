@@ -1171,7 +1171,7 @@ function __applyStatics(constructors, func)
             {
                 let prop = constructor[key];
 
-                if (reactifly._.is_function(prop))
+                if (is_function(prop))
                 {
                     prop = prop.bind(func);
                 }
