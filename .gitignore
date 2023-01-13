@@ -1,0 +1,16 @@
+.DS_Store
+.DS_Store?
+node_modules
+npm-debug.log
+dist
+*/package-lock.json
+yarn.lock
+.vscode
+.idea
+coverage
+*.sw[op]
+*.log
+package/
+reactifly-*.tgz
+reactifly.tgz
+index.html
