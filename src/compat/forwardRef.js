@@ -6,8 +6,8 @@ import { cloneDeep } from '../utils/index';
  * wrap components. Using `forwardRef` there is an easy way to get a reference
  * of the wrapped component instead of one of the wrapper itself.
  * 
- * @param {import('./index').ForwardFn} fn
- * @returns {import('./internal').FunctionComponent}
+ * @param   {function} fn
+ * @returns {function}
  */
 export function forwardRef(fn)
 {
@@ -27,6 +27,11 @@ export function forwardRef(fn)
 	return Forwarded;
 }
 
+/**
+ * Simple ref holder.
+ * 
+ * @returns {object}
+ */
 export function createRef()
 {
 	return { current: null };
