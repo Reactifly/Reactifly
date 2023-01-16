@@ -13,7 +13,7 @@ let CURR_TAG = null;
  * @returns {object}
  */
 export function createElement(tag, props)
-{
+{    
     if (arguments.length === 0)
     {
         return createEmptyVnode();

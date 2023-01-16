@@ -41,10 +41,13 @@ const ARRAYISH_TAGS = [ARRAY_TAG, ARGS_TAG, NODELST_TAG];
 const TO_STR = Object.prototype.toString;
 
 // Regex for HTMLElement types
-const HTML_REGXP = /^\[object HTML\w+Element\]$/;
+const HTML_REGXP = /^\[object HTML\w*Element\]$/;
 
 // Excludes
 const PROTO_EXCLUDES = ['constructor', '__proto__', '__defineGetter__', '__defineSetter__', 'hasOwnProperty', '__lookupGetter__', '__lookupSetter__', 'isPrototypeOf', 'propertyIsEnumerable', 'toString', 'toLocaleString', 'valueOf', 'length', 'name', 'arguments', 'caller', 'prototype', 'apply', 'bind', 'call'];
+
+// Current clone map (stops recursive cloning between array/objects)
+let CURR_CLONES = new WeakMap();
 
 /**
  * Object with built in "dot.notation" set,get,isset,delete methods.
@@ -901,6 +904,10 @@ export function is_equal(a, b)
     {
         return a === b;
     }
+    else if (is_function(a))
+    {
+        return ___equalFunction(a, b);
+    }
     else if (is_array(a) || is_object(b))
     {
         if (a === b)
@@ -1135,7 +1142,7 @@ export function extend(baseFunc, extendFunc, callSuper)
             {
                 if (constr.name !== 'Object')
                 {
-                    constr.bind(_this).apply(_this, args);
+                    __bind(constr, _this).apply(_this, args);
                 }
             });
         };
@@ -1173,7 +1180,7 @@ function __applyStatics(constructors, func)
 
                 if (is_function(prop))
                 {
-                    prop = prop.bind(func);
+                    prop = __bind(prop, func);
                 }
 
                 func[key] = prop;
@@ -1411,7 +1418,53 @@ function __equalTraverseable(a, b)
     return ret;
 }
 
-let CURR_CLONES = new WeakMap();
+/**
+ * Binds a function so that it can be identified.
+ * 
+ * @param   {function}  b
+ * @returns {boolean}
+ */
+function __bind(func, context)
+{
+    context = typeof context === 'undefined' ? window : context;
+
+    const bound = func.bind(context);
+
+    bound.__isBound = true;
+
+    bound.__boundContext = context;
+
+    bound.__origional = func;
+
+    return bound;
+}
+
+/**
+ * Checks if two functions are equal
+ * 
+ * @param   {function}  a
+ * @param   {function}  b
+ * @returns {boolean}
+ */
+function ___equalFunction(a, b)
+{
+    // Functions the same
+    if (a === b)
+    {
+        return true;
+    }
+
+    // Same name, check if bound properly
+    if (a.name === b.name)
+    {
+        if (a.name.includes('bound '))
+        {
+            return a.__isBound === b.__isBound && a.__boundContext === b.__boundContext && a.__origional === b.__origional;
+        }
+    }
+
+    return false;
+}
 
 /**
  * Clone's variable with context.
@@ -1549,9 +1602,7 @@ function __cloneObj(obj, context, isDeep)
  */
 function __cloneFunc(func, context)
 {
-    context = typeof context === 'undefined' ? window : context;
-
-    return func.bind(context);
+    return __bind(func, context);
 }
 
 /**

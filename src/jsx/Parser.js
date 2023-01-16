@@ -2,7 +2,7 @@ import Tokenizer from './Tokenizer';
 import { createElement } from '../vdom/element';
 import { Fragment } from '../compat/Fragment';
 import { sandbox } from './sandbox';
-import { RENDER_QUEUE } from '../internal';
+import { CURR_RENDER } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -74,9 +74,18 @@ const RESERVED_KEYS = [
  */
 export default function parse(str, bindings)
 {
+    // Empty
     if (str === null || typeof str === 'undefined' || (typeof str === 'string' && str.trim() === ''))
     {
         return createElement();
+    }
+
+    str = str + '';
+
+    // No HTML
+    if (!str.includes('<') && !str.includes('>'))
+    {
+        return createElement('text', null, str);
     }
 
     str = cleanStr(str + '');
@@ -85,9 +94,7 @@ export default function parse(str, bindings)
 
     let output = jsx.parse();
 
-    bindings = genBindings(bindings);
-
-    return sandbox(output, bindings, RENDER_QUEUE.current);
+    return sandbox(output, genBindings(bindings), CURR_RENDER.current);
 }
 
 /**
@@ -114,9 +121,11 @@ function genBindings(bindings)
     for (let key in BINDINGS_CACHE)
     {
         bindings[key] = BINDINGS_CACHE[key];
+
+        delete BINDINGS_CACHE[key];
     }
 
-    let component = RENDER_QUEUE.current;
+    let component = CURR_RENDER.current;
 
     let props = _.object_props(component);
 

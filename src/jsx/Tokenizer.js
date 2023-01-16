@@ -85,7 +85,8 @@ const Tokenizer = function(jsx)
  * Tokenize current input.
  * 
  */
-Tokenizer.prototype = {
+Tokenizer.prototype =
+{
     tokenize: function()
     {
         return parse(this.input);

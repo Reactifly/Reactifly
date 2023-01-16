@@ -18,7 +18,8 @@ export function Component(props, context)
      *
      * @var {object}
      */
-    this.__internals = {
+    this.__internals = 
+    {
         _vnode: null,
         _prevState: {},
         _prevProps: {},
@@ -70,26 +71,19 @@ Component.prototype.setState = function(key, value, callback)
     let changes = {};
     let newState = _.cloneDeep(this.state);
 
-    // setState({ 'foo.bar' : 'foo' })
-    if (arguments.length === 1)
+    //setState({ 'foo.bar' : 'foo' }, callback)
+    if (_.is_function(key))
     {
-        // setState(function, callback)
-        if (_.is_function(key))
-        {
-            callback = value;
-            value = null;
-            key = key(newState, this.props);
-        }
-        else if (!_.is_object(key))
-        {
-            throw new Error('StateError: State should be an object with [dot.notation] keys. e.g. [setState({"foo.bar" : "baz"})]');
-        }
-
-        changes = key;
+        callback = value;
+        changes  = key(newState, this.props);
+    }
+    else if (_.is_object(key))
+    {
+        callback = value;
+        changes  = key;
     }
     else
     {
-        //setState('foo.bar', 'baz', callback)
         changes[key] = value;
     }
 
@@ -99,7 +93,8 @@ Component.prototype.setState = function(key, value, callback)
 
     }, this);
 
-    if (lifecycle.shouldUpdate(this, this.props, newState))
+    // If state was set in constructor, check if vnode exists
+    if (this.__internals._vnode && lifecycle.shouldUpdate(this, this.props, newState))
     {
         lifecycle.willUpdate(this, this.props, newState);
 
@@ -112,6 +107,11 @@ Component.prototype.setState = function(key, value, callback)
         thunkUpdate(this.__internals._vnode);
 
         lifecycle.didUpdate(this, this.__internals._prevState, this.props);
+
+        if (_.is_function(callback))
+        {
+            callback.call(this, this);
+        }
     }
     else
     {
@@ -145,9 +145,17 @@ Component.prototype.jsx = function(jsxStr)
  * 
  * @param {function | undefined}  callback  A function to be called once component state is updated (optional)
  */
-Component.prototype.forceUpdate = function()
+Component.prototype.forceUpdate = function(callback)
 {
-    thunkUpdate(this.__internals._vnode);
+    if (this.__internals._vnode)
+    {
+        thunkUpdate(this.__internals._vnode);
 
-    lifecycle.didUpdate(this, this.state, this.props);
+        lifecycle.didUpdate(this, this.state, this.props);
+
+        if (_.is_function(callback))
+        {
+            callback.call(this, this);
+        } 
+    }
 }

@@ -39,7 +39,7 @@ describe('render()', () =>
 		resetRemove();
 	});
 
-	it('should rerender when value from "" to 0', () =>
+	it('should re-render when value from "" to 0', () =>
 	{
 		render('', scratch);
 		expect(scratch.innerHTML).to.equal('');
@@ -68,7 +68,7 @@ describe('render()', () =>
 	{
 		render(`<div />`, scratch);
 		expect(scratch.childNodes).to.have.length(1);
-		expect(scratch.childNodes[0].nodeName).to.equal('DIV');
+		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('DIV');
 
 		scratch.parentNode.removeChild(scratch);
 		scratch = document.createElement('div');
@@ -76,7 +76,7 @@ describe('render()', () =>
 
 		render(`<span />`, scratch);
 		expect(scratch.childNodes).to.have.length(1);
-		expect(scratch.childNodes[0].nodeName).to.equal('SPAN');
+		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('SPAN');
 	});
 
 	it('should not throw error in IE11 with type date', () =>
@@ -88,7 +88,7 @@ describe('render()', () =>
 	{
 		render(`<foo />`, scratch);
 		expect(scratch.childNodes).to.have.length(1);
-		expect(scratch.firstChild).to.have.property('nodeName', 'FOO');
+		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('FOO');
 
 		scratch.parentNode.removeChild(scratch);
 		scratch = document.createElement('div');
@@ -96,10 +96,10 @@ describe('render()', () =>
 
 		render(`<x-bar />`, scratch);
 		expect(scratch.childNodes).to.have.length(1);
-		expect(scratch.firstChild).to.have.property('nodeName', 'X-BAR');
+		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('X-BAR');
 	});
 
-	/*it('should support the form attribute', () => 
+	it('should support the form attribute', () => 
 	{
 		render(
 			`<div>
@@ -124,7 +124,7 @@ describe('render()', () =>
 
 	it('should allow VNode reuse', () =>
 	{
-		let reused = createElement(`<div class="reuse">Hello World!</div>`);
+		let reused = jsx(`<div class="reuse">Hello World!</div>`);
 
 		render(
 			`<div>
@@ -135,8 +135,23 @@ describe('render()', () =>
 			scratch, {reused: reused}
 		);
 		
-		console.log(serializeHtml(scratch));
-	});*/
+		expect(serializeHtml(scratch)).to.eql(
+			`<div><div class="reuse">Hello World!</div><hr><div class="reuse">Hello World!</div></div>`
+		);
+
+		render(
+			`<div>
+				<hr />
+				{reused}
+			</div>`,
+			scratch, {reused: reused}
+		);
+
+		expect(serializeHtml(scratch)).to.eql(
+			`<div><hr><div class="reuse">Hello World!</div></div>`
+		);
+
+	});
 
 });
 

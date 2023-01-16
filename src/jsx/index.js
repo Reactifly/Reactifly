@@ -1,5 +1,5 @@
 import parse, { BINDINGS_CACHE } from './parser';
-import { is_object, is_undefined, callable_name } from '../utils/index';
+import { is_object, is_undefined } from '../utils/index';
 
 /**
  * Mian API to convert JSX from string into 'createElement'.
@@ -23,9 +23,17 @@ export function jsx(jsx, bindings)
  * @param  {mixed}   binding  Can be any variable.
  * @param  {string}  key      Name to set dependency as
  */
-export function register(binding, key)
+export function bind(key, val)
 {
-    key = is_undefined(key) ? callable_name(binding) : key;
-
-    BINDINGS_CACHE[key] = binding;
+    if (is_object(key))
+    {
+        for (let k in key)
+        {
+            BINDINGS_CACHE[k] = key[k];
+        }
+    }
+    else
+    {
+        BINDINGS_CACHE[key] = val;
+    }
 }

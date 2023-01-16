@@ -6,7 +6,8 @@ import * as events from './events';
  *
  * @var array
  */
-const CSS_PREFIXES = [
+const CSS_PREFIXES =
+[
     'webkit',
     'Moz',
     'ms',
@@ -18,7 +19,8 @@ const CSS_PREFIXES = [
  *
  * @var array
  */
-const CSS_PREFIXABLE = [
+const CSS_PREFIXABLE =
+[
     // transitions
     'transition',
     'transition-delay',
@@ -40,7 +42,15 @@ const CSS_PREFIXABLE = [
     'flex',
 ];
 
-export function setDomAttribute(DOMElement, name, value, previousValue)
+/**
+ * Set DOM attribute.
+ *
+ * @param {HTMLElement}  DOMElement  Dom node
+ * @param {string}       name        Property name
+ * @apram {mixed}        value       Property value
+ * @oaram {mixed}        prevVal     Previous value
+ */
+export function setDomAttribute(DOMElement, name, value, prevVal)
 {
     switch (name)
     {
@@ -53,9 +63,10 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
             // Style
         case 'style':
 
+            // remove all styles completely
             if (_.is_empty(value))
             {
-                // remove all styles completely
+               
                 DOMElement.removeAttribute('style');
             }
             else if (_.is_string(value))
@@ -81,7 +92,6 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
                     css(DOMElement, prop, value);
                 });
             }
-
             break;
 
             // Class
@@ -94,10 +104,13 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
         default:
             if (name[0] === 'o' && name[1] === 'n')
             {
-                if (previousValue)
+                // Remove old listener
+                if (prevVal)
                 {
-                    events.removeEventListener(DOMElement, name.slice(2).toLowerCase(), previousValue);
+                    events.removeEventListener(DOMElement, name.slice(2).toLowerCase(), prevVal);
                 }
+
+                // Add new listener
                 if (value)
                 {
                     events.addEventListener(DOMElement, name.slice(2).toLowerCase(), value);
@@ -122,12 +135,18 @@ export function setDomAttribute(DOMElement, name, value, previousValue)
                         break;
                 }
             }
-
             break;
     }
 }
 
-export function removeDomAttribute(DOMElement, name, previousValue)
+/**
+ * Remove DOM attribute.
+ *
+ * @param {HTMLElement}  DOMElement  Dom node
+ * @param {string}       name        Property name
+ * @apram {mixed}        prevVal     Property value
+ */
+export function removeDomAttribute(DOMElement, name, prevVal)
 {
     switch (name)
     {
@@ -147,9 +166,9 @@ export function removeDomAttribute(DOMElement, name, previousValue)
         default:
             if (name[0] === 'o' && name[1] === 'n')
             {
-                if (previousValue)
+                if (prevVal)
                 {
-                    events.removeEventListener(DOMElement, name.slice(2).toLowerCase(), previousValue);
+                    events.removeEventListener(DOMElement, name.slice(2).toLowerCase(), prevVal);
                 }
             }
             else

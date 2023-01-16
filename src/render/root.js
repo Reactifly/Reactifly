@@ -1,124 +1,145 @@
 import { createDomElement } from '../dom/create';
 import { createElement } from '../vdom/element';
 import { diff } from '../diff/index';
-import { jsx } from '../jsx/index';
-import { GLOBAL_CONTEXT } from '../internal';
+import { jsx, bind } from '../jsx/index';
+import { GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
 import _ from '../utils/index';
 
 /**
- * Root class.
+ * Root.
  *  
  * @property {HTMLElement}         htmlRootEl  Root html element
- * @property {function}            component   Root component
  * @property {object | undefined}  options     Root options
  */
-export class Root
+export function Root(htmlRootEl, options)
 {
-    /**
-     * Constructor.
-     *  
-     * @param {HTMLElement}         htmlRootEl  Root html element
-     * @param {object | undefined}  options     Options (optional)
-     */
-    constructor(htmlRootEl, options)
+    this.htmlRootEl = htmlRootEl;
+
+    this.options = options;
+
+    this.component = null;
+}
+
+/**
+ * Render root component.
+ *  
+ * @param function | string}   component   Component to render
+ * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+ */
+Root.prototype.render = function(componentOrJSX, rootProps)
+{
+    // Re-rendering
+    if (arguments.length === 0)
     {
-        this.htmlRootEl = htmlRootEl;
-
-        this.options = options;
-
-        this.component = null;
-    }
-
-    /**
-     * Render root component.
-     *  
-     * @param function | string}   component   Component to render
-     * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
-     */
-    render(componentOrJSX, rootProps)
-    {
-        this.component = !_.is_callable(componentOrJSX) ? this.__renderFactory(componentOrJSX, rootProps) : componentOrJSX;
-
-        this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps)
-    }
-
-    /**
-     * Creates wrapper function when passed as JSX string.
-     *  
-     * @param {string}              jsxStr      Root JSX to render
-     * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
-     */
-    __renderFactory(jsxStr, rootProps)
-    {
-        const renderFunc = function()
+        if (!this.component || !this.htmlRootEl)
         {
-            return jsx(jsxStr, rootProps);
-        };
+            throw new Error('Cannot re-render root. Root has not been rendered first!');
+        }
 
-        return renderFunc;
+        this.__patchRoot();
+
+        return;
     }
 
-    /**
-     * Patches the root Vnode/component when re-rending root or state change.
-     *
-     */
-    __patchRoot()
+    this.component = !_.is_callable(componentOrJSX) ? this.__renderFactory(componentOrJSX, rootProps) : componentOrJSX;
+
+    this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps)
+}
+
+/**
+ * Creates wrapper function when passed as JSX string.
+ *  
+ * @param {string}              jsxStr      Root JSX to render
+ * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+ */
+Root.prototype.__renderFactory = function(jsxStr, rootProps)
+{
+    const renderFunc = function()
     {
-        diff(this.htmlRootEl._reactiflyRootVnode, createElement(this.component));
-    }
+        bind(rootProps);
 
-    /**
-     * Render the root component.
-     *
-     */
-    __renderRoot(rootProps)
+        return jsxStr;
+    };
+
+    return renderFunc;
+}
+
+/**
+ * Patches the root Vnode/component when re-rending root or state change.
+ *
+ */
+Root.prototype.__patchRoot = function()
+{
+    diff(this.htmlRootEl._reactiflyRootVnode, createElement(this.component));
+
+    this.__renderCallbacks();
+}
+
+/**
+ * Render the root component.
+ *
+ */
+Root.prototype.__renderRoot = function(rootProps)
+{
+    let vnode = createElement(this.component, rootProps);
+
+    let DOMElement = createDomElement(vnode, this.htmlRootEl);
+
+    this.__mount(DOMElement);
+
+    this.htmlRootEl._reactiflyRootVnode = vnode;
+
+    GLOBAL_CONTEXT.current = null;
+
+    this.__renderCallbacks();
+}
+
+/**
+ * Executes post render callbacks.
+ * 
+ */
+Root.prototype.__renderCallbacks = function(rootProps)
+{
+    _.foreach(RENDER_CALLBACKS.current, function(i, callbackSet)
     {
-        let vnode = createElement(this.component, rootProps);
+        callbackSet.callback.apply(null, callbackSet.args);
+    });
 
-        let DOMElement = createDomElement(vnode, this.htmlRootEl);
+    RENDER_CALLBACKS.current = [];
+}
 
-        this.__mount(DOMElement);
+/**
+ * Mount root element
+ * 
+ * @param {HTMLElement | array } DOMElement  HTMLElement(s) returned from root component
+ *
+ */
+Root.prototype.__mount = function(DOMElement)
+{
+    let _this = this;
 
-        this.htmlRootEl._reactiflyRootVnode = vnode;
+    let parent = this.htmlRootEl;
 
-        GLOBAL_CONTEXT.current = null;
-
-        console.log(vnode);
-    }
-
-    /**
-     * Mount root element
-     * 
-     * @param {HTMLElement | array } DOMElement  HTMLElement(s) returned from root component
-     *
-     */
-    __mount(DOMElement)
+    // Where root renders a fragment or returns a thunk that renders a fragment
+    if (_.is_array(DOMElement))
     {
-        let _this = this;
-
-        let parent = this.htmlRootEl;
-
-        // Where root renders a fragment or returns a thunk that renders a fragment
-        if (_.is_array(DOMElement))
+        _.foreach(DOMElement, function(i, childDomElement)
         {
-            _.foreach(DOMElement, function(i, childDomElement)
+            if (_.is_array(childDomElement))
             {
-                if (_.is_array(childDomElement))
-                {
-                    _this.__mount(childDomElement, parent);
-                }
-                else
-                {
-                    parent.appendChild(childDomElement);
-                }
-            });
+                _this.__mount(childDomElement, parent);
+            }
+            else
+            {
+                parent.appendChild(childDomElement);
+            }
+        });
 
-            return;
-        }
+        return;
+    }
 
-        if (_.is_htmlElement(DOMElement))
-        {
-            parent.appendChild(DOMElement);
-        }
+    if (_.is_htmlElement(DOMElement))
+    {
+        parent.appendChild(DOMElement);
     }
 }
