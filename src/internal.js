@@ -3,8 +3,17 @@
  *
  * @var  {object}
  */
-export const RENDER_QUEUE = {
+export const CURR_RENDER = {
     current: null
+};
+
+/**
+ * Render callbacks
+ *
+ * @var  {object}
+ */
+export const RENDER_CALLBACKS = {
+    current: []
 };
 
 /**

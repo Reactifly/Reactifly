@@ -1,5 +1,5 @@
 import { Component } from './Component';
-import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
+import { CURR_RENDER, GLOBAL_CONTEXT } from '../internal';
 import { extend, is_function } from '../utils/index';
 
 /**
@@ -96,7 +96,7 @@ _FunctionalComponent.prototype.render = function()
 
     try
     {
-        RENDER_QUEUE.current = this;
+        CURR_RENDER.current = this;
 
         this.__internals._hookIndex = 0;
 

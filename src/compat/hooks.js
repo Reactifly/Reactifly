@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { is_equal } from '../utils/index';
 
-import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
+import { CURR_RENDER, GLOBAL_CONTEXT } from '../internal';
 
 /**
  * Essentially a passthrough to current context provider value.
@@ -37,24 +37,24 @@ export function useContext(context)
 
 export function useEffect(effect, deps)
 {
-    const i = RENDER_QUEUE.current.__internals._hookIndex++;
+    const i = CURR_RENDER.current.__internals._hookIndex++;
 
-    if (!RENDER_QUEUE.current.__internals._hooks[i])
+    if (!CURR_RENDER.current.__internals._hooks[i])
     {
-        RENDER_QUEUE.current.__internals._hooks[i] = effect;
-        RENDER_QUEUE.current.__internals._hookDeps[i] = deps;
-        RENDER_QUEUE.current.__internals._hooksCleanups[i] = effect();
+        CURR_RENDER.current.__internals._hooks[i] = effect;
+        CURR_RENDER.current.__internals._hookDeps[i] = deps;
+        CURR_RENDER.current.__internals._hooksCleanups[i] = effect();
     }
     else
     {
-        if (deps && !is_equal(deps, RENDER_QUEUE.current.__internals._hookDeps[i]))
+        if (deps && !is_equal(deps, CURR_RENDER.current.__internals._hookDeps[i]))
         {
-            if (RENDER_QUEUE.current.__internals._hooksCleanups[i])
+            if (CURR_RENDER.current.__internals._hooksCleanups[i])
             {
-                RENDER_QUEUE.current.__internals._hooksCleanups[i]();
+                CURR_RENDER.current.__internals._hooksCleanups[i]();
             }
 
-            RENDER_QUEUE.current.__internals._hooksCleanups[i] = effect();
+            CURR_RENDER.current.__internals._hooksCleanups[i] = effect();
         }
     }
 }
@@ -83,9 +83,9 @@ function refHolderFactory(reference)
 
 export function useLayoutEffect(effect, deps)
 {
-    const i = RENDER_QUEUE.current.__internals._hookIndex++;
+    const i = CURR_RENDER.current.__internals._hookIndex++;
 
-    const thisHookContext = RENDER_QUEUE.current;
+    const thisHookContext = CURR_RENDER.current;
 
     useEffect(() =>
     {
@@ -99,19 +99,19 @@ export function useLayoutEffect(effect, deps)
 
 export function useReducer(reducer, initialState, initialAction)
 {
-    const i = RENDER_QUEUE.current.__internals._hookIndex++;
+    const i = CURR_RENDER.current.__internals._hookIndex++;
 
-    if (!RENDER_QUEUE.current.__internals._hooks[i])
+    if (!CURR_RENDER.current.__internals._hooks[i])
     {
-        RENDER_QUEUE.current.__internals._hooks[i] = {
+        CURR_RENDER.current.__internals._hooks[i] = {
             state: initialAction ? reducer(initialState, initialAction) : initialState
         };
     }
 
-    const thisHookContext = RENDER_QUEUE.current;
+    const thisHookContext = CURR_RENDER.current;
 
     return [
-        RENDER_QUEUE.current.__internals._hooks[i].state,
+        CURR_RENDER.current.__internals._hooks[i].state,
         useCallback(action =>
         {
             thisHookContext.__internals._hooks[i].state = reducer(thisHookContext.__internals._hooks[i].state, action);
@@ -123,20 +123,20 @@ export function useReducer(reducer, initialState, initialAction)
 
 export function useState(initial)
 {
-    const i = RENDER_QUEUE.current.__internals._hookIndex++;
+    const i = CURR_RENDER.current.__internals._hookIndex++;
 
-    if (!RENDER_QUEUE.current.__internals._hooks[i])
+    if (!CURR_RENDER.current.__internals._hooks[i])
     {
-        RENDER_QUEUE.current.__internals._hooks[i] = {
+        CURR_RENDER.current.__internals._hooks[i] = {
             state: transformState(initial)
         };
     }
 
-    const thisHookContext = RENDER_QUEUE.current;
+    const thisHookContext = CURR_RENDER.current;
 
     return [
 
-        RENDER_QUEUE.current.__internals._hooks[i].state,
+        CURR_RENDER.current.__internals._hooks[i].state,
 
         useCallback(newState =>
         {
@@ -155,19 +155,19 @@ function useCallback(cb, deps)
 
 function useMemo(factory, deps)
 {
-    const i = RENDER_QUEUE.current.__internals._hookIndex++;
+    const i = CURR_RENDER.current.__internals._hookIndex++;
 
     if (
-        !RENDER_QUEUE.current.__internals._hooks[i] ||
+        !CURR_RENDER.current.__internals._hooks[i] ||
         !deps ||
-        !is_equal(deps, RENDER_QUEUE.current.__internals._hookDeps[i])
+        !is_equal(deps, CURR_RENDER.current.__internals._hookDeps[i])
     )
     {
-        RENDER_QUEUE.current.__internals._hooks[i] = factory();
-        RENDER_QUEUE.current.__internals._hookDeps[i] = deps;
+        CURR_RENDER.current.__internals._hooks[i] = factory();
+        CURR_RENDER.current.__internals._hookDeps[i] = deps;
     }
 
-    return RENDER_QUEUE.current.__internals._hooks[i];
+    return CURR_RENDER.current.__internals._hooks[i];
 }
 
 // end public api

@@ -1,7 +1,7 @@
 import * as vDOM from '../vdom/utils';
 import { jsx as parseJSX } from '../jsx/index';
 import { diff } from '../diff/index';
-import { RENDER_QUEUE, GLOBAL_CONTEXT } from '../internal';
+import { CURR_RENDER, GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -99,7 +99,7 @@ export function thunkRender(component)
 export function thunkUpdate(vnode)
 {
     let component = vnode.__internals._component;
-    let left = vnode.children[0];
+    let left  = vnode.children[0];
     let right = jsxFactory(component);
 
     diff(left, right);
@@ -113,13 +113,7 @@ export function thunkUpdate(vnode)
  */
 function jsxFactory(component)
 {
-    RENDER_QUEUE.current = component;
-
-    // Functional component wrapper
-    if (component.__internals._fn)
-    {
-        return component.render();
-    }
+    CURR_RENDER.current = component;
 
     const jsxStr = component.render();
 

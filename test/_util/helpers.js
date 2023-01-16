@@ -103,8 +103,6 @@ export function teardown(scratch)
 		scratch.parentNode.removeChild(scratch);
 	}
 
-	//testUtilTeardown();
-
 	if (getLog().length > 0)
 	{
 		clearLog();

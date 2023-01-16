@@ -1,8 +1,8 @@
 import { createDomElement } from '../dom/create';
 import { createElement } from '../vdom/element';
 import { diff } from '../diff/index';
-import { jsx } from '../jsx/index';
-import { GLOBAL_CONTEXT } from '../internal';
+import { jsx, bind } from '../jsx/index';
+import { GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -28,6 +28,19 @@ export function Root(htmlRootEl, options)
  */
 Root.prototype.render = function(componentOrJSX, rootProps)
 {
+    // Re-rendering
+    if (arguments.length === 0)
+    {
+        if (!this.component || !this.htmlRootEl)
+        {
+            throw new Error('Cannot re-render root. Root has not been rendered first!');
+        }
+
+        this.__patchRoot();
+
+        return;
+    }
+
     this.component = !_.is_callable(componentOrJSX) ? this.__renderFactory(componentOrJSX, rootProps) : componentOrJSX;
 
     this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps)
@@ -43,7 +56,9 @@ Root.prototype.__renderFactory = function(jsxStr, rootProps)
 {
     const renderFunc = function()
     {
-        return jsx(jsxStr, rootProps);
+        bind(rootProps);
+
+        return jsxStr;
     };
 
     return renderFunc;
@@ -56,6 +71,8 @@ Root.prototype.__renderFactory = function(jsxStr, rootProps)
 Root.prototype.__patchRoot = function()
 {
     diff(this.htmlRootEl._reactiflyRootVnode, createElement(this.component));
+
+    this.__renderCallbacks();
 }
 
 /**
@@ -74,7 +91,21 @@ Root.prototype.__renderRoot = function(rootProps)
 
     GLOBAL_CONTEXT.current = null;
 
-    console.log(vnode);
+    this.__renderCallbacks();
+}
+
+/**
+ * Executes post render callbacks.
+ * 
+ */
+Root.prototype.__renderCallbacks = function(rootProps)
+{
+    _.foreach(RENDER_CALLBACKS.current, function(i, callbackSet)
+    {
+        callbackSet.callback.apply(null, callbackSet.args);
+    });
+
+    RENDER_CALLBACKS.current = [];
 }
 
 /**
