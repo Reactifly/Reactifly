@@ -18,6 +18,22 @@ export function didMount(component)
 }
 
 /**
+ * Lifecycle for "componentWillMount".
+ * 
+ * Note this method does not recursively traverse the tree as children
+ * get this method called when they are first instantiated anyway.
+ * 
+ * @param {object}  component  Component
+ */
+export function willMount(component)
+{
+    if (_.is_callable(component.componentWillMount))
+    {
+        component.componentWillMount();
+    }
+}
+
+/**
  * Lifecycle for "componentWillUnmount".
  * 
  * Note this method is recursive as children don't get explicitly "unmounted".

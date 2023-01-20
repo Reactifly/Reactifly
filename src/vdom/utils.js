@@ -107,7 +107,7 @@ export let isEmpty = (vnode) =>
  */
 export let noChildren = (vnode) =>
 {
-    return vnode.children.length === 1 && isEmpty(vnode.children[0]);
+    return vnode.children && vnode.children.length === 1 && isEmpty(vnode.children[0]);
 }
 
 /**

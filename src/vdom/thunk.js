@@ -1,6 +1,7 @@
 import * as vDOM from '../vdom/utils';
 import { jsx as parseJSX } from '../jsx/index';
 import { diff } from '../diff/index';
+import { willMount } from './lifecycle';
 import { CURR_RENDER, GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
 import _ from '../utils/index';
 
@@ -8,7 +9,7 @@ import _ from '../utils/index';
  * Instantiate thunk component.
  * 
  * @param   {object}  vnode
- * @returns {import('../compat/Compoent').Component}
+ * @returns {object}
  */
 export function thunkInstantiate(vnode)
 {
@@ -32,6 +33,8 @@ export function thunkInstantiate(vnode)
         }
     }
 
+    willMount(component);
+
     vnode.children = [jsxFactory(component)];
 
     return component;
@@ -45,7 +48,7 @@ export function thunkInstantiate(vnode)
  */
 function childContext(componentFunc)
 {
-    let ret = null;
+    let ret = {};
 
     if (componentFunc.contextType)
     {
@@ -109,15 +112,13 @@ export function thunkUpdate(vnode)
  * Parses component JSX from render.
  * 
  * @param   {object}        component
- * @returns {object|array}
+ * @returns {object}
  */
 function jsxFactory(component)
 {
     CURR_RENDER.current = component;
 
-    const jsxStr = component.render();
-
-    const result = parseJSX(jsxStr);
+    const result = parseJSX(component.render());
 
     if (_.is_array(result))
     {

@@ -24,3 +24,17 @@ export const RENDER_CALLBACKS = {
 export const GLOBAL_CONTEXT = {
     current: null
 };
+
+/**
+ * Are we in debug?
+ *
+ * @var  {object}
+ */
+export const DEBUG = false;
+
+/**
+ * Are we in strict mode?
+ *
+ * @var  {object}
+ */
+export const STRICT_MODE = false;

@@ -1,4 +1,5 @@
 import { clearLog, getLog } from './logCall';
+import * as reactifly from '../../src/index';
 
 
 const VOID_ELEMENTS = /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/;
@@ -122,3 +123,10 @@ function restoreElementAttributes()
 		attributesSpy = null;
 	}
 }
+
+const Foo = () => 'd';
+
+export const getMixedArray = () => [ 0, 'a', 'b', reactifly.jsx(`<span>c</span>`), null, undefined, false, ['e', 'f'], 1];
+
+export const mixedArrayHTML = '0ab<span>c</span>ef1';
+

@@ -1,5 +1,6 @@
 import { isEmpty, isFragment } from './utils';
 import { functionalComponent } from '../compat/functionalComponent';
+import { STRICT_MODE } from '../internal';
 import _ from '../utils/index';
 
 let CURR_TAG = null;
@@ -13,7 +14,7 @@ let CURR_TAG = null;
  * @returns {object}
  */
 export function createElement(tag, props)
-{    
+{        
     if (arguments.length === 0)
     {
         return createEmptyVnode();
@@ -44,7 +45,7 @@ export function createElement(tag, props)
 
     if (arguments.length > 2)
     {
-        children = _.array_filter([].slice.call(arguments, 2));
+        children = [].slice.call(arguments, 2);
     }
 
     if (_.is_callable(tag))
@@ -69,7 +70,7 @@ export function createElement(tag, props)
         else
         {
             // Children was supplied as prop during JSX parse
-            if (children.length >= 1)
+            if (_.array_filter(children).length >= 1)
             {
                 normalizedProps.children = normaliseChildren(children, true);
             }
@@ -144,7 +145,7 @@ function normaliseChildren(children, propKeys, checkKeys)
     {
         _.foreach(children, function(i, vnode)
         {
-            if (_.is_null(vnode) || _.is_undefined(vnode))
+            if (_.is_null(vnode) || _.is_undefined(vnode) || _.is_bool(vnode))
             {
                 ret.push(createEmptyVnode());
             }
@@ -191,12 +192,12 @@ function normaliseChildren(children, propKeys, checkKeys)
         });
     }
 
-    if (warnKeys)
+    if (warnKeys && STRICT_MODE)
     {
         console.error('Warning: Each child in a list should have a unique [key] prop.');
     }
 
-    return _.is_empty(ret) ? [createEmptyVnode()] : filterChildren(ret);
+    return _.is_empty(ret) ? [createEmptyVnode()] : ret;
 }
 
 /**
@@ -218,36 +219,6 @@ function squashFragment(fragment, ret, fCount)
     });
 
     _.array_merge(ret, _children);
-}
-
-/**
- * If a node comprises of multiple empty children, filter
- * children and return only a single "empty" child
- */
-
-/**
- * Ensures we return only a single empty Vnode child (instead of multiple) when
- * children are empty
- *  
- * @param   {array}  children  Child Vnodes
- * @returns {array}
- */
-function filterChildren(children)
-{
-    // Empty
-    let ret = [children[0]];
-
-    _.foreach(children, function(i, vnode)
-    {
-        if (!isEmpty(vnode))
-        {
-            ret = children;
-
-            return false;
-        }
-    });
-
-    return ret;
 }
 
 /**
@@ -303,12 +274,17 @@ function createEmptyVnode()
  */
 function createThunkVnode(fn, props, children, key, ref)
 {
+    let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
+
     if (!_.is_class(fn, 'Component'))
-    {
+    {                
         throw new Error('[' + _.callable_name(fn) + '] is not a valid Component. Class or construable components must extend [Reactifly.Component]');
     }
 
-    let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
+    if (_type === 'thunk' && !_.is_function(fn.prototype.render))
+    {                
+        throw new Error('[' + _.callable_name(fn) + '] does not have a [render] method. Class or construable components must have a render method.');
+    }
 
     return {
         type: _type,

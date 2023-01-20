@@ -43,7 +43,7 @@ Root.prototype.render = function(componentOrJSX, rootProps)
 
     this.component = !_.is_callable(componentOrJSX) ? this.__renderFactory(componentOrJSX, rootProps) : componentOrJSX;
 
-    this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps)
+    this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps);
 }
 
 /**

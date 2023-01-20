@@ -69,28 +69,35 @@ const RESERVED_KEYS = [
 /**
  * Parse's JSX tokens
  *
- * @param   {string}  str     JSX  string
+ * @param   {string}  jsxStr  JSX  string
  * @returns {object}  config  Options
  */
-export default function parse(str, bindings)
+export default function parse(jsxStr, bindings)
 {
+    if (_.is_array(jsxStr))
+    {
+        let args = [Fragment, {}, ...jsxStr];
+
+        return createElement.apply(null, args);
+    }
+
     // Empty
-    if (str === null || typeof str === 'undefined' || (typeof str === 'string' && str.trim() === ''))
+    if (jsxStr === null || typeof jsxStr === 'undefined' || (typeof jsxStr === 'string' && jsxStr.trim() === ''))
     {
         return createElement();
     }
 
-    str = str + '';
+    jsxStr = jsxStr + '';
 
     // No HTML
-    if (!str.includes('<') && !str.includes('>'))
+    if (!jsxStr.includes('<') && !jsxStr.includes('>'))
     {
-        return createElement('text', null, str);
+        return createElement('text', null, jsxStr);
     }
 
-    str = cleanStr(str + '');
+    jsxStr = cleanStr(jsxStr + '');
 
-    let jsx = new Parser(str);
+    let jsx = new Parser(jsxStr);
 
     let output = jsx.parse();
 

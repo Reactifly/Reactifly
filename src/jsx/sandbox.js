@@ -1,3 +1,5 @@
+import { DEBUG } from '../internal';
+
 // Assume a browser environment.
 var reservedWords = [
     "break", "do", "in", "typeof",
@@ -194,7 +196,7 @@ const DISSALOWEDES = {
 // used or modified. The `sandbox` is an object containing variables we want
 // to pass in.
 export function sandbox(source, sandbox, _this)
-{    
+{        
     _this = _this || null;
 
     sandbox = sandbox || Object.create(null);
@@ -227,8 +229,10 @@ export function sandbox(source, sandbox, _this)
     }
     catch (e)
     {
-        console.log(e);
-        console.log(sandboxed);
+        if (DEBUG)
+        {
+            console.log(e);
+        }
     }
 
     unalienate();

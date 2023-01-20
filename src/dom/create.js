@@ -139,7 +139,7 @@ function createThunk(vnode, parentDOMElement)
     }
 
     let component = thunkInstantiate(vnode);
-
+    
     // Create entire tree recursively
     let DOMElement = createDomElement(vnode.children[0]);
 
