@@ -86,9 +86,10 @@ function createHTMLElement(vnode)
 
     vDOM.nodeElem(vnode, DOMElement);
 
-    _.foreach(children, function(i, child)
+    // props.children only gets rendered when actual children are empty
+    if (vDOM.noChildren(vnode) && attributes.children)
     {
-        if (!_.is_empty(child))
+        _.foreach(attributes.children, function(i, child)
         {
             let childDOMElem = createDomElement(child, DOMElement);
 
@@ -101,8 +102,25 @@ function createHTMLElement(vnode)
             {
                 DOMElement.appendChild(childDOMElem);
             }
-        }
-    });
+        });
+    }
+    else
+    {
+        _.foreach(children, function(i, child)
+        {
+            let childDOMElem = createDomElement(child, DOMElement);
+
+            // Returns a fragment
+            if (_.is_array(childDOMElem))
+            {
+                appendFragment(DOMElement, childDOMElem);
+            }
+            else
+            {
+                DOMElement.appendChild(childDOMElem);
+            }
+        });
+    }
 
     GLOBAL_CONTEXT.current = thisContext;
 

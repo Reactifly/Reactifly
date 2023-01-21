@@ -1,4 +1,4 @@
-import { isEmpty, isFragment } from './utils';
+import { isEmpty, isFragment, isValidVnode } from './utils';
 import { functionalComponent } from '../compat/functionalComponent';
 import { STRICT_MODE } from '../internal';
 import _ from '../utils/index';
@@ -34,6 +34,10 @@ export function createElement(tag, props)
         else if (k == 'ref')
         {
             ref = prop;
+        }
+        else if (k == 'children')
+        {
+            normalizedProps[k] = normaliseChildren(_.array_filter(prop), true);
         }
         else
         {
@@ -140,57 +144,53 @@ function normaliseChildren(children, propKeys, checkKeys)
     let ret = [];
 
     let warnKeys = false;
-
-    if (_.is_array(children))
-    {
-        _.foreach(children, function(i, vnode)
+   
+    _.foreach(children, function(i, vnode)
+    {            
+        if (_.is_null(vnode) || _.is_undefined(vnode) || _.is_bool(vnode))
         {
-            if (_.is_null(vnode) || _.is_undefined(vnode) || _.is_bool(vnode))
+            ret.push(createEmptyVnode());
+        }
+        else if (_.is_string(vnode) || _.is_number(vnode))
+        {
+            ret.push(createTextVnode(vnode, null));
+        }
+        else if (_.is_callable(vnode))
+        {
+            if (CURR_TAG.name !== 'Consumer')
             {
-                ret.push(createEmptyVnode());
+                throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
             }
-            else if (_.is_string(vnode) || _.is_number(vnode))
-            {
-                ret.push(createTextVnode(vnode, null));
-            }
-            else if (_.is_callable(vnode))
-            {
-                if (CURR_TAG.name !== 'Consumer')
-                {
-                    throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
-                }
 
-                ret.push(vnode);
+            ret.push(vnode);
+        }
+        // Inline function, map or props.children
+        else if (_.is_array(vnode))
+        {
+            let _children = normaliseChildren(vnode, propKeys, true);
 
-            }
-            // Inline function, map or props.children
-            else if (_.is_array(vnode))
+            _.array_merge(ret, _children);
+        }
+        else if (isFragment(vnode))
+        {
+            squashFragment(vnode, ret, fragmentcount);
+
+            fragmentcount++;
+        }
+        else if (isValidVnode(vnode))
+        {
+            if (propKeys && _.is_undefined(vnode.key))
             {
-                let _children = normaliseChildren(vnode, propKeys, true);
-
-                _.array_merge(ret, _children);
+                vnode.key = `_pk|${i}`;
             }
-            else if (isFragment(vnode))
+            else if (checkKeys && _.is_undefined(vnode.key))
             {
-                squashFragment(vnode, ret, fragmentcount);
-
-                fragmentcount++;
+                warnKeys = true;
             }
-            else
-            {
-                if (propKeys && _.is_undefined(vnode.key))
-                {
-                    vnode.key = `_pk|${i}`;
-                }
-                else if (checkKeys && _.is_undefined(vnode.key))
-                {
-                    warnKeys = true;
-                }
 
-                ret.push(vnode);
-            }
-        });
-    }
+            ret.push(vnode);
+        }
+    });
 
     if (warnKeys && STRICT_MODE)
     {

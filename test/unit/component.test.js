@@ -5,14 +5,15 @@ import chai, { expect } from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-
 chai.use(sinonChai);
 
 describe('Components', () =>
 {
-	
 	let scratch;
 	let root;
+	let instance;
+	let PROPS;
+	let STATE;
 
 	beforeEach(() =>
 	{
@@ -28,10 +29,6 @@ describe('Components', () =>
 
 	describe('Component construction', () =>
 	{
-		let instance;
-		let PROPS;
-		let STATE;
-
 		beforeEach(() =>
 		{
 			instance = null;
@@ -516,371 +513,364 @@ describe('Components', () =>
 			expect(scratch.innerHTML).to.equal('<p>B</p>');
 		});
 
-		it('should render string', () =>
+	});
+
+	it('should render string', () =>
+	{
+		class StringComponent extends reactifly.Component
 		{
-			class StringComponent extends reactifly.Component
+			render()
 			{
-				render()
-				{
-					return 'Hi there';
-				}
+				return 'Hi there';
+			}
+		}
+
+		root.render(`<StringComponent />`, {StringComponent: StringComponent});
+
+		expect(scratch.innerHTML).to.equal('Hi there');
+	});
+
+	it('should render number as string', () =>
+	{
+		class NumberComponent extends reactifly.Component
+		{
+			render()
+			{
+				return 42;
+			}
+		}
+
+		root.render(`<NumberComponent />`, {NumberComponent: NumberComponent});
+
+		expect(scratch.innerHTML).to.equal('42');
+	});
+
+	it('should render null as empty string', () =>
+	{
+		class NullComponent extends reactifly.Component
+		{
+			render()
+			{
+				return null;
+			}
+		}
+
+		root.render(`<NullComponent />`, {NullComponent: NullComponent});
+
+		expect(scratch.innerHTML).to.equal('');
+	});
+
+	it('should remove orphaned elements replaced by Components', () =>
+	{
+		class Comp extends reactifly.Component
+		{
+			render()
+			{
+				return `<span>span in a component</span>`;
+			}
+		}
+
+		function test(content)
+		{
+			reactifly.bind('Comp', Comp);
+
+			root.render(content);
+		}
+
+		test(`<Comp />`);
+		test(`<div>just a div</div>`);
+		test(`<Comp />`);
+
+		expect(scratch.innerHTML).to.equal('<span>span in a component</span>');
+	});
+
+	it('should remove children when root changes to text node', () =>
+	{
+		class Comp extends reactifly.Component
+		{
+			constructor()
+			{
+				super();
+
+				instance = this;
+			}
+			render()
+			{
+				return this.state.alt ? 'asdf' : `<div>test</div>`;
+			}
+		}
+
+		root.render(`<Comp />`, {Comp: Comp});
+
+		instance.setState({ alt: true });
+		instance.forceUpdate();
+		expect(scratch.innerHTML, 'switching to textnode').to.equal('asdf');
+
+		instance.setState({ alt: false });
+		instance.forceUpdate();
+		expect(scratch.innerHTML, 'switching to element').to.equal(
+			'<div>test</div>'
+		);
+
+		instance.setState({ alt: true });
+		instance.forceUpdate();
+		expect(scratch.innerHTML, 'switching to textnode 2').to.equal('asdf');
+	});
+
+	it('should maintain order when setting state (that inserts dom-elements)', () =>
+	{
+		let add, addTwice, reset;
+
+		const Entry = props => `<div>{props.children}</div>`;
+
+		class App extends reactifly.Component
+		{
+			Entry = Entry;
+
+			constructor(props)
+			{
+				super(props);
+
+				this.state = { values: ['abc'] };
+
+				add = this.add = this.add.bind(this);
+				addTwice = this.addTwice = this.addTwice.bind(this);
+				reset = this.reset = this.reset.bind(this);
 			}
 
-			root.render(`<StringComponent />`, {StringComponent: StringComponent});
-
-			expect(scratch.innerHTML).to.equal('Hi there');
-		});
-
-		it('should render number as string', () =>
-		{
-			class NumberComponent extends reactifly.Component
+			add()
 			{
-				render()
-				{
-					return 42;
-				}
+				this.setState({ values: [...this.state.values, 'def'] });
 			}
 
-			root.render(`<NumberComponent />`, {NumberComponent: NumberComponent});
-
-			expect(scratch.innerHTML).to.equal('42');
-		});
-
-		it('should render null as empty string', () =>
-		{
-			class NullComponent extends reactifly.Component
+			addTwice()
 			{
-				render()
-				{
-					return null;
-				}
+				this.setState({ values: [...this.state.values, 'def', 'ghi'] });
 			}
 
-			root.render(`<NullComponent />`, {NullComponent: NullComponent});
-
-			expect(scratch.innerHTML).to.equal('');
-		});
-
-		it('should remove orphaned elements replaced by Components', () =>
-		{
-			class Comp extends reactifly.Component
+			reset()
 			{
-				render()
-				{
-					return `<span>span in a component</span>`;
-				}
+				this.setState({ values: ['abc'] });
 			}
 
-			function test(content)
+			render()
+			{
+				return (`
+					<div>
+						{this.state.values.map((v, i) => (
+							<Entry key={i + v}>{v}</Entry>
+						))}
+						<button>First Button</button>
+						<button>Second Button</button>
+						<button>Third Button</button>
+					</div>
+				`);
+			}
+		}
+
+		const btnStr = '<button>First Button</button><button>Second Button</button><button>Third Button</button>';
+
+		root.render(App);
+		expect(scratch.firstChild.innerHTML).to.equal(
+			'<div>abc</div>' + btnStr
+		);
+
+		add();
+		//rerender();
+		expect(scratch.firstChild.innerHTML).to.equal(
+			'<div>abc</div><div>def</div>' + btnStr
+		);
+
+		add();
+		//rerender();
+
+		expect(scratch.firstChild.innerHTML).to.equal(
+			'<div>abc</div><div>def</div><div>def</div>' + btnStr
+		);
+
+		reset();
+		//rerender();
+		expect(scratch.firstChild.innerHTML).to.equal(
+			'<div>abc</div>' + btnStr
+		);
+
+		addTwice();
+		//rerender();
+		expect(scratch.firstChild.innerHTML).to.equal(
+			'<div>abc</div><div>def</div><div>ghi</div>' + btnStr
+		);
+	});
+
+	it('should not recycle common class children with different keys', () =>
+	{
+		let idx = 0;
+		let msgs = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+		let sideEffect = sinon.spy();
+
+		class Comp extends reactifly.Component
+		{
+			componentWillMount()
+			{
+				this.innerMsg = msgs[idx++ % 8];
+
+				sideEffect();
+			}
+
+			render()
+			{
+				return `<div>{this.innerMsg}</div>`;
+			}
+		}
+
+		sinon.spy(Comp.prototype, 'componentWillMount');
+
+		let good, bad;
+
+		class GoodContainer extends reactifly.Component
+		{
+			constructor(props)
+			{
+				super(props);
+
+				this.state = { alt: false };
+
+				good = this;
+			}
+
+			render()
+			{
+				//reactifly.bind('alt', this.state.alt);
+				reactifly.bind('Comp', Comp);
+
+				return `
+					<div>
+						{this.state.alt ? null : (<Comp key={1} alt={this.state.alt} />)}
+						{this.state.alt ? null : (<Comp key={2} alt={this.state.alt} />)}
+						{this.state.alt ? (<Comp key={3} alt={this.state.alt} />) : null}
+					</div>
+				`;
+			}
+		}
+
+		class BadContainer extends reactifly.Component
+		{
+			constructor(props)
+			{
+				super(props);
+
+				this.state = { alt: false };
+
+				bad = this;
+			}
+
+			render()
 			{
 				reactifly.bind('Comp', Comp);
 
-				root.render(content);
+				return `
+					<div>
+						{this.state.alt ? null : (<Comp alt={this.state.alt} />)}
+						{this.state.alt ? null : (<Comp alt={this.state.alt} />)}
+						{this.state.alt ? (<Comp alt={this.state.alt} />) : null}
+					</div>
+				`;
 			}
+		}
 
-			test(`<Comp />`);
-			test(`<div>just a div</div>`);
-			test(`<Comp />`);
+		root.render(GoodContainer);
+		expect(scratch.textContent, 'new component with key present').to.equal('AB');
+		expect(Comp.prototype.componentWillMount).to.have.been.calledTwice;
+		expect(sideEffect).to.have.been.calledTwice;
 
-			expect(scratch.innerHTML).to.equal('<span>span in a component</span>');
-		});
+		sideEffect.resetHistory();
+		Comp.prototype.componentWillMount.resetHistory();
+		good.setState({ alt: true });
 
-		it('should remove children when root changes to text node', () =>
-		{
-			class Comp extends reactifly.Component
-			{
-				constructor()
-				{
-					super();
+		//rerender();
+		expect(scratch.textContent, 'new component with key present re-rendered').to.equal('C');
+		
+		// we are recycling the first 2 components already rendered, just need a new one
+		expect(Comp.prototype.componentWillMount).to.have.been.calledOnce;
+		expect(sideEffect).to.have.been.calledOnce;
 
-					instance = this;
-				}
-				render()
-				{
-					return this.state.alt ? 'asdf' : `<div>test</div>`;
-				}
-			}
+		sideEffect.resetHistory();
+		Comp.prototype.componentWillMount.resetHistory();
+		root.render(BadContainer);
+		expect(scratch.textContent, 'new component without key').to.equal('DE');
+		expect(Comp.prototype.componentWillMount).to.have.been.calledTwice;
+		expect(sideEffect).to.have.been.calledTwice;
 
-			root.render(`<Comp />`, {Comp: Comp});
+		sideEffect.resetHistory();
+		Comp.prototype.componentWillMount.resetHistory();
+		bad.setState({ alt: true });
 
-			instance.setState({ alt: true });
-			instance.forceUpdate();
-			expect(scratch.innerHTML, 'switching to textnode').to.equal('asdf');
-
-			instance.setState({ alt: false });
-			instance.forceUpdate();
-			expect(scratch.innerHTML, 'switching to element').to.equal(
-				'<div>test</div>'
-			);
-
-			instance.setState({ alt: true });
-			instance.forceUpdate();
-			expect(scratch.innerHTML, 'switching to textnode 2').to.equal('asdf');
-		});
-
-		it('should maintain order when setting state (that inserts dom-elements)', () =>
-		{
-			let add, addTwice, reset;
-
-			const Entry = props => `<div>{props.children}</div>`;
-
-			class App extends reactifly.Component
-			{
-				Entry = Entry;
-
-				constructor(props)
-				{
-					super(props);
-
-					this.state = { values: ['abc'] };
-
-					add = this.add = this.add.bind(this);
-					addTwice = this.addTwice = this.addTwice.bind(this);
-					reset = this.reset = this.reset.bind(this);
-				}
-
-				add()
-				{
-					this.setState({ values: [...this.state.values, 'def'] });
-				}
-
-				addTwice()
-				{
-					this.setState({ values: [...this.state.values, 'def', 'ghi'] });
-				}
-
-				reset()
-				{
-					this.setState({ values: ['abc'] });
-				}
-
-				render()
-				{
-					return (`
-						<div>
-							{this.state.values.map((v, i) => (
-								<Entry key={i + v}>{v}</Entry>
-							))}
-							<button>First Button</button>
-							<button>Second Button</button>
-							<button>Third Button</button>
-						</div>
-					`);
-				}
-			}
-
-			const btnStr = '<button>First Button</button><button>Second Button</button><button>Third Button</button>';
-
-			root.render(App);
-			expect(scratch.firstChild.innerHTML).to.equal(
-				'<div>abc</div>' + btnStr
-			);
-
-			add();
-			//rerender();
-			expect(scratch.firstChild.innerHTML).to.equal(
-				'<div>abc</div><div>def</div>' + btnStr
-			);
-
-			add();
-			//rerender();
-
-			expect(scratch.firstChild.innerHTML).to.equal(
-				'<div>abc</div><div>def</div><div>def</div>' + btnStr
-			);
-
-			reset();
-			//rerender();
-			expect(scratch.firstChild.innerHTML).to.equal(
-				'<div>abc</div>' + btnStr
-			);
-
-			addTwice();
-			//rerender();
-			expect(scratch.firstChild.innerHTML).to.equal(
-				'<div>abc</div><div>def</div><div>ghi</div>' + btnStr
-			);
-		});
-
-		it('should not recycle common class children with different keys', () =>
-		{
-			let idx = 0;
-			let msgs = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-			let sideEffect = sinon.spy();
-
-			class Comp extends reactifly.Component
-			{
-				componentWillMount()
-				{
-					this.innerMsg = msgs[idx++ % 8];
-
-					sideEffect();
-				}
-
-				render()
-				{
-					return `<div>{this.innerMsg}</div>`;
-				}
-			}
-
-			sinon.spy(Comp.prototype, 'componentWillMount');
-
-			let good, bad;
-
-			class GoodContainer extends reactifly.Component
-			{
-				constructor(props)
-				{
-					super(props);
-
-					this.state = { alt: false };
-
-					good = this;
-				}
-
-				render()
-				{
-					//reactifly.bind('alt', this.state.alt);
-					reactifly.bind('Comp', Comp);
-
-					return `
-						<div>
-							{this.state.alt ? null : (<Comp key={1} alt={this.state.alt} />)}
-							{this.state.alt ? null : (<Comp key={2} alt={this.state.alt} />)}
-							{this.state.alt ? (<Comp key={3} alt={this.state.alt} />) : null}
-						</div>
-					`;
-				}
-			}
-
-			class BadContainer extends reactifly.Component
-			{
-				constructor(props)
-				{
-					super(props);
-
-					this.state = { alt: false };
-
-					bad = this;
-				}
-
-				render()
-				{
-					reactifly.bind('Comp', Comp);
-
-					return `
-						<div>
-							{this.state.alt ? null : (<Comp alt={this.state.alt} />)}
-							{this.state.alt ? null : (<Comp alt={this.state.alt} />)}
-							{this.state.alt ? (<Comp alt={this.state.alt} />) : null}
-						</div>
-					`;
-				}
-			}
-
-			root.render(GoodContainer);
-			expect(scratch.textContent, 'new component with key present').to.equal('AB');
-			expect(Comp.prototype.componentWillMount).to.have.been.calledTwice;
-			expect(sideEffect).to.have.been.calledTwice;
-
-			sideEffect.resetHistory();
-			Comp.prototype.componentWillMount.resetHistory();
-			good.setState({ alt: true });
-
-			//rerender();
-			expect(scratch.textContent, 'new component with key present re-rendered').to.equal('C');
-			
-			// we are recycling the first 2 components already rendered, just need a new one
-			expect(Comp.prototype.componentWillMount).to.have.been.calledOnce;
-			expect(sideEffect).to.have.been.calledOnce;
-
-			sideEffect.resetHistory();
-			Comp.prototype.componentWillMount.resetHistory();
-			root.render(BadContainer);
-			expect(scratch.textContent, 'new component without key').to.equal('DE');
-			expect(Comp.prototype.componentWillMount).to.have.been.calledTwice;
-			expect(sideEffect).to.have.been.calledTwice;
-
-			sideEffect.resetHistory();
-			Comp.prototype.componentWillMount.resetHistory();
-			bad.setState({ alt: true });
-
-			expect(scratch.textContent,'use null placeholders to detect new component is appended').to.equal('D');
-			expect(Comp.prototype.componentWillMount).to.not.be.called;
-			expect(sideEffect).to.not.be.called;
-		});
+		expect(scratch.textContent,'use null placeholders to detect new component is appended').to.equal('D');
+		expect(Comp.prototype.componentWillMount).to.not.be.called;
+		expect(sideEffect).to.not.be.called;
+	});
 	
-		describe('array children', () =>
+	describe('array children', () =>
+	{
+		it("should render DOM element's array children", () =>
 		{
-			it("should render DOM element's array children", () =>
-			{
-				reactifly.bind('getMixedArray', getMixedArray);
+			reactifly.bind('getMixedArray', getMixedArray);
 
-				root.render(`<div>{getMixedArray()}</div>`);
+			root.render(`<div>{getMixedArray()}</div>`);
 
-				expect(scratch.firstChild.innerHTML).to.equal(mixedArrayHTML);
-			});
-
-			it("should render Component's array children", () =>
-			{
-				const Foo = () => getMixedArray();
-
-				root.render(Foo);
-
-				expect(scratch.innerHTML).to.equal(mixedArrayHTML);
-			});
-
-			it("should render Fragment's array children", () =>
-			{
-				reactifly.bind('getMixedArray', getMixedArray);
-
-				const Foo = () => `<Fragment>{getMixedArray()}</Fragment>`;
-
-				root.render(Foo);
-
-				expect(scratch.innerHTML).to.equal(mixedArrayHTML);
-			});
-
-			it('should render sibling array children', () =>
-			{
-				const Todo = () => (`
-					<ul>
-						<li>A header</li>
-						{['a', 'b'].map(value =>
-						(
-							<li>{value}</li>
-						))}
-						<li>A divider</li>
-						{['c', 'd'].map(value =>
-						(
-							<li>{value}</li>
-						))}
-						<li>A footer</li>
-					</ul>
-				`);
-
-				root.render(Todo);
-
-				let ul = scratch.firstChild;
-				expect(ul.childNodes.length).to.equal(7);
-				expect(ul.childNodes[0].textContent).to.equal('A header');
-				expect(ul.childNodes[1].textContent).to.equal('a');
-				expect(ul.childNodes[2].textContent).to.equal('b');
-				expect(ul.childNodes[3].textContent).to.equal('A divider');
-				expect(ul.childNodes[4].textContent).to.equal('c');
-				expect(ul.childNodes[5].textContent).to.equal('d');
-				expect(ul.childNodes[6].textContent).to.equal('A footer');
-			});
+			expect(scratch.firstChild.innerHTML).to.equal(mixedArrayHTML);
 		});
 
+		it("should render Component's array children", () =>
+		{
+			const Foo = () => getMixedArray();
 
-		/*
+			root.render(Foo);
 
+			expect(scratch.innerHTML).to.equal(mixedArrayHTML);
+		});
 
-	// Test for Issue preactjs/preact#254
-	
+		it("should render Fragment's array children", () =>
+		{
+			reactifly.bind('getMixedArray', getMixedArray);
 
-	
+			const Foo = () => `<Fragment>{getMixedArray()}</Fragment>`;
+
+			root.render(Foo);
+
+			expect(scratch.innerHTML).to.equal(mixedArrayHTML);
+		});
+
+		it('should render sibling array children', () =>
+		{
+			const Todo = () => (`
+				<ul>
+					<li>A header</li>
+					{['a', 'b'].map(value =>
+					(
+						<li>{value}</li>
+					))}
+					<li>A divider</li>
+					{['c', 'd'].map(value =>
+					(
+						<li>{value}</li>
+					))}
+					<li>A footer</li>
+				</ul>
+			`);
+
+			root.render(Todo);
+
+			let ul = scratch.firstChild;
+			expect(ul.childNodes.length).to.equal(7);
+			expect(ul.childNodes[0].textContent).to.equal('A header');
+			expect(ul.childNodes[1].textContent).to.equal('a');
+			expect(ul.childNodes[2].textContent).to.equal('b');
+			expect(ul.childNodes[3].textContent).to.equal('A divider');
+			expect(ul.childNodes[4].textContent).to.equal('c');
+			expect(ul.childNodes[5].textContent).to.equal('d');
+			expect(ul.childNodes[6].textContent).to.equal('A footer');
+		});
+	});
 
 	describe('props.children', () =>
 	{
@@ -889,16 +879,18 @@ describe('Components', () =>
 		let Foo = props =>
 		{
 			children = props.children;
-			return <div>{props.children}</div>;
+
+			return `<div>{props.children}</div>`;
 		};
 
 		let FunctionFoo = props =>
 		{
 			children = props.children;
-			return <div>{props.children(2)}</div>;
+
+			return `<div>{props.children(2)}</div>`;
 		};
 
-		let Bar = () => <span>Bar</span>;
+		let Bar = () => `<span>Bar</span>`;
 
 		beforeEach(() =>
 		{
@@ -907,12 +899,11 @@ describe('Components', () =>
 
 		it('should support passing children as a prop', () =>
 		{
-			const Foo = props => <div {...props} />;
+			const Foo = props => `<div {...props} />`;
 
-			render(
-				<Foo a="b" children={[<span class="bar">bar</span>, '123', 456]} />,
-				scratch
-			);
+			reactifly.bind('Foo', Foo);
+
+			root.render(`<Foo a="b" children={[<span class="bar">bar</span>, '123', 456]} />`);
 
 			expect(scratch.innerHTML).to.equal(
 				'<div a="b"><span class="bar">bar</span>123456</div>'
@@ -921,44 +912,73 @@ describe('Components', () =>
 
 		it('should be ignored when explicit children exist', () =>
 		{
-			const Foo = props => <div {...props}>a</div>;
+			const Foo = props => `<div {...props}>a</div>`;
 
-			render(<Foo children={'b'} />, scratch);
+			reactifly.bind('Foo', Foo);
+
+			root.render(`<Foo children={'b'} />`);
 
 			expect(scratch.innerHTML).to.equal('<div>a</div>');
 		});
 
 		it('should be undefined with no child', () =>
 		{
-			render(<Foo />, scratch);
+			root.render(Foo);
+			
+			expect(children).to.be.undefined;
+			
+			expect(scratch.innerHTML).to.equal('<div></div>');
+
+		});
+
+		it('should be undefined with null as a child', () =>
+		{
+			reactifly.bind('Foo', Foo);
+
+			root.render(`<Foo>{null}</Foo>`);
 
 			expect(children).to.be.undefined;
+			
 			expect(scratch.innerHTML).to.equal('<div></div>');
 		});
 
-		it('should be null with null as a child', () =>
+		it('should be undefined with false as a child', () =>
 		{
-			render(<Foo>{null}</Foo>, scratch);
+			reactifly.bind('Foo', Foo);
 
-			expect(children).to.be.null;
-			expect(scratch.innerHTML).to.equal('<div></div>');
-		});
+			root.render(`<Foo>{false}</Foo>`);
 
-		it('should be false with false as a child', () =>
-		{
-			render(<Foo>{false}</Foo>, scratch);
-
-			expect(children).to.be.false;
+			expect(children).to.be.undefined;
+			
 			expect(scratch.innerHTML).to.equal('<div></div>');
 		});
 
 		it('should be true with true as a child', () =>
 		{
-			render(<Foo>{true}</Foo>, scratch);
+			reactifly.bind('Foo', Foo);
 
-			expect(children).to.be.true;
+			root.render(`<Foo>{true}</Foo>`);
+
+			expect(children).to.be.undefined;
+			
 			expect(scratch.innerHTML).to.equal('<div></div>');
 		});
+
+	});
+
+
+
+		/*
+
+
+	// Test for Issue preactjs/preact#254
+
+		
+		
+
+		
+
+		
 
 		it('should be a string with a text child', () =>
 		{
@@ -2907,7 +2927,5 @@ describe('Components', () =>
 	// should render nested fragment
 
 	// should render deep nested fragment
-	
 
-	});
 });
