@@ -2,7 +2,7 @@ import _ from '../utils/index';
 import * as vDOM from '../vdom/utils';
 import { createDomElement } from '../dom/create';
 import { setDomAttribute, removeDomAttribute } from '../dom/attributes';
-import { didUpdate as lifecycleDidUpdate } from '../vdom/lifecycle';
+import { didUpdate as lifecycleDidUpdate, didMount as lifecycleDidMount } from '../vdom/lifecycle';
 import * as events from '../dom/events';
 
 /**
@@ -447,6 +447,7 @@ function childDomIndex(parent, index)
 
 // Needs to be curried in
 const didUpdate = lifecycleDidUpdate;
+const didMount  = lifecycleDidMount;
 
 const ACTION_MAP = {
     replaceNode,
@@ -457,7 +458,8 @@ const ACTION_MAP = {
     replaceText,
     setAttribute,
     removeAttribute,
-    didUpdate
+    didUpdate,
+    didMount
 };
 
 export function action(name, args)

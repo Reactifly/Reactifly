@@ -2,7 +2,8 @@ import { createDomElement } from '../dom/create';
 import { createElement } from '../vdom/element';
 import { diff } from '../diff/index';
 import { jsx, bind } from '../jsx/index';
-import { GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
+import { GLOBAL_CONTEXT } from '../internal';
+import { didMount } from '../vdom/lifecycle';
 import _ from '../utils/index';
 
 /**
@@ -71,8 +72,6 @@ Root.prototype.__renderFactory = function(jsxStr, rootProps)
 Root.prototype.__patchRoot = function()
 {
     diff(this.htmlRootEl._reactiflyRootVnode, createElement(this.component));
-
-    this.__renderCallbacks();
 }
 
 /**
@@ -87,25 +86,11 @@ Root.prototype.__renderRoot = function(rootProps)
 
     this.__mount(DOMElement);
 
+    didMount(this.component, true);
+
     this.htmlRootEl._reactiflyRootVnode = vnode;
 
     GLOBAL_CONTEXT.current = null;
-
-    this.__renderCallbacks();
-}
-
-/**
- * Executes post render callbacks.
- * 
- */
-Root.prototype.__renderCallbacks = function(rootProps)
-{
-    _.foreach(RENDER_CALLBACKS.current, function(i, callbackSet)
-    {
-        callbackSet.callback.apply(null, callbackSet.args);
-    });
-
-    RENDER_CALLBACKS.current = [];
 }
 
 /**

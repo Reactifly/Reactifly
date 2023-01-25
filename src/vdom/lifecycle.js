@@ -1,6 +1,8 @@
 import * as vDOM from '../vdom/utils';
 import _ from '../utils/index';
 
+export const MOUNTED = {current : []};
+
 /**
  * Lifecycle for "componentDidMount".
  * 
@@ -9,11 +11,30 @@ import _ from '../utils/index';
  * 
  * @param {object}  component  Component
  */
-export function didMount(component)
+export function didMount(component, clearStack)
 {
-    if (_.is_callable(component.componentDidMount))
+    clearStack = _.is_undefined(clearStack) ? false : clearStack;
+
+    if (clearStack)
     {
-        component.componentDidMount();
+        if (component)
+        {
+            MOUNTED.current.unshift(component);
+        }
+        
+        _.foreach(MOUNTED.current, function(i, _component)
+        {
+            if (_.is_callable(_component.componentDidMount))
+            {
+                _component.componentDidMount();
+            }
+        });
+
+        MOUNTED.current = [];
+    }
+    else
+    {
+        MOUNTED.current.unshift(component);
     }
 }
 

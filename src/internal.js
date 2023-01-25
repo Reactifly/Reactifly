@@ -8,15 +8,6 @@ export const CURR_RENDER = {
 };
 
 /**
- * Render callbacks
- *
- * @var  {object}
- */
-export const RENDER_CALLBACKS = {
-    current: []
-};
-
-/**
  * Currently context Provider.
  *
  * @var  {object}

@@ -3,7 +3,7 @@ import * as vDOM from '../vdom/utils';
 import { thunkInstantiate } from '../vdom/thunk';
 import { setDomAttribute } from './attributes';
 import { didMount } from '../vdom/lifecycle';
-import { GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
+import { GLOBAL_CONTEXT } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -171,9 +171,9 @@ function createThunk(vnode, parentDOMElement)
         _ref(DOMElement);
     }
 
-    RENDER_CALLBACKS.current.push({callback: didMount, args: [component]});
-
     GLOBAL_CONTEXT.current = thisContext;
+
+    didMount(component);
 
     return DOMElement;
 }

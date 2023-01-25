@@ -330,7 +330,7 @@ describe('Components', () =>
 				}
 
 				componentDidMount()
-				{
+				{					
 					states.push(this.state);
 
 					expect(scratch.innerHTML).to.equal('<p>b</p>');
@@ -360,13 +360,12 @@ describe('Components', () =>
 
 			root.render(`<Foo />`, { Foo: Foo });
 			
-
 			let [firstState, secondState, thirdState] = states;
 			
-			expect(finalState).to.deep.equal({ a: 'c' });
 			expect(firstState).to.deep.equal({ a: 'b' });
 			expect(secondState).to.deep.equal({ a: 'a' });
 			expect(thirdState).to.deep.equal({ a: 'c' });
+			expect(finalState).to.deep.equal({ a: 'c' });
 		});
 
 		it('should initialize props & context but not state in Component constructor', () =>

@@ -2,7 +2,7 @@ import { action } from './commit';
 import * as vDom from '../vdom/utils';
 import * as thunk from '../vdom/thunk';
 import * as lifecycle from '../vdom/lifecycle';
-import { GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
+import { GLOBAL_CONTEXT } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -80,9 +80,15 @@ function replaceNode(left, right, actions)
         let component = thunk.thunkInstantiate(right);
 
         vDom.pointVnodeThunk(right, component);
-    }
 
-    actions.push(action('replaceNode', [left, right]));
+        actions.push(action('replaceNode', [left, right]));
+
+        actions.push(action('didMount', [component, true]));
+    }
+    else
+    {
+        actions.push(action('replaceNode', [left, right]));
+    }
 }
 
 /**
@@ -138,11 +144,11 @@ function patchThunk(left, right, actions)
 
         let component = thunk.thunkInstantiate(right);
 
-        RENDER_CALLBACKS.current.push({callback: lifecycle.didMount, args: [component]});
-
         vDom.pointVnodeThunk(right, component);
 
         actions.push(action('replaceNode', [left, right]));
+
+        actions.push(action('didMount', [component, true]));
     }
 }
 

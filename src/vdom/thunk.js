@@ -2,7 +2,7 @@ import * as vDOM from '../vdom/utils';
 import { jsx as parseJSX } from '../jsx/index';
 import { diff } from '../diff/index';
 import { willMount } from './lifecycle';
-import { CURR_RENDER, GLOBAL_CONTEXT, RENDER_CALLBACKS } from '../internal';
+import { CURR_RENDER, GLOBAL_CONTEXT } from '../internal';
 import _ from '../utils/index';
 
 /**
