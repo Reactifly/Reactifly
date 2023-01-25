@@ -66,7 +66,6 @@ export function setDomAttribute(DOMElement, name, value, prevVal)
             // remove all styles completely
             if (_.is_empty(value))
             {
-               
                 DOMElement.removeAttribute('style');
             }
             else if (_.is_string(value))
@@ -131,7 +130,14 @@ export function setDomAttribute(DOMElement, name, value, prevVal)
                         DOMElement[name] = value;
                         break;
                     default:
+                        try
+                        {
+                            DOMElement[name] = value == null ? '' : value;
+                        }
+                        catch(e){}
+                        
                         DOMElement.setAttribute(name, value);
+                       
                         break;
                 }
             }
@@ -186,6 +192,12 @@ export function removeDomAttribute(DOMElement, name, prevVal)
                         DOMElement[name] = ''
                         break
                     default:
+                        try
+                        {
+                            DOMElement[name] = '';
+                        }
+                        catch(e){}
+                        
                         DOMElement.removeAttribute(name)
                         break;
                 }

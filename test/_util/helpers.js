@@ -1,10 +1,10 @@
 import { clearLog, getLog } from './logCall';
 import * as reactifly from '../../src/index';
 
-
 const VOID_ELEMENTS = /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/;
 
-function encodeEntities(str) {
+function encodeEntities(str)
+{
 	return str.replace(/&/g, '&amp;');
 }
 
@@ -24,12 +24,18 @@ export function serializeHtml(node) {
  * @param {Element|Node} node	The root node to serialize
  * @returns {string} html
  */
-function serializeDomTree(node) {
-	if (node.nodeType === 3) {
+function serializeDomTree(node)
+{
+	if (node.nodeType === 3)
+	{
 		return encodeEntities(node.data);
-	} else if (node.nodeType === 8) {
+	}
+	else if (node.nodeType === 8)
+	{
 		return '<!--' + encodeEntities(node.data) + '-->';
-	} else if (node.nodeType === 1 || node.nodeType === 9) {
+	}
+	else if (node.nodeType === 1 || node.nodeType === 9)
+	{
 		let str = '<' + node.localName;
 		const attrs = [];
 		for (let i = 0; i < node.attributes.length; i++) {
@@ -122,6 +128,22 @@ function restoreElementAttributes()
 		Object.defineProperty(Element.prototype, 'attributes', originalAttributesPropDescriptor);
 		attributesSpy = null;
 	}
+}
+
+/**
+ * Hacky normalization of attribute order across browsers.
+ * @param {string} html
+ */
+export function sortAttributes(html)
+{
+	return html.replace(
+		/<([a-z0-9-]+)((?:\s+[a-z0-9:_.-]+=".*?")+)((?:\s*\/)?>)/gi,
+		(s, pre, attrs, after) => {
+			let list = attrs.split(/\s/).filter(Boolean).map(e => e.trim()).sort((a, b) => (a > b ? 1 : -1));
+			if (~after.indexOf('/')) after = '></' + pre + '>';
+			return '<' + pre + ' ' + list.join(' ') + after;
+		}
+	);
 }
 
 const Foo = () => 'd';

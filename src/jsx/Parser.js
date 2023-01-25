@@ -87,15 +87,13 @@ export default function parse(jsxStr, bindings)
         return createElement();
     }
 
-    jsxStr = jsxStr + '';
+    jsxStr = cleanStr(jsxStr + '');
 
     // No HTML
     if (!jsxStr.includes('<') && !jsxStr.includes('>'))
     {
         return createElement('text', null, jsxStr);
     }
-
-    jsxStr = cleanStr(jsxStr + '');
 
     let jsx = new Parser(jsxStr);
 
@@ -112,7 +110,7 @@ export default function parse(jsxStr, bindings)
  */
 function cleanStr(str)
 {
-    return str.split(/\n|  /g).filter(block => block !== '').join(' ');
+    return str.split(/\n|  /g).filter(block => block !== '').join(' ').trim();
 }
 
 /**
@@ -132,17 +130,18 @@ function genBindings(bindings)
         delete BINDINGS_CACHE[key];
     }
 
-    let component = CURR_RENDER.current;
+    if (CURR_RENDER.current)
+    {        
+        let props = _.object_props(CURR_RENDER.current);
 
-    let props = _.object_props(component);
-
-    _.foreach(props, function(i, k)
-    {
-        if (!RESERVED_KEYS.includes(k))
+        _.foreach(props, function(i, k)
         {
-            bindings[k] = component[k];
-        }
-    });
+            if (!RESERVED_KEYS.includes(k))
+            {
+                bindings[k] = CURR_RENDER.current[k];
+            }
+        });
+    }
 
     return bindings;
 }

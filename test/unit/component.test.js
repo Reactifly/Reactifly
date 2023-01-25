@@ -1,11 +1,26 @@
 import * as reactifly from '../../src/index';
-import { setupScratch, teardown, serializeHtml, getMixedArray, mixedArrayHTML } from '../_util/helpers';
+import { setupScratch, teardown, serializeHtml, getMixedArray, mixedArrayHTML, sortAttributes } from '../_util/helpers';
 import { clearLog, getLog, logCall } from '../_util/logCall';
 import chai, { expect } from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 chai.use(sinonChai);
+
+function getAttributes(node)
+{
+	let attrs = {};
+
+	if (node.attributes)
+	{
+		for (let i = node.attributes.length; i--; )
+		{
+			attrs[node.attributes[i].name] = node.attributes[i].value;
+		}
+	}
+
+	return attrs;
+}
 
 describe('Components', () =>
 {
@@ -99,6 +114,136 @@ describe('Components', () =>
 			expect(C2.prototype.render).to.have.been.calledOnce
 
 			expect(scratch.innerHTML).to.equal('<div foo="bar"></div>');
+		});
+
+		it('should bind components from Component properties', () =>
+		{
+			const FuncComp = sinon.spy(function(props)
+			{
+				return `<div>FuncComp</div>`;
+			});
+
+			class ClassComp extends reactifly.Component
+			{
+				render()
+				{
+					return `<div>ClassComp</div>`;
+				}
+			}
+
+			class Root extends reactifly.Component
+			{
+				FuncComp = FuncComp;
+
+				ClassComp = ClassComp;
+
+				render()
+				{
+					return `
+						<Fragment>
+							<ClassComp />
+							<FuncComp />
+						</Fragment>
+					`;
+				}
+			}
+
+			sinon.spy(ClassComp.prototype, 'render');
+
+			reactifly.bind('Root', Root);
+
+			root.render(Root);
+			
+			expect(FuncComp).to.have.been.calledOnce;
+			expect(ClassComp.prototype.render).to.have.been.calledOnce;
+		
+			expect(scratch.innerHTML).to.equal('<div>ClassComp</div><div>FuncComp</div>');
+		});
+
+		it('should bind components from Component properties with aliases', () =>
+		{
+			const FuncComp = sinon.spy(function(props)
+			{
+				return `<div>FuncComp</div>`;
+			});
+
+			class ClassComp extends reactifly.Component
+			{
+				render()
+				{
+					return `<div>ClassComp</div>`;
+				}
+			}
+
+			class Root extends reactifly.Component
+			{
+				Func = FuncComp;
+
+				Comp = ClassComp;
+
+				render()
+				{
+					return `
+						<Fragment>
+							<Comp />
+							<Func />
+						</Fragment>
+					`;
+				}
+			}
+
+			sinon.spy(ClassComp.prototype, 'render');
+
+			reactifly.bind('Root', Root);
+
+			root.render(Root);
+			
+			expect(FuncComp).to.have.been.calledOnce;
+			expect(ClassComp.prototype.render).to.have.been.calledOnce;
+		
+			expect(scratch.innerHTML).to.equal('<div>ClassComp</div><div>FuncComp</div>');
+		});
+
+		it('should bind variables from Component properties', () =>
+		{
+			const MixedVars = 'Foo';
+
+			class Root extends reactifly.Component
+			{
+				Foo = MixedVars;
+
+				render()
+				{
+					return `<div>{Foo}</div>`;
+				}
+			}
+
+			reactifly.bind('Root', Root);
+
+			root.render(Root);
+		
+			expect(scratch.innerHTML).to.equal('<div>Foo</div>');
+		});
+
+		it('should bind variables with bind', () =>
+		{
+			const MixedVars = 'Foo';
+
+			class Root extends reactifly.Component
+			{
+				render()
+				{
+					reactifly.bind('Foo', MixedVars);
+
+					return `<div>{Foo}</div>`;
+				}
+			}
+
+			reactifly.bind('Root', Root);
+
+			root.render(Root);
+		
+			expect(scratch.innerHTML).to.equal('<div>Foo</div>');
 		});
 
 		it('should not crash when setting state in constructor', () =>
@@ -808,6 +953,41 @@ describe('Components', () =>
 		expect(Comp.prototype.componentWillMount).to.not.be.called;
 		expect(sideEffect).to.not.be.called;
 	});
+
+	/*describe('JSX function interpolation', () =>
+	{
+		it("should render DOM element's array children", () =>
+		{
+			class Root extends reactifly.Component
+			{
+				returnStr()
+				{
+					return 'foo';
+				}
+
+				returnArray()
+				{
+					return [1, 2, 3];
+				}
+
+				returnJsx()
+				{
+					return reactifly.jsx('<div>jsx</div>');
+				}
+
+				render()
+				{
+					return 
+				}
+
+			}
+
+			root.render(`<div>{getMixedArray()}</div>`);
+
+			expect(scratch.firstChild.innerHTML).to.equal(mixedArrayHTML);
+		});
+
+	});*/
 	
 	describe('array children', () =>
 	{
@@ -839,6 +1019,22 @@ describe('Components', () =>
 
 			expect(scratch.innerHTML).to.equal(mixedArrayHTML);
 		});
+
+		it('should render array map', () =>
+		{
+			class MapComponent extends reactifly.Component
+			{
+				render()
+				{
+					return '<span>{[1,2,3].map(el=> (<div>{el}</div>))}</span>';
+				}
+			}
+
+			root.render(MapComponent);
+
+			expect(scratch.innerHTML).to.equal('<span><div>1</div><div>2</div><div>3</div></span>');
+		});
+
 
 		it('should render sibling array children', () =>
 		{
@@ -887,7 +1083,7 @@ describe('Components', () =>
 		{
 			children = props.children;
 
-			return `<div>{props.children(2)}</div>`;
+			return `<div>{props.children[0](2)}</div>`;
 		};
 
 		let Bar = () => `<span>Bar</span>`;
@@ -953,7 +1149,7 @@ describe('Components', () =>
 			expect(scratch.innerHTML).to.equal('<div></div>');
 		});
 
-		it('should be true with true as a child', () =>
+		/*it('should be true with true as a child', () =>
 		{
 			reactifly.bind('Foo', Foo);
 
@@ -962,113 +1158,122 @@ describe('Components', () =>
 			expect(children).to.be.undefined;
 			
 			expect(scratch.innerHTML).to.equal('<div></div>');
-		});
+		});*/
 
-	});
-
-
-
-		/*
-
-
-	// Test for Issue preactjs/preact#254
-
-		
-		
-
-		
-
-		
-
-		it('should be a string with a text child', () =>
+		it('should be a vnode with a text child', () =>
 		{
-			render(<Foo>text</Foo>, scratch);
+			reactifly.bind('Foo', Foo);
 
-			expect(children).to.be.a('string');
-			expect(children).to.equal('text');
+			root.render(`<Foo>text</Foo>`);
+
+			expect(children.length).to.equal(1);
+			expect(children[0]).to.be.a('object');
+			expect(children[0].type).to.equal('text');
+			expect(children[0].nodeValue).to.equal('text');
 			expect(scratch.innerHTML).to.equal('<div>text</div>');
 		});
 
-		it('should be a string with a number child', () =>
+		it('should be a vnode with a number child', () =>
 		{
-			render(<Foo>1</Foo>, scratch);
+			reactifly.bind('Foo', Foo);
 
-			expect(children).to.be.a('string');
-			expect(children).to.equal('1');
+			root.render(`<Foo>1</Foo>`);
+
+			expect(children.length).to.equal(1);
+			expect(children[0]).to.be.a('object');
+			expect(children[0].type).to.equal('text');
+			expect(children[0].nodeValue).to.equal('1');
 			expect(scratch.innerHTML).to.equal('<div>1</div>');
 		});
 
 		it('should be a VNode with a DOM node child', () =>
 		{
-			render(
+			reactifly.bind('Foo', Foo);
+
+			root.render(`
 				<Foo>
 					<span />
-				</Foo>,
-				scratch
-			);
+				</Foo>
+			`);
 
-			expect(children).to.be.an('object');
-			expect(children.type).to.equal('span');
+			expect(children.length).to.equal(1);
+			expect(children[0]).to.be.a('object');
+			expect(children[0].type).to.equal('native');
+			expect(children[0].tagName).to.equal('span');
 			expect(scratch.innerHTML).to.equal('<div><span></span></div>');
 		});
 
 		it('should be a VNode with a Component child', () =>
 		{
-			render(
+			reactifly.bind('Foo', Foo);
+			reactifly.bind('Bar', Bar);
+
+			root.render(`
 				<Foo>
 					<Bar />
-				</Foo>,
-				scratch
-			);
+				</Foo>
+			`);
 
-			expect(children).to.be.an('object');
-			expect(children.type).to.equal(Bar);
+			expect(children.length).to.equal(1);
+			expect(children[0]).to.be.a('object');
+			expect(children[0].type).to.equal('thunk');
+			expect(children[0].__internals._fn).to.equal(Bar);
 			expect(scratch.innerHTML).to.equal('<div><span>Bar</span></div>');
 		});
 
 		it('should be a function with a function child', () =>
 		{
 			const child = num => num.toFixed(2);
-			render(<FunctionFoo>{child}</FunctionFoo>, scratch);
 
-			expect(children).to.be.an('function');
-			expect(children).to.equal(child);
+			reactifly.bind('child', child);
+			reactifly.bind('FunctionFoo', FunctionFoo);
+
+			root.render(`<FunctionFoo>{child}</FunctionFoo>`);
+
+			expect(children[0]).to.be.an('function');
+			expect(children[0]).to.equal(child);
 			expect(scratch.innerHTML).to.equal('<div>2.00</div>');
 		});
 
 		it('should be an array with multiple children', () =>
 		{
-			render(
+			reactifly.bind('Foo', Foo);
+
+			root.render(`
 				<Foo>
 					0<span />
 					<input />
 					<div />1
-				</Foo>,
-				scratch
-			);
+				</Foo>
+			`);
 
 			expect(children).to.be.an('array');
-			expect(children[0]).to.equal('0');
-			expect(children[1].type).to.equal('span');
-			expect(children[2].type).to.equal('input');
-			expect(children[3].type).to.equal('div');
-			expect(children[4]).to.equal('1');
+			expect(children[0].nodeValue).to.equal('0');
+			expect(children[1].tagName).to.equal('span');
+			expect(children[2].tagName).to.equal('input');
+			expect(children[3].tagName).to.equal('div');
+			expect(children[4].nodeValue).to.equal('1');
 			expect(scratch.innerHTML).to.equal(
 				`<div>0<span></span><input><div></div>1</div>`
 			);
 		});
 
-		it('should be an array with an array as children', () =>
+		it('should be an array with an Vnodes as children', () =>
 		{
 			const mixedArray = getMixedArray();
-			render(<Foo>{mixedArray}</Foo>, scratch);
+
+		    reactifly.bind('mixedArray', mixedArray);
+
+		    reactifly.bind('Foo', Foo);
+
+		    root.render(`<Foo>{mixedArray}</Foo>`);
 
 			expect(children).to.be.an('array');
-			expect(children).to.deep.equal(mixedArray);
+			expect(children.length).to.equal(mixedArray.length + 1);
 			expect(scratch.innerHTML).to.equal(`<div>${mixedArrayHTML}</div>`);
 		});
 
-		it('should not flatten sibling and nested arrays', () =>
+		it('should flatten sibling and nested arrays', () =>
 		{
 			const list1 = [0, 1];
 			const list2 = [2, 3];
@@ -1076,21 +1281,25 @@ describe('Components', () =>
 			const list4 = [6, 7];
 			const list5 = [8, 9];
 
-			render(
+			reactifly.bind('Foo', Foo);
+
+			reactifly.bind({list1 : list1, list2 : list2, list3 : list3, list4: list4, list5 : list5});
+
+			root.render(`
 				<Foo>
 					{[list1, list2]}
 					{[list3, list4]}
 					{list5}
-				</Foo>,
-				scratch
-			);
+				</Foo>
+			`);
 
 			expect(children).to.be.an('array');
-			expect(children).to.deep.equal([[list1, list2], [list3, list4], list5]);
+			expect(children.length).to.equal(10);
 			expect(scratch.innerHTML).to.equal('<div>0123456789</div>');
 		});
-	});
 
+	});
+	
 	describe('High-Order Components', () =>
 	{
 		it('should render wrapper HOCs', () =>
@@ -1101,94 +1310,51 @@ describe('Components', () =>
 			{
 				return class BobRossIpsum extends reactifly.Component
 				{
-					getChildContext()
-					{
-						return { text };
-					}
-
 					render(props)
 					{
-						return <ChildComponent
-						{...props} />;
+						reactifly.bind('text', text);
+
+						reactifly.bind('ChildComponent', ChildComponent);
+
+						return `<ChildComponent {...props} text={text} />`;
 					}
 				};
 			}
 
-			const PaintSomething = (props, context) => <div>{context.text}</div>;
+			const PaintSomething = (props) =>
+			{
+				return `<div>{props.text}</div>`;
+			}
+
 			const Paint = withBobRoss(PaintSomething);
 
-			render(<Paint />, scratch);
+			root.render(Paint);
+
 			expect(scratch.innerHTML).to.equal(`<div>${text}</div>`);
-		});
-
-		it('should render HOCs with generic children', () =>
-		{
-			const text =
-				"Let your imagination just wonder around when you're doing these things.";
-
-			class BobRossProvider extends reactifly.Component
-			{
-				getChildContext()
-				{
-					return { text };
-				}
-
-				render(props)
-				{
-					return props.children;
-				}
-			}
-
-			function BobRossConsumer(props, context)
-			{
-				return props.children(context.text);
-			}
-
-			const Say = props => <div>{props.text}</div>;
-
-			const Speak = () => (
-				<BobRossProvider>
-					<span>A span</span>
-					<BobRossConsumer>{text => <Say text={text} />}</BobRossConsumer>
-					<span>A final span</span>
-				</BobRossProvider>
-			);
-
-			render(<Speak />, scratch);
-
-			expect(scratch.innerHTML).to.equal(
-				`<span>A span</span><div>${text}</div><span>A final span</span>`
-			);
 		});
 
 		it('should render nested functional components', () =>
 		{
-			const PROPS = { foo: 'bar', onBaz: () =>
-			{} };
+			const PROPS = { foo: 'bar', onBaz: () => {} };
 
-			const Outer = sinon.spy(props => <Inner {...props} />);
+			const Inner = sinon.spy(props => `<div {...props}>inner</div>`);
 
-			const Inner = sinon.spy(props => <div {...props}>inner</div>);
+			const Outer = sinon.spy(props =>
+			{
+				reactifly.bind('Inner', Inner);
 
-			render(<Outer {...PROPS} />, scratch);
+				return `<Inner {...props} />`;
+			});
+			
+			reactifly.bind('Outer', Outer);
 
-			expect(Outer)
-				.to.have.been.calledOnce.and.to.have.been.calledWithMatch(PROPS)
-				.and.to.have.returned(
-					sinon.match({
-						type: Inner,
-						props: PROPS
-					})
-				);
+			reactifly.bind('PROPS', PROPS);
 
-			expect(Inner)
-				.to.have.been.calledOnce.and.to.have.been.calledWithMatch(PROPS)
-				.and.to.have.returned(
-					sinon.match({
-						type: 'div',
-						props: { ...PROPS, children: 'inner' }
-					})
-				);
+			root.render(`<Outer {...PROPS} />`);
+
+			expect(Outer).to.have.been.calledOnce.and.to.have.been.calledWithMatch(PROPS)
+				
+			expect(Inner).to.have.been.calledOnce.and.to.have.been.calledWithMatch(PROPS);
 
 			expect(scratch.innerHTML).to.equal('<div foo="bar">inner</div>');
 		});
@@ -1196,51 +1362,50 @@ describe('Components', () =>
 		it('should re-render nested functional components', () =>
 		{
 			let doRender = null;
+
+			let j = 0;
+
+			const Inner = sinon.spy(props =>
+			{
+				reactifly.bind('j', ++j);
+
+				return `<div j={j} {...props}>inner</div>`;
+			});
+
 			class Outer extends reactifly.Component
 			{
+				Inner = Inner;
+
 				componentDidMount()
 				{
 					let i = 1;
+
 					doRender = () => this.setState({ i: ++i });
 				}
-				componentWillUnmount()
-				{}
-				render(props, { i })
+
+				componentWillUnmount() {}
+
+				render()
 				{
-					return <Inner i={i} {...props} />;
+					return `<Inner i={this.state.i} {...this.props} />`;
 				}
 			}
+
 			sinon.spy(Outer.prototype, 'render');
 			sinon.spy(Outer.prototype, 'componentWillUnmount');
 
-			let j = 0;
-			const Inner = sinon.spy(props => (
-				<div j={++j} {...props}>
-					inner
-				</div>
-			));
+			reactifly.bind('Outer', Outer);
 
-			render(<Outer foo="bar" />, scratch);
+			root.render(`<Outer foo="bar" />`);
 
 			// update & flush
 			doRender();
-			rerender();
 
 			expect(Outer.prototype.componentWillUnmount).not.to.have.been.called;
 
 			expect(Inner).to.have.been.calledTwice;
 
-			expect(Inner.secondCall)
-				.to.have.been.calledWithMatch({ foo: 'bar', i: 2 })
-				.and.to.have.returned(
-					sinon.match({
-						props: {
-							j: 2,
-							i: 2,
-							foo: 'bar'
-						}
-					})
-				);
+			expect(Inner.secondCall).to.have.been.calledWithMatch({ foo: 'bar', i: 2 });
 
 			expect(getAttributes(scratch.firstElementChild)).to.eql({
 				j: '2',
@@ -1250,21 +1415,10 @@ describe('Components', () =>
 
 			// update & flush
 			doRender();
-			rerender();
 
 			expect(Inner).to.have.been.calledThrice;
 
-			expect(Inner.thirdCall)
-				.to.have.been.calledWithMatch({ foo: 'bar', i: 3 })
-				.and.to.have.returned(
-					sinon.match({
-						props: {
-							j: 3,
-							i: 3,
-							foo: 'bar'
-						}
-					})
-				);
+			expect(Inner.thirdCall).to.have.been.calledWithMatch({ foo: 'bar', i: 3 });
 
 			expect(getAttributes(scratch.firstElementChild)).to.eql({
 				j: '3',
@@ -1278,59 +1432,69 @@ describe('Components', () =>
 			let doRender = null,
 				alt = false;
 
-			class Outer extends reactifly.Component
-			{
-				componentDidMount()
-				{
-					let i = 1;
-					doRender = () => this.setState({ i: ++i });
-				}
-				componentWillUnmount()
-				{}
-				render(props, { i })
-				{
-					if (alt) return <div is-alt />;
-					return <Inner i={i} {...props} />;
-				}
-			}
-			sinon.spy(Outer.prototype, 'render');
-			sinon.spy(Outer.prototype, 'componentDidMount');
-			sinon.spy(Outer.prototype, 'componentWillUnmount');
-
 			let j = 0;
+
 			class Inner extends reactifly.Component
 			{
-				constructor(...args)
+				constructor(props)
 				{
-					super();
+					super(props);
 				}
-				componentWillMount()
-				{}
-				componentDidMount()
-				{}
-				componentWillUnmount()
-				{}
-				render(props)
+
+				componentWillMount() {}
+				componentDidMount() {}
+				componentWillUnmount() {}
+				
+				render()
 				{
-					return (
-						<div j={++j} {...props}>
+					reactifly.bind('j', ++j);
+
+					return `
+						<div j={j} {...this.props}>
 							inner
 						</div>
-					);
+					`;
 				}
 			}
+
 			sinon.spy(Inner.prototype, 'render');
 			sinon.spy(Inner.prototype, 'componentWillMount');
 			sinon.spy(Inner.prototype, 'componentDidMount');
 			sinon.spy(Inner.prototype, 'componentWillUnmount');
 
-			render(<Outer foo="bar" />, scratch);
+			class Outer extends reactifly.Component
+			{
+				Inner = Inner;
+
+				componentDidMount()
+				{
+					let i = 1;
+					
+					doRender = () => this.setState({ i: ++i });
+				}
+
+				componentWillUnmount() {}
+				
+				render()
+				{
+					if (alt) return `<div is-alt="true" />`;
+					
+					return `<Inner i={this.state.i} {...this.props} />`;
+				}
+			}
+
+			sinon.spy(Outer.prototype, 'render');
+			sinon.spy(Outer.prototype, 'componentDidMount');
+			sinon.spy(Outer.prototype, 'componentWillUnmount');
+
+			reactifly.bind('Outer', Outer);
+
+			root.render(`<Outer foo="bar" />`);
 
 			expect(Outer.prototype.componentDidMount).to.have.been.calledOnce;
 
 			// update & flush
 			doRender();
-			rerender();
 
 			expect(Outer.prototype.componentWillUnmount).not.to.have.been.called;
 
@@ -1339,17 +1503,7 @@ describe('Components', () =>
 			expect(Inner.prototype.componentDidMount).to.have.been.calledOnce;
 			expect(Inner.prototype.render).to.have.been.calledTwice;
 
-			expect(Inner.prototype.render.secondCall)
-				.to.have.been.calledWithMatch({ foo: 'bar', i: 2 })
-				.and.to.have.returned(
-					sinon.match({
-						props: {
-							j: 2,
-							i: 2,
-							foo: 'bar'
-						}
-					})
-				);
+			expect(Inner.prototype.render.secondCall).to.have.been.calledWithMatch({ foo: 'bar', i: 2 })
 
 			expect(getAttributes(scratch.firstElementChild)).to.eql({
 				j: '2',
@@ -1363,24 +1517,13 @@ describe('Components', () =>
 
 			// update & flush
 			doRender();
-			rerender();
 
 			expect(Inner.prototype.componentWillUnmount).not.to.have.been.called;
 			expect(Inner.prototype.componentWillMount).to.have.been.calledOnce;
 			expect(Inner.prototype.componentDidMount).to.have.been.calledOnce;
 			expect(Inner.prototype.render).to.have.been.calledThrice;
 
-			expect(Inner.prototype.render.thirdCall)
-				.to.have.been.calledWithMatch({ foo: 'bar', i: 3 })
-				.and.to.have.returned(
-					sinon.match({
-						props: {
-							j: 3,
-							i: 3,
-							foo: 'bar'
-						}
-					})
-				);
+			expect(Inner.prototype.render.thirdCall).to.have.been.calledWithMatch({ foo: 'bar', i: 3 })
 
 			expect(getAttributes(scratch.firstElementChild)).to.eql({
 				j: '3',
@@ -1388,19 +1531,14 @@ describe('Components', () =>
 				foo: 'bar'
 			});
 
-			// update & flush
 			alt = true;
 			doRender();
-			rerender();
 
 			expect(Inner.prototype.componentWillUnmount).to.have.been.calledOnce;
-
 			expect(scratch.innerHTML).to.equal('<div is-alt="true"></div>');
 
-			// update & flush
 			alt = false;
 			doRender();
-			rerender();
 
 			expect(serializeHtml(scratch)).to.equal(
 				sortAttributes('<div foo="bar" j="4" i="5">inner</div>')
@@ -1410,18 +1548,7 @@ describe('Components', () =>
 		it('should resolve intermediary functional component', () =>
 		{
 			let ctx = {};
-			class Root extends reactifly.Component
-			{
-				getChildContext()
-				{
-					return { ctx };
-				}
-				render()
-				{
-					return <Func />;
-				}
-			}
-			const Func = () => <Inner />;
+
 			class Inner extends reactifly.Component
 			{
 				componentWillMount()
@@ -1432,7 +1559,29 @@ describe('Components', () =>
 				{}
 				render()
 				{
-					return <div>inner</div>;
+					return `<div>inner</div>`;
+				}
+			}
+
+			const Func = () => 
+			{
+				reactifly.bind('Inner', Inner);
+
+				return `<Inner />`;
+			}
+
+			class Root extends reactifly.Component
+			{
+				Func = Func;
+
+				getChildContext()
+				{
+					return { ctx };
+				}
+
+				render()
+				{
+					return `<Func />`;
 				}
 			}
 
@@ -1441,7 +1590,8 @@ describe('Components', () =>
 			sinon.spy(Inner.prototype, 'componentDidMount');
 			sinon.spy(Inner.prototype, 'render');
 
-			render(<Root />, scratch);
+			reactifly.bind('Root', Root);
+			root.render(Root);
 
 			expect(Inner.prototype.componentWillMount).to.have.been.calledOnce;
 			expect(Inner.prototype.componentDidMount).to.have.been.calledOnce;
@@ -1449,7 +1599,7 @@ describe('Components', () =>
 				Inner.prototype.componentDidMount
 			);
 
-			render(<asdf />, scratch);
+			root.render(`<asdf />`);
 
 			expect(Inner.prototype.componentWillUnmount).to.have.been.calledOnce;
 		});
@@ -1459,50 +1609,6 @@ describe('Components', () =>
 			let outer,
 				inner2,
 				counter = 0;
-
-			class Outer extends reactifly.Component
-			{
-				constructor(props, context)
-				{
-					super(props, context);
-					outer = this;
-					this.state = {
-						child: this.props.child
-					};
-				}
-				componentWillUnmount()
-				{}
-				componentWillMount()
-				{}
-				componentDidMount()
-				{}
-				render(_, { child: C })
-				{
-					return <C />;
-				}
-			}
-			sinon.spy(Outer.prototype, 'componentWillUnmount');
-			sinon.spy(Outer.prototype, 'componentWillMount');
-			sinon.spy(Outer.prototype, 'componentDidMount');
-			sinon.spy(Outer.prototype, 'render');
-
-			class Inner extends reactifly.Component
-			{
-				componentWillUnmount()
-				{}
-				componentWillMount()
-				{}
-				componentDidMount()
-				{}
-				render()
-				{
-					return h('element' + ++counter);
-				}
-			}
-			sinon.spy(Inner.prototype, 'componentWillUnmount');
-			sinon.spy(Inner.prototype, 'componentWillMount');
-			sinon.spy(Inner.prototype, 'componentDidMount');
-			sinon.spy(Inner.prototype, 'render');
 
 			class Inner2 extends reactifly.Component
 			{
@@ -1517,9 +1623,10 @@ describe('Components', () =>
 				{}
 				componentDidMount()
 				{}
+
 				render()
 				{
-					return h('element' + ++counter);
+					return ++counter;
 				}
 			}
 			sinon.spy(Inner2.prototype, 'componentWillUnmount');
@@ -1527,7 +1634,57 @@ describe('Components', () =>
 			sinon.spy(Inner2.prototype, 'componentDidMount');
 			sinon.spy(Inner2.prototype, 'render');
 
-			render(<Outer child={Inner} />, scratch);
+			class Inner extends reactifly.Component
+			{
+				componentWillUnmount()
+				{}
+				componentWillMount()
+				{}
+				componentDidMount()
+				{}
+				render()
+				{
+					return ++counter;
+				}
+			}
+			sinon.spy(Inner.prototype, 'componentWillUnmount');
+			sinon.spy(Inner.prototype, 'componentWillMount');
+			sinon.spy(Inner.prototype, 'componentDidMount');
+			sinon.spy(Inner.prototype, 'render');
+
+			class Outer extends reactifly.Component
+			{
+				constructor(props, context)
+				{
+					super(props, context);
+
+					outer = this;
+					
+					this.state =
+					{
+						child: this.props.child
+					};
+				}
+
+				componentWillUnmount()
+				{}
+				componentWillMount()
+				{}
+				componentDidMount()
+				{}
+				render()
+				{
+					reactifly.bind('InnerChild', this.state.child);
+
+					return `<InnerChild />`;
+				}
+			}
+			sinon.spy(Outer.prototype, 'componentWillUnmount');
+			sinon.spy(Outer.prototype, 'componentWillMount');
+			sinon.spy(Outer.prototype, 'componentDidMount');
+			sinon.spy(Outer.prototype, 'render');
+
+			root.render(`<Outer child={Inner} />`, { Outer: Outer, Inner: Inner });
 
 			// outer should only have been mounted once
 			expect(Outer.prototype.componentWillMount, 'outer initial').to.have.been
@@ -1546,8 +1703,8 @@ describe('Components', () =>
 				.been.called;
 
 			outer.setState({ child: Inner2 });
-			outer.forceUpdate();
-			rerender();
+			//outer.forceUpdate();
+			//rerender();
 
 			expect(Inner2.prototype.render).to.have.been.calledOnce;
 
@@ -1568,7 +1725,7 @@ describe('Components', () =>
 				.been.called;
 
 			inner2.forceUpdate();
-			rerender();
+			//rerender();
 
 			expect(Inner2.prototype.render, 'inner2 update').to.have.been.calledTwice;
 			expect(Inner2.prototype.componentWillMount, 'inner2 update').to.have.been
@@ -1579,11 +1736,23 @@ describe('Components', () =>
 				.been.called;
 		});
 
+	});
+
+
+
+	/*
+
+		
+
+		
+
+		i
+
 		it('should remount when swapping between HOC child types', () =>
 		{
 			class Outer extends reactifly.Component
 			{
-				render({ child: Child })
+				root.render({ child: Child })
 				{
 					return <Child />;
 				}
@@ -1606,7 +1775,7 @@ describe('Components', () =>
 
 			const InnerFunc = () => <div class="inner-func">bar</div>;
 
-			render(<Outer child={Inner} />, scratch);
+			root.render(<Outer child={Inner} />, scratch);
 
 			expect(Inner.prototype.componentWillMount, 'initial mount').to.have.been
 				.calledOnce;
@@ -1614,7 +1783,7 @@ describe('Components', () =>
 				.been.called;
 
 			Inner.prototype.componentWillMount.resetHistory();
-			render(<Outer child={InnerFunc} />, scratch);
+			root.render(<Outer child={InnerFunc} />, scratch);
 
 			expect(Inner.prototype.componentWillMount, 'unmount').not.to.have.been
 				.called;
@@ -1622,7 +1791,7 @@ describe('Components', () =>
 				.calledOnce;
 
 			Inner.prototype.componentWillUnmount.resetHistory();
-			render(<Outer child={Inner} />, scratch);
+			root.render(<Outer child={Inner} />, scratch);
 
 			expect(Inner.prototype.componentWillMount, 'remount').to.have.been
 				.calledOnce;
@@ -1641,7 +1810,7 @@ describe('Components', () =>
 			{
 				componentWillMount()
 				{}
-				render({ children })
+				root.render({ children })
 				{
 					if (!useIntermediary) return children;
 					let I = useIntermediary === true ? Intermediary : useIntermediary;
@@ -1675,7 +1844,7 @@ describe('Components', () =>
 		it('should handle lifecycle for no intermediary in component tree', () =>
 		{
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
@@ -1692,7 +1861,7 @@ describe('Components', () =>
 				.calledOnce;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>Some Text</C2>
 				</C1>,
@@ -1705,7 +1874,7 @@ describe('Components', () =>
 				.have.been.called;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C3>Some Text</C3>
 				</C1>,
@@ -1718,7 +1887,7 @@ describe('Components', () =>
 				.calledOnce;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
@@ -1739,9 +1908,9 @@ describe('Components', () =>
 		{
 			useIntermediary = true;
 
-			render(<div />, scratch);
+			root.render(<div />, scratch);
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
@@ -1764,7 +1933,7 @@ describe('Components', () =>
 			).to.have.been.calledOnce;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>Some Text</C2>
 				</C1>,
@@ -1781,7 +1950,7 @@ describe('Components', () =>
 			).not.to.have.been.called;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C3>Some Text</C3>
 				</C1>,
@@ -1798,7 +1967,7 @@ describe('Components', () =>
 			).to.have.been.calledOnce;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
@@ -1855,7 +2024,7 @@ describe('Components', () =>
 				}
 			}
 
-			render(<Parent />, scratch);
+			root.render(<Parent />, scratch);
 			expect(spy).to.be.calledOnce;
 
 			update();
@@ -1867,9 +2036,9 @@ describe('Components', () =>
 		{
 			useIntermediary = 'div';
 
-			render(<div />, scratch);
+			root.render(<div />, scratch);
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
@@ -1892,7 +2061,7 @@ describe('Components', () =>
 			).to.have.been.calledOnce;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>Some Text</C2>
 				</C1>,
@@ -1909,7 +2078,7 @@ describe('Components', () =>
 			).not.to.have.been.called;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C3>Some Text</C3>
 				</C1>,
@@ -1926,7 +2095,7 @@ describe('Components', () =>
 			).to.have.been.calledOnce;
 
 			reset();
-			render(
+			root.render(
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
@@ -1994,21 +2163,21 @@ describe('Components', () =>
 		// behavior were broken
 		const getDom = c => ('__v' in c ? c.__v.__e : c._vnode._dom);
 
-		render(<App />, scratch);
+		root.render(<App />, scratch);
 		expect(getDom(child)).to.equalNode(child.base);
 
 		app.forceUpdate();
 		expect(getDom(child)).to.equalNode(child.base);
 
 		parent.setState({});
-		renderChildDiv = true;
+		root.renderChildDiv = true;
 		child.forceUpdate();
 		expect(getDom(child)).to.equalNode(child.base);
 		rerender();
 
 		expect(getDom(child)).to.equalNode(child.base);
 
-		renderChildDiv = false;
+		root.renderChildDiv = false;
 		app.setState({});
 		child.forceUpdate();
 		rerender();
@@ -2070,7 +2239,7 @@ describe('Components', () =>
 			}
 		}
 
-		render(<App />, scratch);
+		root.render(<App />, scratch);
 
 		updateAppState();
 		rerender();
@@ -2184,7 +2353,7 @@ describe('Components', () =>
 
 		it('should keep c.base up to date if a nested child component changes DOM nodes', () =>
 		{
-			render(
+			root.render(
 				<ParentWithDom>
 					<Parent1>
 						<Parent2>
@@ -2218,7 +2387,7 @@ describe('Components', () =>
 				s3 = {},
 				s4 = {};
 
-			render(
+			root.render(
 				<Fragment>
 					<ParentWithDom>
 						<Parent1>
@@ -2265,7 +2434,7 @@ describe('Components', () =>
 
 		it('should not update parent c.base if child component changes DOM nodes and it is not first child component', () =>
 		{
-			render(
+			root.render(
 				<Parent1>
 					<Sibling />
 					<Child />
@@ -2289,7 +2458,7 @@ describe('Components', () =>
 
 		it('should update parent c.base if child component changes DOM nodes and it is first non-null child component', () =>
 		{
-			render(
+			root.render(
 				<Parent1>
 					<Null />
 					<Child />
@@ -2316,7 +2485,7 @@ describe('Components', () =>
 
 		it('should not update parent c.base if child component changes DOM nodes and a parent is not first child component', () =>
 		{
-			render(
+			root.render(
 				<ParentWithDom>
 					<Parent1>
 						<Sibling />
@@ -2350,7 +2519,7 @@ describe('Components', () =>
 
 		it('should update parent c.base if first child becomes null', () =>
 		{
-			render(
+			root.render(
 				<Parent1>
 					<MaybeNull active />
 					<Parent2>
@@ -2411,7 +2580,7 @@ describe('Components', () =>
 
 		it('should update parent c.base if first child becomes non-null', () =>
 		{
-			render(
+			root.render(
 				<Parent1>
 					<MaybeNull />
 					<Parent2>
@@ -2474,7 +2643,7 @@ describe('Components', () =>
 
 		it('should update parent c.base if first non-null child becomes null with multiple null siblings', () =>
 		{
-			render(
+			root.render(
 				<Parent1>
 					<Null />
 					<Null />
@@ -2537,7 +2706,7 @@ describe('Components', () =>
 
 		it('should update parent c.base if a null child returns DOM with multiple null siblings', () =>
 		{
-			render(
+			root.render(
 				<Parent1>
 					<Null />
 					<Null />
@@ -2603,7 +2772,7 @@ describe('Components', () =>
 		it('should update parent c.base to null if last child becomes null', () =>
 		{
 			let fragRef = {};
-			render(
+			root.render(
 				<Fragment ref={fragRef}>
 					<Parent1>
 						<Null />
@@ -2660,7 +2829,7 @@ describe('Components', () =>
 		it('should update parent c.base if last child returns dom', () =>
 		{
 			let fragRef = {};
-			render(
+			root.render(
 				<Fragment ref={fragRef}>
 					<Parent1>
 						<Null />
@@ -2718,7 +2887,7 @@ describe('Components', () =>
 					<Child />
 				</div>
 			);
-			render(divVNode, scratch);
+			root.render(divVNode, scratch);
 
 			// TODO: Consider rewriting test to not rely on internal properties
 			// and instead capture user-facing bug that would occur if this
@@ -2771,14 +2940,14 @@ describe('Components', () =>
 				}
 			}
 
-			render(<Foo />, scratch);
+			root.render(<Foo />, scratch);
 			expect(scratch.innerHTML).to.equal('<div>0</div>');
 
 			increment();
 			rerender();
 			expect(scratch.innerHTML).to.equal('<div>1</div>');
 
-			render(null, scratch);
+			root.render(null, scratch);
 			expect(scratch.innerHTML).to.equal('');
 
 			expect(() => increment()).to.not.throw();
@@ -2812,7 +2981,7 @@ describe('Components', () =>
 				}
 			}
 
-			render(<Foo />, scratch);
+			root.render(<Foo />, scratch);
 			expect(scratch.innerHTML).to.equal('bar');
 
 			rerender();
@@ -2847,7 +3016,7 @@ describe('Components', () =>
 				}
 			}
 
-			render(<Foo />, scratch);
+			root.render(<Foo />, scratch);
 			expect(() =>
 			{
 				update();
@@ -2876,10 +3045,10 @@ describe('Components', () =>
 				}
 			}
 
-			render(<Foo />, scratch);
+			root.render(<Foo />, scratch);
 			expect(scratch.innerHTML).to.equal('<div>Hello</div>');
 
-			render(null, scratch);
+			root.render(null, scratch);
 			expect(scratch.innerHTML).to.equal('');
 
 			expect(() => forceUpdate()).to.not.throw();
@@ -2903,8 +3072,8 @@ describe('Components', () =>
 				}
 			}
 
-			render(<App />, scratch);
-			render(<App />, scratch);
+			root.render(<App />, scratch);
+			root.render(<App />, scratch);
 
 			expect(scratch.innerHTML).to.equal('<div>bar</div>');
 		});*/

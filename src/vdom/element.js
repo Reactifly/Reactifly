@@ -3,8 +3,6 @@ import { functionalComponent } from '../compat/functionalComponent';
 import { STRICT_MODE } from '../internal';
 import _ from '../utils/index';
 
-let CURR_TAG = null;
-
 /**
  * JSX create element.
  *  
@@ -21,10 +19,11 @@ export function createElement(tag, props)
     }
 
     let normalizedProps = {};
+    let children = [];
     let key;
     let ref;
-    let children = [];
-
+    
+    // Normalise props
     _.foreach(props, function(k, prop)
     {
         if (k == 'key')
@@ -37,7 +36,7 @@ export function createElement(tag, props)
         }
         else if (k == 'children')
         {
-            normalizedProps[k] = normaliseChildren(_.array_filter(prop), true);
+            normalizedProps[k] = normaliseChildren(prop, true);
         }
         else
         {
@@ -45,13 +44,19 @@ export function createElement(tag, props)
         }
     });
 
-    CURR_TAG = tag;
-
+    // Get children
     if (arguments.length > 2)
     {
         children = [].slice.call(arguments, 2);
     }
+    
+    // Special case for text
+    if (tag === 'text')
+    {
+        return createTextVnode(children.toString(), key);
+    }
 
+    // thunk / fragment
     if (_.is_callable(tag))
     {
         // If a Component VNode, check for and apply defaultProps
@@ -92,11 +97,6 @@ export function createElement(tag, props)
         return createThunkVnode(tag, normalizedProps, children, key, ref);
     }
 
-    if (tag === 'text')
-    {
-        return createTextVnode(children.toString(), key);
-    }
-
     children = normaliseChildren(children);
 
     return {
@@ -129,7 +129,7 @@ export function createElement(tag, props)
  * @returns {array}
  */
 function normaliseChildren(children, propKeys, checkKeys)
-{
+{    
     if (children.length === 0)
     {
         return [createEmptyVnode()];
@@ -144,51 +144,50 @@ function normaliseChildren(children, propKeys, checkKeys)
     let ret = [];
 
     let warnKeys = false;
-   
-    _.foreach(children, function(i, vnode)
-    {            
-        if (_.is_null(vnode) || _.is_undefined(vnode) || _.is_bool(vnode))
+
+    _.foreach(children, function(i, child)
+    {   
+        if (_.is_null(child) || _.is_undefined(child) || _.is_bool(child))
         {
             ret.push(createEmptyVnode());
         }
-        else if (_.is_string(vnode) || _.is_number(vnode))
+        else if (_.is_string(child) || _.is_number(child))
         {
-            ret.push(createTextVnode(vnode, null));
+            ret.push(createTextVnode(child, null));
         }
-        else if (_.is_callable(vnode))
+        else if (_.is_callable(child))
         {
-            if (CURR_TAG.name !== 'Consumer')
-            {
-                throw new Error('Functions are not valid as a Reactifly child. This may happen if you return a Component instead of <Component /> from render. Or maybe you meant to call this function rather than return it.');
-            }
-
-            ret.push(vnode);
+            ret.push(child);
         }
         // Inline function, map or props.children
-        else if (_.is_array(vnode))
+        else if (_.is_array(child))
         {
-            let _children = normaliseChildren(vnode, propKeys, true);
+            let _children = normaliseChildren(child, propKeys, true);
 
             _.array_merge(ret, _children);
         }
-        else if (isFragment(vnode))
+        else if (isFragment(child))
         {
-            squashFragment(vnode, ret, fragmentcount);
+            squashFragment(child, ret, fragmentcount);
 
             fragmentcount++;
         }
-        else if (isValidVnode(vnode))
+        else if (isValidVnode(child))
         {
-            if (propKeys && _.is_undefined(vnode.key))
+            if (propKeys && _.is_undefined(child.key))
             {
-                vnode.key = `_pk|${i}`;
+                child.key = `_pk|${i}`;
             }
-            else if (checkKeys && _.is_undefined(vnode.key))
+            else if (checkKeys && _.is_undefined(child.key))
             {
                 warnKeys = true;
             }
 
-            ret.push(vnode);
+            ret.push(child);
+        }
+        else
+        {            
+            ret.push(child);
         }
     });
 
@@ -234,7 +233,7 @@ function createTextVnode(text, key)
 
     return {
         type: 'text',
-        nodeValue: text + '',
+        nodeValue: text.trim(),
         key: key,
         __internals:
         {
@@ -276,11 +275,13 @@ function createThunkVnode(fn, props, children, key, ref)
 {
     let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
 
+    // Must extend component
     if (!_.is_class(fn, 'Component'))
     {                
         throw new Error('[' + _.callable_name(fn) + '] is not a valid Component. Class or construable components must extend [Reactifly.Component]');
     }
 
+    // Components need a render function
     if (_type === 'thunk' && !_.is_function(fn.prototype.render))
     {                
         throw new Error('[' + _.callable_name(fn) + '] does not have a [render] method. Class or construable components must have a render method.');
