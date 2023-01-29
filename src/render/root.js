@@ -81,6 +81,10 @@ Root.prototype.__renderFactory = function(jsxStr, bindings)
 Root.prototype.__patchRoot = function()
 {
     diff(this.htmlRootEl._reactiflyRootVnode, createElement(this.component));
+
+    GLOBAL_CONTEXT.current = null;
+    
+    CURR_RENDER.current = null;
 }
 
 /**

@@ -19,7 +19,7 @@ export function didMount(component, clearStack)
     {
         if (component)
         {
-            MOUNTED.current.unshift(component);
+            MOUNTED.current.push(component);
         }
         
         _.foreach(MOUNTED.current, function(i, _component)
@@ -34,7 +34,7 @@ export function didMount(component, clearStack)
     }
     else
     {
-        MOUNTED.current.unshift(component);
+        MOUNTED.current.push(component);
     }
 }
 

@@ -87,6 +87,28 @@ describe('render()', () =>
 		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('X-BAR');
 	});
 
+	it('should support the form attribute', () => 
+	{
+		root.render(
+			`<div>
+				<form id="myform" />
+				<button form="myform">test</button>
+				<input form="myform" />
+			</div>`
+		);
+		const div = scratch.childNodes[0];
+		const form = div.childNodes[0];
+		const button = div.childNodes[1];
+		const input = div.childNodes[2];
+
+		// IE11 doesn't support the form attribute
+		if (!isIE11)
+		{
+			expect(button).to.have.property('form', form);
+			expect(input).to.have.property('form', form);
+		}
+	});
+
 	it('should allow VNode reuse', () =>
 	{
 		let reused = reactifly.jsx(`<div class="reuse">Hello World!</div>`);
@@ -115,28 +137,6 @@ describe('render()', () =>
 		expect(serializeHtml(scratch)).to.eql(
 			`<div><hr><div class="reuse">Hello World!</div></div>`
 		);
-	});
-
-	it('should support the form attribute', () => 
-	{
-		root.render(
-			`<div>
-				<form id="myform" />
-				<button form="myform">test</button>
-				<input form="myform" />
-			</div>`
-		);
-		const div = scratch.childNodes[0];
-		const form = div.childNodes[0];
-		const button = div.childNodes[1];
-		const input = div.childNodes[2];
-
-		// IE11 doesn't support the form attribute
-		if (!isIE11)
-		{
-			expect(button).to.have.property('form', form);
-			expect(input).to.have.property('form', form);
-		}
 	});
 
 

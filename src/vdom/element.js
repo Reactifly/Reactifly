@@ -176,7 +176,7 @@ function normaliseChildren(children, propKeys, checkKeys)
         else if (isValidVnode(child))
         {
             if (child.__internals._reUsable)
-            {                
+            {                                
                 child = _.cloneDeep(child);
 
                 children[i] = child;
@@ -265,7 +265,8 @@ function createEmptyVnode()
         __internals:
         {
             _domEl: null,
-            _isValidVnode: true
+            _isValidVnode: true,
+            _reUsable: !CURR_RENDER.current
         }
     }
 }
@@ -309,7 +310,8 @@ function createThunkVnode(fn, props, children, key, ref)
             _component: null,
             _name: _.callable_name(fn),
             _fn: null,
-            _isValidVnode: true
+            _isValidVnode: true,
+            _reUsable: !CURR_RENDER.current
         }
     }
 }
@@ -341,7 +343,8 @@ function createFunctionalThunk(fn, props, children, key, ref)
             _component: null,
             _name: _.callable_name(fn),
             _fn: fn,
-            _isValidVnode: true
+            _isValidVnode: true,
+            _reUsable: !CURR_RENDER.current
         }
     }
 }
