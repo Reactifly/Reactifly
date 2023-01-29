@@ -1,8 +1,9 @@
 import { createDomElement } from '../dom/create';
 import { createElement } from '../vdom/element';
+import { Component } from '../compat/Component';
 import { diff } from '../diff/index';
-import { jsx, bind } from '../jsx/index';
-import { GLOBAL_CONTEXT } from '../internal';
+import { bind } from '../jsx/index';
+import { GLOBAL_CONTEXT, CURR_RENDER } from '../internal';
 import { didMount } from '../vdom/lifecycle';
 import _ from '../utils/index';
 
@@ -25,16 +26,16 @@ export function Root(htmlRootEl, options)
  * Render root component.
  *  
  * @param function | string}   component   Component to render
- * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+ * @param {object | undefined}  bindings   Root props and or decencies for JSX (optional)
  */
-Root.prototype.render = function(componentOrJSX, rootProps)
+Root.prototype.render = function(componentOrJSX, bindings)
 {
-    // Re-rendering
+    // root.render()
     if (arguments.length === 0)
     {
         if (!this.component || !this.htmlRootEl)
         {
-            throw new Error('Cannot re-render root. Root has not been rendered first!');
+            throw new Error('Cannot re-render root. Root needs to be rendered first!');
         }
 
         this.__patchRoot();
@@ -42,27 +43,35 @@ Root.prototype.render = function(componentOrJSX, rootProps)
         return;
     }
 
-    this.component = !_.is_callable(componentOrJSX) ? this.__renderFactory(componentOrJSX, rootProps) : componentOrJSX;
+    this.component = !_.is_callable(componentOrJSX) ? this.__renderFactory(componentOrJSX, bindings) : componentOrJSX;
 
-    this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(rootProps);
+    this.htmlRootEl._reactiflyRootVnode ? this.__patchRoot() : this.__renderRoot(bindings);
 }
 
 /**
  * Creates wrapper function when passed as JSX string.
  *  
  * @param {string}              jsxStr      Root JSX to render
- * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+ * @param {object | undefined}  bindings   Root props and or decencies for JSX (optional)
  */
-Root.prototype.__renderFactory = function(jsxStr, rootProps)
+Root.prototype.__renderFactory = function(jsxStr, bindings)
 {
-    const renderFunc = function()
+    class __ReactiflyRoot extends Component
     {
-        bind(rootProps);
+        constructor(props)
+        {
+            super(props);
+        }
 
-        return jsxStr;
-    };
+        render()
+        {            
+            if (bindings) bind(bindings);
 
-    return renderFunc;
+            return jsxStr;
+        }
+    }
+
+    return __ReactiflyRoot;
 }
 
 /**
@@ -78,9 +87,11 @@ Root.prototype.__patchRoot = function()
  * Render the root component.
  *
  */
-Root.prototype.__renderRoot = function(rootProps)
+Root.prototype.__renderRoot = function(bindings)
 {
-    let vnode = createElement(this.component, rootProps);
+    if (bindings) bind(bindings);
+
+    let vnode = createElement(this.component);
 
     let DOMElement = createDomElement(vnode, this.htmlRootEl);
 
@@ -91,6 +102,8 @@ Root.prototype.__renderRoot = function(rootProps)
     this.htmlRootEl._reactiflyRootVnode = vnode;
 
     GLOBAL_CONTEXT.current = null;
+
+    CURR_RENDER.current = null;
 }
 
 /**

@@ -12,7 +12,7 @@ import _ from '../utils/index';
  * @returns {object}
  */
 export function thunkInstantiate(vnode)
-{
+{    
     let component = vDOM.nodeComponent(vnode);
 
     if (!component)
@@ -31,9 +31,9 @@ export function thunkInstantiate(vnode)
         {
             subscribeToContext(fn, component);
         }
-    }
 
-    willMount(component);
+        willMount(component);
+    }
 
     vnode.children = [jsxFactory(component)];
 

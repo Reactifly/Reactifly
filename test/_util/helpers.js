@@ -89,24 +89,31 @@ function serializeDomTree(node)
  */
 export function setupScratch(id)
 {
+	let root = (document.body || document.documentElement);
+	
 	const scratch = document.createElement('div');
 	
 	scratch.id = id || 'scratch';
 	
-	(document.body || document.documentElement).appendChild(scratch);
+	root.appendChild(scratch);
 	
 	return scratch;
 }
-
 
 /**
  * Teardown test environment and reset preact's internal state
  * @param {HTMLDivElement} scratch
  */
 export function teardown(scratch)
-{
+{	
 	if (scratch)
 	{
+		scratch._reactiflyRootVnode = null;
+
+		delete scratch._reactiflyRootVnode;
+
+		scratch.removeAttribute('_reactiflyRootVnode');
+
 		scratch.parentNode.removeChild(scratch);
 	}
 

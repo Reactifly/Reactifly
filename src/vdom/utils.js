@@ -63,7 +63,7 @@ export let isThunk = (vnode) =>
  */
 export let isFunctionalThunk = (vnode) =>
 {
-    return vnode.type === 'thunk' && vnode.__internals.fn !== null
+    return vnode.type === 'thunk' && vnode.__internals._fn !== null;
 }
 
 /**
@@ -97,6 +97,17 @@ export let isText = (vnode) =>
 export let isEmpty = (vnode) =>
 {
     return vnode.type === 'empty';
+}
+
+/**
+ * Checks if thunk is functional root.
+ *  
+ * @param   {object}  vnode
+ * @returns {boolean}
+ */
+export let isRoot = (vnode) =>
+{
+    return thunkName(vnode) === '__ReactiflyRoot';
 }
 
 /**
@@ -392,15 +403,23 @@ export function patchVnodes(left, right)
 {
     _.foreach(left, function(key, val)
     {
-        let rval = right[key];
+        const rval = right[key];
 
         if (_.is_undefined(rval))
         {
             delete left[key];
         }
-        else
+        else if (key !== 'key' && key !== 'ref')
         {
             left[key] = rval;
+        }
+    });
+
+    _.foreach(right, function(key, val)
+    {
+        if (key !== 'key' && key !== 'ref')
+        {
+            left[key] = val;
         }
     });
 }

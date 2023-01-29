@@ -17,11 +17,11 @@ export function createRoot(htmlRootEl, options)
  *  
  * @param {function | string}   component   Component to render
  * @param {HTMLElement}         htmlRootEl  Root html element
- * @param {object | undefined}  rootProps   Root props and or decencies for JSX (optional)
+ * @param {object | undefined}  bindings    Root props and or decencies for JSX (optional)
  */
-export function render(component, htmlRootEl, rootProps)
+export function render(component, htmlRootEl, bindings)
 {
     let root = createRoot(htmlRootEl);
 
-    root.render(component, rootProps);
+    root.render(component, bindings);
 }

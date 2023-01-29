@@ -34,7 +34,6 @@ describe('Components', () =>
 	{
 		scratch = setupScratch();
 		root = reactifly.createRoot(scratch);
-
 	});
 
 	afterEach(() =>
@@ -1735,28 +1734,8 @@ describe('Components', () =>
 				.been.called;
 		});
 
-	});
-
-
-
-	/*
-
-		
-
-		
-
-		i
-
 		it('should remount when swapping between HOC child types', () =>
 		{
-			class Outer extends reactifly.Component
-			{
-				root.render({ child: Child })
-				{
-					return <Child />;
-				}
-			}
-
 			class Inner extends reactifly.Component
 			{
 				componentWillMount()
@@ -1765,16 +1744,27 @@ describe('Components', () =>
 				{}
 				render()
 				{
-					return <div class="inner">foo</div>;
+					return `<div class="inner">foo</div>`;
 				}
 			}
+
+			class Outer extends reactifly.Component
+			{
+				render({ child: Child })
+				{
+					reactifly.bind('Child', Child);
+					
+					return `<Child />`;
+				}
+			}
+
+			const InnerFunc = () => `<div class="inner-func">bar</div>`;
+
 			sinon.spy(Inner.prototype, 'componentWillMount');
 			sinon.spy(Inner.prototype, 'componentWillUnmount');
 			sinon.spy(Inner.prototype, 'render');
 
-			const InnerFunc = () => <div class="inner-func">bar</div>;
-
-			root.render(<Outer child={Inner} />, scratch);
+			root.render(`<Outer child={Inner} />`, { Outer: Outer, Inner: Inner });
 
 			expect(Inner.prototype.componentWillMount, 'initial mount').to.have.been
 				.calledOnce;
@@ -1782,7 +1772,8 @@ describe('Components', () =>
 				.been.called;
 
 			Inner.prototype.componentWillMount.resetHistory();
-			root.render(<Outer child={InnerFunc} />, scratch);
+			
+			root.render(`<Outer child={InnerFunc} />`, { Outer: Outer, InnerFunc: InnerFunc });
 
 			expect(Inner.prototype.componentWillMount, 'unmount').not.to.have.been
 				.called;
@@ -1790,7 +1781,8 @@ describe('Components', () =>
 				.calledOnce;
 
 			Inner.prototype.componentWillUnmount.resetHistory();
-			root.render(<Outer child={Inner} />, scratch);
+			
+			root.render(`<Outer child={Inner} />`, { Outer: Outer, Inner: Inner });
 
 			expect(Inner.prototype.componentWillMount, 'remount').to.have.been
 				.calledOnce;
@@ -1802,27 +1794,36 @@ describe('Components', () =>
 	describe('Component Nesting', () =>
 	{
 		let useIntermediary = false;
-
+		
 		let createComponent = Intermediary =>
 		{
 			class C extends reactifly.Component
 			{
 				componentWillMount()
 				{}
-				root.render({ children })
+				
+				render()
 				{
-					if (!useIntermediary) return children;
+					if (!useIntermediary) return this.props.children;
+					
 					let I = useIntermediary === true ? Intermediary : useIntermediary;
-					return <I>{children}</I>;
+					
+					reactifly.bind('children', this.props.children);
+
+					reactifly.bind('I', I);
+
+					return `<I>{children}</I>`;
 				}
 			}
+
 			sinon.spy(C.prototype, 'componentWillMount');
 			sinon.spy(C.prototype, 'render');
+			
 			return C;
 		};
 
-		let createFunction = () => sinon.spy(({ children }) => children);
-
+		let createFunction = () => sinon.spy((props) => props.children);
+        
 		let F1 = createFunction();
 		let F2 = createFunction();
 		let F3 = createFunction();
@@ -1831,7 +1832,8 @@ describe('Components', () =>
 		let C2 = createComponent(F2);
 		let C3 = createComponent(F3);
 
-		let reset = () =>
+		let reset = () => 
+		{
 			[C1, C2, C3]
 				.reduce(
 					(acc, c) =>
@@ -1839,18 +1841,18 @@ describe('Components', () =>
 					[F1, F2, F3]
 				)
 				.forEach(c => c.resetHistory());
+		}
 
 		it('should handle lifecycle for no intermediary in component tree', () =>
 		{
 			reset();
-			root.render(
+			root.render(`
 				<C1>
 					<C2>
-						<C3>Some Text</C3>
+						<C3>C1 > C2 > C3 > Text</C3>
 					</C2>
-				</C1>,
-				scratch
-			);
+				</C1>
+			`, {C1: C1, C2: C2, C3: C3 });
 
 			expect(C1.prototype.componentWillMount, 'initial mount').to.have.been
 				.calledOnce;
@@ -1860,12 +1862,11 @@ describe('Components', () =>
 				.calledOnce;
 
 			reset();
-			root.render(
+			root.render(`
 				<C1>
-					<C2>Some Text</C2>
-				</C1>,
-				scratch
-			);
+					<C2>C1 > C2 > Text</C2>
+				</C1>
+			`, {C1: C1, C2: C2, C3: C3 });
 
 			expect(C1.prototype.componentWillMount, 'unmount innermost, C1').not.to
 				.have.been.called;
@@ -1873,12 +1874,11 @@ describe('Components', () =>
 				.have.been.called;
 
 			reset();
-			root.render(
+			root.render(`
 				<C1>
-					<C3>Some Text</C3>
-				</C1>,
-				scratch
-			);
+					<C3>C1 > C3 > Text</C3>
+				</C1>
+			`, {C1: C1, C2: C2, C3: C3 });
 
 			expect(C1.prototype.componentWillMount, 'swap innermost').not.to.have.been
 				.called;
@@ -1886,14 +1886,13 @@ describe('Components', () =>
 				.calledOnce;
 
 			reset();
-			root.render(
+			root.render(`
 				<C1>
 					<C2>
-						<C3>Some Text</C3>
+						<C3>C1 > C2 > Final Text</C3>
 					</C2>
-				</C1>,
-				scratch
-			);
+				</C1>
+			`, {C1: C1, C2: C2, C3: C3 });
 
 			expect(C1.prototype.componentWillMount, 'inject between, C1').not.to.have
 				.been.called;
@@ -1902,21 +1901,20 @@ describe('Components', () =>
 			expect(C3.prototype.componentWillMount, 'inject between, C3').to.have.been
 				.calledOnce;
 		});
-
+	
 		it('should handle lifecycle for nested intermediary functional components', () =>
 		{
 			useIntermediary = true;
 
-			root.render(<div />, scratch);
+			root.render(`<div />`);
 			reset();
-			root.render(
+			root.render(`
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
 					</C2>
-				</C1>,
-				scratch
-			);
+				</C1>
+			`, {C1: C1, C2: C2, C3: C3 });
 
 			expect(
 				C1.prototype.componentWillMount,
@@ -1932,12 +1930,11 @@ describe('Components', () =>
 			).to.have.been.calledOnce;
 
 			reset();
-			root.render(
+			root.render(`
 				<C1>
 					<C2>Some Text</C2>
-				</C1>,
-				scratch
-			);
+				</C1>
+			`, {C1: C1, C2: C2 });
 
 			expect(
 				C1.prototype.componentWillMount,
@@ -1949,12 +1946,11 @@ describe('Components', () =>
 			).not.to.have.been.called;
 
 			reset();
-			root.render(
+			root.render(`
 				<C1>
 					<C3>Some Text</C3>
-				</C1>,
-				scratch
-			);
+				</C1>
+			`, {C1: C1, C3: C3 });
 
 			expect(
 				C1.prototype.componentWillMount,
@@ -1966,14 +1962,13 @@ describe('Components', () =>
 			).to.have.been.calledOnce;
 
 			reset();
-			root.render(
+			root.render(`
 				<C1>
 					<C2>
 						<C3>Some Text</C3>
 					</C2>
-				</C1>,
-				scratch
-			);
+				</C1>
+			`, {C1: C1, C2: C2, C3: C3 });
 
 			expect(
 				C1.prototype.componentWillMount,
@@ -1988,6 +1983,17 @@ describe('Components', () =>
 				'inject between, C3 w/ intermediary fn'
 			).to.have.been.calledOnce;
 		});
+
+	});
+
+	/*
+
+
+		
+
+	
+
+		
 
 		it('should render components by depth', () =>
 		{

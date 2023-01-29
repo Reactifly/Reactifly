@@ -992,12 +992,7 @@ export function size(mixed_var)
  */
 export function callable_name(mixed_var)
 {
-    // Strict ES6
-    if (is_class(mixed_var, true))
-    {
-        return mixed_var.toString().match(/^\s*class\s+\w+/)[0].replace('class', '').trim();
-    }
-    else if (is_callable(mixed_var))
+    if (is_callable(mixed_var))
     {
         return mixed_var.name;
     }
@@ -1448,22 +1443,49 @@ function __bind(func, context)
  */
 function ___equalFunction(a, b)
 {
-    // Functions the same
-    if (a === b)
+    // They're not technically equal
+    if (a !== b)
     {
-        return true;
-    }
-
-    // Same name, check if bound properly
-    if (a.name === b.name)
-    {
-        if (a.name.includes('bound '))
+        // Functions have the same name
+        if (a.name === b.name)
         {
-            return a.__isBound === b.__isBound && a.__boundContext === b.__boundContext && a.__origional === b.__origional;
+            // If the functions were bound or cloned by the library they can technically still be equal
+            if ( a.name.includes('bound '))
+            {
+                return a.__isBound === b.__isBound && a.__boundContext === b.__boundContext && a.__origional === b.__origional;
+            }
+
+            // Native arrow functions
+            if (!a.prototype || !a.prototype.constructor)
+            {
+                return false;
+            }
+
+            // Check the prototypes
+            let aProps = object_props(a.prototype);
+            let bProps = object_props(b.prototype);
+
+            if (aProps.length === 0 && bProps.length === 0) return true;
+
+            let ret = true;
+
+            foreach(aProps, function(i, key)
+            {                
+                if (!is_equal(a.prototype[key], b.prototype[key]))
+                {
+                    ret = false;
+
+                    return false;
+                }
+            });
+
+            return ret;
         }
+
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 /**

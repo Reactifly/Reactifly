@@ -67,7 +67,12 @@ export function willUnMount(vnode)
     {
         let component = vDOM.nodeComponent(vnode);
 
-        if (component && _.is_callable(component.componentWillUnmount))
+        if (!component)
+        {
+            return;
+        }
+
+        if (_.is_callable(component.componentWillUnmount))
         {
             component.componentWillUnmount();
         }

@@ -67,7 +67,7 @@ function createTextNode(vnode, text)
 }
 
 function createHTMLElement(vnode)
-{
+{        
     const thisContext = GLOBAL_CONTEXT.current;
 
     let { tagName, attributes, children, ref } = vnode;

@@ -1,6 +1,6 @@
 import { isEmpty, isFragment, isValidVnode } from './utils';
 import { functionalComponent } from '../compat/functionalComponent';
-import { STRICT_MODE } from '../internal';
+import { STRICT_MODE, CURR_RENDER } from '../internal';
 import _ from '../utils/index';
 
 /**
@@ -12,7 +12,7 @@ import _ from '../utils/index';
  * @returns {object}
  */
 export function createElement(tag, props)
-{        
+{
     if (arguments.length === 0)
     {
         return createEmptyVnode();
@@ -110,7 +110,8 @@ export function createElement(tag, props)
         {
             _domEl: null,
             _prevAttrs: '',
-            _isValidVnode: true
+            _isValidVnode: true,
+            _reUsable: !CURR_RENDER.current
         }
     }
 }
@@ -146,7 +147,7 @@ function normaliseChildren(children, propKeys, checkKeys)
     let warnKeys = false;
 
     _.foreach(children, function(i, child)
-    {   
+    {                   
         if (_.is_null(child) || _.is_undefined(child) || _.is_bool(child))
         {
             ret.push(createEmptyVnode());
@@ -156,7 +157,7 @@ function normaliseChildren(children, propKeys, checkKeys)
             ret.push(createTextVnode(child, null));
         }
         else if (_.is_callable(child))
-        {
+        {            
             ret.push(child);
         }
         // Inline function, map or props.children
@@ -174,6 +175,13 @@ function normaliseChildren(children, propKeys, checkKeys)
         }
         else if (isValidVnode(child))
         {
+            if (child.__internals._reUsable)
+            {                
+                child = _.cloneDeep(child);
+
+                children[i] = child;
+            }
+
             if (propKeys && _.is_undefined(child.key))
             {
                 child.key = `_pk|${i}`;
@@ -187,6 +195,7 @@ function normaliseChildren(children, propKeys, checkKeys)
         }
         else
         {            
+            
             ret.push(child);
         }
     });

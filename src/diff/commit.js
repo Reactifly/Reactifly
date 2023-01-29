@@ -12,7 +12,7 @@ import * as events from '../dom/events';
  * 
  */
 export function commit(actions)
-{
+{    
     _.foreach(actions, function(i, action)
     {
         let { callback, args } = action;
@@ -42,11 +42,11 @@ function replaceText(vnode, text)
  */
 function replaceNode(left, right)
 {
-    removeEvents(left);
-
     let rDOMElement = createDomElement(right);
     let lDOMElement = vDOM.nodeElem(left);
     let parentDOMElement = vDOM.parentElem(left);
+
+    removeEvents(left);
 
     // We don't care if left or right is a thunk or fragment here
     // all we care about are the nodes returned from createDomElement()

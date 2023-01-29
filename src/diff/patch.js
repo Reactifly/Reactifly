@@ -13,7 +13,7 @@ import _ from '../utils/index';
  * @param {array}   actions
  */
 export function patch(left, right, actions)
-{
+{    
     actions = _.is_undefined(actions) ? [] : actions;
 
     // Same nothing to do
@@ -99,7 +99,7 @@ function replaceNode(left, right, actions)
  * @param {array}   actions
  */
 function patchNative(left, right, actions)
-{
+{    
     if (left.tagName !== right.tagName)
     {
         lifecycle.willUnMount(left);
@@ -123,8 +123,27 @@ function patchNative(left, right, actions)
  */
 function patchThunk(left, right, actions)
 {
-    // Same component 
-    if (vDom.isSameThunk(left, right))
+    // Root
+    if (vDom.isRoot(left) && vDom.isRoot(right))
+    {
+        diffRoot(left, right, actions);
+    }
+    // Different components
+    else if (!vDom.isSameThunk(left, right))
+    {
+        lifecycle.willUnMount(left);
+
+        let component = thunk.thunkInstantiate(right);
+
+        vDom.pointVnodeThunk(right, component);
+
+        actions.push(action('replaceNode', [left, right]));
+
+        actions.push(action('didMount', [component, true]));
+        
+    }
+    // Same component
+    else
     {
         let component = vDom.nodeComponent(left);
 
@@ -136,19 +155,6 @@ function patchThunk(left, right, actions)
 
             actions.push(action('didUpdate', [component, component.__internals._prevProps, component.state]));
         }
-    }
-    // Different components
-    else
-    {
-        lifecycle.willUnMount(left);
-
-        let component = thunk.thunkInstantiate(right);
-
-        vDom.pointVnodeThunk(right, component);
-
-        actions.push(action('replaceNode', [left, right]));
-
-        actions.push(action('didMount', [component, true]));
     }
 }
 
@@ -174,6 +180,23 @@ function patchThunkProps(vnode, newProps)
 
     vnode.props = newProps;
 }
+
+/**
+ * Diff thunk Vnodes.
+ * 
+ * @param {object}  left
+ * @param {object}  right
+ * @param {array}   actions
+ */
+function diffRoot(left, right, actions)
+{
+    let component = thunk.thunkInstantiate(right);
+
+    vDom.pointVnodeThunk(right, component);
+
+    patchChildren(left, right, actions);
+}
+
 
 /**
  * Diff thunk Vnodes.
@@ -222,7 +245,7 @@ function patchFragment(left, right, actions)
  * @param {array}   actions
  */
 function patchChildren(left, right, actions)
-{
+{        
     let lChildren = left.children;
     let rChildren = right.children;
 
@@ -236,20 +259,24 @@ function patchChildren(left, right, actions)
     if (vDom.noChildren(left))
     {
         // Clear the children now
-        left.children = [];
+        //left.children = [];
 
         // Only need to add a single child
         if (vDom.singleChild(right))
         {
-            actions.push(action('appendChild', [left, rChildren[0]]));
+            actions.push(action('replaceNode', [lChildren[0], rChildren[0]]));
+
+            //actions.push(action('appendChild', [left, rChildren[0]]));
         }
 
         // We're adding multiple new children
         else if (!vDom.noChildren(right))
         {
+            actions.push(action('replaceNode', [lChildren[0], rChildren[0]]));
+
             _.foreach(rChildren, function(i, child)
             {
-                actions.push(action('appendChild', [left, child]));
+                if (i > 0) actions.push(action('appendChild', [left, child]));
             });
         }
     }

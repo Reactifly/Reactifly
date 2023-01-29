@@ -1,5 +1,5 @@
 import parse, { BINDINGS_CACHE } from './parser';
-import { is_object, is_undefined } from '../utils/index';
+import { is_object, is_undefined, is_function } from '../utils/index';
 
 /**
  * Mian API to convert JSX from string into 'createElement'.
@@ -29,11 +29,22 @@ export function bind(key, val)
     {
         for (let k in key)
         {
-            BINDINGS_CACHE[k] = key[k];
+            __bind(k, key[k]);
         }
     }
     else
     {
-        BINDINGS_CACHE[key] = val;
+        __bind(key, val);
     }
 }
+
+function __bind(key, val)
+{    
+    if (is_function(val) && key !== val.name)
+    {
+        Object.defineProperty(val, 'name', { value: key, writable: false });
+    }
+
+    BINDINGS_CACHE[key] = val; 
+}
+

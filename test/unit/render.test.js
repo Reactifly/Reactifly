@@ -1,4 +1,4 @@
-import Reactifly, { render, jsx, createElement } from '../../src/index';
+import * as reactifly from '../../src/index';
 import { setupScratch, teardown, serializeHtml } from '../_util/helpers';
 import { clearLog, getLog, logCall } from '../_util/logCall';
 import { expect } from 'chai';
@@ -8,14 +8,13 @@ const isIE11 = /Trident\//.test(navigator.userAgent);
 describe('render()', () =>
 {
 	let scratch;
-	let resetAppendChild;
-	let resetInsertBefore;
-	let resetRemoveChild;
-	let resetRemove;
+	let root;
+	let instance;
 
 	beforeEach(() =>
 	{
 		scratch = setupScratch();
+		root = reactifly.createRoot(scratch);
 	});
 
 	afterEach(() =>
@@ -23,91 +22,109 @@ describe('render()', () =>
 		teardown(scratch);
 	});
 
-	before(() =>
-	{
-		resetAppendChild  = logCall(Element.prototype, 'appendChild');
-		resetInsertBefore = logCall(Element.prototype, 'insertBefore');
-		resetRemoveChild  = logCall(Element.prototype, 'removeChild');
-		resetRemove       = logCall(Element.prototype, 'remove');
-	});
-
-	after(() =>
-	{
-		resetAppendChild();
-		resetInsertBefore();
-		resetRemoveChild();
-		resetRemove();
-	});
-
-	it('should re-render when value from "" to 0', () =>
-	{
-		render('', scratch);
-		expect(scratch.innerHTML).to.equal('');
-
-		render(0, scratch);
-		expect(scratch.innerHTML).to.equal('0');
-	});
-
 	it('should render an empty text node given an empty string', () =>
 	{
-		render('', scratch);
+		root.render('');
 		let c = scratch.childNodes;
 		expect(c).to.have.length(1);
 		expect(c[0].data).to.equal('');
 		expect(c[0].nodeName).to.equal('#text');
 	});
 
+	it('should re-render when value from "" to 0', () =>
+	{
+		root.render('');
+		expect(scratch.innerHTML).to.equal('');
+
+		root.render(0);
+		expect(scratch.innerHTML).to.equal('0');
+
+		root.render('');
+		expect(scratch.innerHTML).to.equal('');
+	});
+
 	it('should allow node type change with content', () =>
 	{
-		render(`<span>Bad</span>`, scratch);
-		render(`<div>Good</div>`, scratch);
+		root.render(`<span>Bad</span>`);
+		expect(scratch.innerHTML).to.eql(`<span>Bad</span>`);
+
+		root.render(`<div>Good</div>`);
 		expect(scratch.innerHTML).to.eql(`<div>Good</div>`);
 	});
 
 	it('should create empty nodes (<* />)', () =>
 	{
-		render(`<div />`, scratch);
+		root.render(`<div />`);
 		expect(scratch.childNodes).to.have.length(1);
 		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('DIV');
 
-		scratch.parentNode.removeChild(scratch);
-		scratch = document.createElement('div');
-		(document.body || document.documentElement).appendChild(scratch);
+		teardown(scratch);
+		scratch = setupScratch();
+		root = reactifly.createRoot(scratch);
 
-		render(`<span />`, scratch);
+		root.render(`<span />`);
 		expect(scratch.childNodes).to.have.length(1);
 		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('SPAN');
 	});
 
 	it('should not throw error in IE11 with type date', () =>
 	{
-		expect(() => render(`<input type="date" />`, scratch)).to.not.throw();
+		expect(() => root.render(`<input type="date" />`)).to.not.throw();
 	});
 
 	it('should support custom tag names', () => 
 	{
-		render(`<foo />`, scratch);
+		root.render(`<foo />`);
 		expect(scratch.childNodes).to.have.length(1);
 		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('FOO');
 
-		scratch.parentNode.removeChild(scratch);
-		scratch = document.createElement('div');
-		(document.body || document.documentElement).appendChild(scratch);
+		teardown(scratch);
+		scratch = setupScratch();
+		root = reactifly.createRoot(scratch);
 
-		render(`<x-bar />`, scratch);
+		root.render(`<x-bar />`);
 		expect(scratch.childNodes).to.have.length(1);
 		expect(scratch.childNodes[0].nodeName.toUpperCase()).to.equal('X-BAR');
 	});
 
+	it('should allow VNode reuse', () =>
+	{
+		let reused = reactifly.jsx(`<div class="reuse">Hello World!</div>`);
+
+		root.render(
+			`<div>
+				{reused}
+				<hr />
+				{reused}
+			</div>`,
+			{ reused: reused }
+		);
+		
+		expect(serializeHtml(scratch)).to.eql(
+			`<div><div class="reuse">Hello World!</div><hr><div class="reuse">Hello World!</div></div>`
+		);
+
+		root.render(
+			`<div>
+				<hr />
+				{reused}
+			</div>`,
+			{ reused: reused }
+		);
+
+		expect(serializeHtml(scratch)).to.eql(
+			`<div><hr><div class="reuse">Hello World!</div></div>`
+		);
+	});
+
 	it('should support the form attribute', () => 
 	{
-		render(
+		root.render(
 			`<div>
 				<form id="myform" />
 				<button form="myform">test</button>
 				<input form="myform" />
-			</div>`,
-			scratch
+			</div>`
 		);
 		const div = scratch.childNodes[0];
 		const form = div.childNodes[0];
@@ -122,55 +139,5 @@ describe('render()', () =>
 		}
 	});
 
-	it('should allow VNode reuse', () =>
-	{
-		let reused = jsx(`<div class="reuse">Hello World!</div>`);
-
-		render(
-			`<div>
-				{reused}
-				<hr />
-				{reused}
-			</div>`,
-			scratch, {reused: reused}
-		);
-		
-		expect(serializeHtml(scratch)).to.eql(
-			`<div><div class="reuse">Hello World!</div><hr><div class="reuse">Hello World!</div></div>`
-		);
-
-		render(
-			`<div>
-				<hr />
-				{reused}
-			</div>`,
-			scratch, {reused: reused}
-		);
-
-		expect(serializeHtml(scratch)).to.eql(
-			`<div><hr><div class="reuse">Hello World!</div></div>`
-		);
-
-	});
 
 });
-
-/*const List = function(props)
-{
-    let vars = 
-    {
-        props : props
-    };
-
-    return Reactifly.jsx(`
-        <ol>
-            {props.values.map(value => (
-                <li key={value}>{value}</li>
-            ))}
-        </ol>
-    `, vars);
-};
-
-let values = ['a', 'b'];
-
-Reactifly.render('<List values={values} />', document.body, {List: List, values : values});*/
