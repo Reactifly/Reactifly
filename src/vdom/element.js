@@ -147,7 +147,7 @@ function normaliseChildren(children, propKeys, checkKeys)
     let warnKeys = false;
 
     _.foreach(children, function(i, child)
-    {                   
+    {       
         if (_.is_null(child) || _.is_undefined(child) || _.is_bool(child))
         {
             ret.push(createEmptyVnode());
@@ -200,9 +200,9 @@ function normaliseChildren(children, propKeys, checkKeys)
         }
     });
 
-    if (warnKeys && STRICT_MODE)
+    if (warnKeys && STRICT_MODE.current)
     {
-        console.error('Warning: Each child in a list should have a unique [key] prop.');
+        console.warn('Warning: Each child in a list should have a unique [key] prop.');
     }
 
     return _.is_empty(ret) ? [createEmptyVnode()] : ret;
@@ -284,7 +284,7 @@ function createEmptyVnode()
 function createThunkVnode(fn, props, children, key, ref)
 {
     let _type = _.is_class(fn, 'Fragment') ? 'fragment' : 'thunk';
-
+    
     // Must extend component
     if (!_.is_class(fn, 'Component'))
     {                

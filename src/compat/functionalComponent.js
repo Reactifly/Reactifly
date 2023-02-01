@@ -95,7 +95,7 @@ _FunctionalComponent.prototype.render = function()
     const prevContext = GLOBAL_CONTEXT.current;
 
     try
-    {
+    {        
         CURR_RENDER.current = this;
 
         this.__internals._hookIndex = 0;

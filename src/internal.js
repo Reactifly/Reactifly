@@ -21,11 +21,11 @@ export const GLOBAL_CONTEXT = {
  *
  * @var  {object}
  */
-export const DEBUG = false;
+export const DEBUG = { current: false };
 
 /**
  * Are we in strict mode?
  *
  * @var  {object}
  */
-export const STRICT_MODE = false;
+export const STRICT_MODE = { current: false };

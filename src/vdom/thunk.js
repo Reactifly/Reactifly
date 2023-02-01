@@ -118,7 +118,7 @@ function jsxFactory(component)
 {
     CURR_RENDER.current = component;
 
-    const result = parseJSX(component.render(component.props));
+    const result = parseJSX(component.render(component.props, component.state));
 
     if (_.is_array(result))
     {

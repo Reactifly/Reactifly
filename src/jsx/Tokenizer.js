@@ -581,9 +581,11 @@ function getAttrs(string)
         escape,
         props = {}
 
-    for (var i = 0, n = string.length; i < n; i++)
+
+    for (var i = 0; i < string.length; i++)
     {
-        var c = string[i]
+        var c = string[i];
+
         switch (state)
         {
             case 'AttrNameOrJSX':
@@ -621,7 +623,15 @@ function getAttrs(string)
                 {
                     state = 'AttrQuoteOrJSX'
                 }
-                break
+                else if (RGX_BLANKS.test(string[i-1]))
+                {
+                    props[attrName] = 'true';
+                    attrName = attrValue = ''
+                    attrName = c;
+                    state = 'AttrNameOrJSX';
+                }
+                break;
+
             case 'AttrQuoteOrJSX':
                 if (c === '"' || c === "'")
                 {
@@ -663,6 +673,8 @@ function getAttrs(string)
                 break
         }
     }
+
+    console.log(props);
 
     throw 'tab must be closed';
 }

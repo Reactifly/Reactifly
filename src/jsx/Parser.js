@@ -82,7 +82,7 @@ export default function parse(jsxStr, bindings)
     }
 
     // Empty
-    if (jsxStr === null || typeof jsxStr === 'undefined' || (typeof jsxStr === 'string' && jsxStr.trim() === ''))
+    if (jsxStr === null || jsxStr === true || jsxStr === false || typeof jsxStr === 'undefined' || (typeof jsxStr === 'string' && jsxStr.trim() === ''))
     {
         return createElement();
     }

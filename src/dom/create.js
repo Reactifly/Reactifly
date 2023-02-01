@@ -14,23 +14,28 @@ import _ from '../utils/index';
 
 export function createDomElement(vnode, parentDOMElement)
 {
-    switch (vnode.type)
+    if (_.is_object(vnode))
     {
-        case 'text':
-            return createTextNode(vnode, vnode.nodeValue);
+        switch (vnode.type)
+        {
+            case 'text':
+                return createTextNode(vnode, vnode.nodeValue);
 
-        case 'empty':
-            return createTextNode(vnode, '');
+            case 'empty':
+                return createTextNode(vnode, '');
 
-        case 'thunk':
-            return flatten(createThunk(vnode, parentDOMElement));
+            case 'thunk':
+                return flatten(createThunk(vnode, parentDOMElement));
 
-        case 'fragment':
-            return flatten(createFragment(vnode, parentDOMElement));
+            case 'fragment':
+                return flatten(createFragment(vnode, parentDOMElement));
 
-        case 'native':
-            return flatten(createHTMLElement(vnode));
+            case 'native':
+                return flatten(createHTMLElement(vnode));
+        }
     }
+
+    return null;
 }
 
 function flatten(DOMElement)
@@ -86,8 +91,17 @@ function createHTMLElement(vnode)
 
     vDOM.nodeElem(vnode, DOMElement);
 
+    // InnerHTML
+    if (attributes.dangerouslySetInnerHTML)
+    {
+        let _html = attributes.dangerouslySetInnerHTML.__html;
+
+        DOMElement.innerHTML = _html;
+
+        vDOM.nodeElem(children[0], DOMElement.firstChild);
+    }
     // props.children only gets rendered when actual children are empty
-    if (vDOM.noChildren(vnode) && attributes.children)
+    else if (vDOM.noChildren(vnode) && attributes.children)
     {
         _.foreach(attributes.children, function(i, child)
         {
@@ -98,7 +112,7 @@ function createHTMLElement(vnode)
             {
                 appendFragment(DOMElement, childDOMElem);
             }
-            else
+            else if (!_.is_null(childDOMElem))
             {
                 DOMElement.appendChild(childDOMElem);
             }
@@ -115,7 +129,7 @@ function createHTMLElement(vnode)
             {
                 appendFragment(DOMElement, childDOMElem);
             }
-            else
+            else if (!_.is_null(childDOMElem))
             {
                 DOMElement.appendChild(childDOMElem);
             }

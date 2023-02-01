@@ -196,7 +196,7 @@ const DISSALOWEDES = {
 // used or modified. The `sandbox` is an object containing variables we want
 // to pass in.
 export function sandbox(source, sandbox, _this)
-{    
+{        
     _this = _this || null;
 
     sandbox = sandbox || Object.create(null);
@@ -223,17 +223,7 @@ export function sandbox(source, sandbox, _this)
 
     let ret;
 
-    try
-    {
-        ret = Function(SANDBOX_NAME, sandboxed).call(_this, sandbox);
-    }
-    catch (e)
-    {
-        if (DEBUG)
-        {
-            console.log(e);
-        }
-    }
+    ret = Function(SANDBOX_NAME, sandboxed).call(_this, sandbox);
 
     unalienate();
 

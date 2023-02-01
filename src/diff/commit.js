@@ -393,6 +393,21 @@ function removeAttribute(vnode, name, previousValue)
 }
 
 /**
+ * Patch text Vnode.
+ * 
+ * @param {object}  left
+ * @param {string}  html
+ */
+function setInnerHtml(vnode, html)
+{
+    let DOMElement = vDOM.nodeElem(vnode);
+
+    DOMElement.innerHTML = html;
+
+    vDOM.nodeElem(vnode.children[0], DOMElement.firstChild);
+}
+
+/**
  * Helper function to find parent from thunk if it exists.
  *
  * @param  {object}  parent  Vnode
@@ -458,6 +473,7 @@ const ACTION_MAP = {
     replaceText,
     setAttribute,
     removeAttribute,
+    setInnerHtml,
     didUpdate,
     didMount
 };

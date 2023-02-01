@@ -108,9 +108,40 @@ function patchNative(left, right, actions)
     }
     else
     {
-        diffAttributes(left, right, actions);
+        let oldHtml = left.attributes.dangerouslySetInnerHTML;
+        let newHtml = right.attributes.dangerouslySetInnerHTML;
 
-        patchChildren(left, right, actions);
+        // No innerHTML
+        if (!oldHtml && !newHtml)
+        {
+            diffAttributes(left, right, actions);
+
+            patchChildren(left, right, actions);
+        }
+        // Both have innerHTML
+        else if (oldHtml && newHtml)
+        {
+            if (oldHtml.__html !== newHtml.__html)
+            {
+                actions.push(action('setInnerHtml', [left, newHtml.__html]));
+            }
+
+            diffAttributes(left, right, actions);
+        }
+        // Removing innerHTML
+        else if (oldHtml && !newHtml)
+        {
+            diffAttributes(left, right, actions);
+
+            patchChildren(left, right, actions);
+        }
+        // Setting new innerHTML
+        else if (!oldHtml && newHtml)
+        {
+            actions.push(action('setInnerHtml', [left, newHtml.__html]));
+
+            diffAttributes(left, right, actions);
+        }
     }
 }
 
@@ -252,11 +283,10 @@ function patchChildren(left, right, actions)
     // Quick check
     if (vDom.noChildren(left) && vDom.noChildren(right))
     {
-        return;
+        actions.push(action('replaceNode', [lChildren[0], rChildren[0]]));
     }
-
     // We're only adding new children
-    if (vDom.noChildren(left))
+    else if (vDom.noChildren(left))
     {
         // Clear the children now
         //left.children = [];
@@ -556,9 +586,25 @@ function groupByKey(children)
                 thunks[name] = 1;
             }
         }
-        else
+        else if (!key)
         {
-            key = !key ? ('|' + i) : key;
+            if (vDom.isNative(child))
+            {         
+                key = `|${child.tagName}`;
+
+                let x = 0;
+
+                while (ret[key])
+                {
+                    x++;
+
+                    key = `${key}${x}`;
+                }
+            }
+            else
+            {
+                key = `|${i}`;
+            }
         }
 
         ret[key] = {
@@ -582,7 +628,7 @@ function diffAttributes(left, right, actions)
     let pAttrs = left.attributes;
     let nAttrs = right.attributes;
 
-    // No changes
+    // Both are empty
     if (_.is_empty(pAttrs) && _.is_empty(nAttrs))
     {
         return;
@@ -596,9 +642,11 @@ function diffAttributes(left, right, actions)
         }
     });
 
+    let nkeys = Object.keys(right.attributes);
+
     _.foreach(pAttrs, function(prop, value)
     {
-        if (!(prop in nAttrs))
+        if (!nkeys.includes(prop))
         {
             actions.push(action('removeAttribute', [left, prop, pAttrs[prop]]));
         }

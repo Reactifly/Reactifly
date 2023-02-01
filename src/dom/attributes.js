@@ -58,9 +58,11 @@ export function setDomAttribute(DOMElement, name, value, prevVal)
         case 'key':
         case 'ref':
         case 'children':
+        case 'innerHTML':
+        case 'dangerouslySetInnerHTML':
             break;
 
-            // Style
+        // Style
         case 'style':
 
             // remove all styles completely
@@ -93,7 +95,7 @@ export function setDomAttribute(DOMElement, name, value, prevVal)
             }
             break;
 
-            // Class
+        // Class
         case 'class':
         case 'className':
             DOMElement.className = value;
@@ -117,28 +119,36 @@ export function setDomAttribute(DOMElement, name, value, prevVal)
             }
             else
             {
-                switch (name)
-                {
-                    case 'checked':
-                    case 'disabled':
-                    case 'selected':
-                        DOMElement[name] = _.bool(value);
+                if (
+                    name !== 'href' &&
+                    name !== 'list' &&
+                    name !== 'form' &&
+                    // Default value in browsers is `-1` and an empty string is
+                    // cast to `0` instead
+                    name !== 'tabIndex' &&
+                    name !== 'download' &&
+                    name in DOMElement
+                ) {
+                    try {
+                        DOMElement[name] = value == null ? '' : value;
+                        // labelled break is 1b smaller here than a return statement (sorry)
                         break;
-                    case 'innerHTML':
-                    case 'nodeValue':
-                    case 'value':
-                        DOMElement[name] = value;
-                        break;
-                    default:
-                        try
-                        {
-                            DOMElement[name] = value == null ? '' : value;
-                        }
-                        catch(e){}
-                        
-                        DOMElement.setAttribute(name, value);
-                       
-                        break;
+                    } catch (e) {}
+                }
+
+                // ARIA-attributes have a different notion of boolean values.
+                // The value `false` is different from the attribute not
+                // existing on the DOM, so we can't remove it. For non-boolean
+                // ARIA-attributes we could treat false as a removal, but the
+                // amount of exceptions would cost us too many bytes. On top of
+                // that other VDOM frameworks also always stringify `false`.
+
+                if (typeof value === 'function') {
+                    // never serialize functions as attribute values
+                } else if (value != null && (value !== false || name.indexOf('-') != -1)) {
+                    DOMElement.setAttribute(name, value);
+                } else {
+                    DOMElement.removeAttribute(name);
                 }
             }
             break;
@@ -160,12 +170,18 @@ export function removeDomAttribute(DOMElement, name, prevVal)
         case 'key':
         case 'ref':
         case 'children':
+        case 'dangerouslySetInnerHTML':
             break;
 
-            // Class
+        // Class
         case 'class':
         case 'className':
             DOMElement.className = '';
+            break;
+
+        // InnerHTML
+        case 'dangerouslySetInnerHTML':
+            DOMElement.innerHTML = '';
             break;
 
             // Events / attributes
@@ -178,33 +194,29 @@ export function removeDomAttribute(DOMElement, name, prevVal)
                 }
             }
             else
-            {
-                switch (name)
-                {
-                    case 'checked':
-                    case 'disabled':
-                    case 'selected':
-                        DOMElement[name] = false
-                        break
-                    case 'innerHTML':
-                    case 'nodeValue':
-                    case 'value':
-                        DOMElement[name] = ''
-                        break
-                    default:
-                        try
-                        {
-                            DOMElement[name] = '';
-                        }
-                        catch(e){}
-                        
-                        DOMElement.removeAttribute(name)
+            {                
+                if (
+                    name !== 'href' &&
+                    name !== 'list' &&
+                    name !== 'form' &&
+                    // Default value in browsers is `-1` and an empty string is
+                    // cast to `0` instead
+                    name !== 'tabIndex' &&
+                    name !== 'download' &&
+                    name in DOMElement
+                ) {
+                    try
+                    {
+                        DOMElement[name] = '';
+                        // labelled break is 1b smaller here than a return statement (sorry)
                         break;
+                    } catch (e) {}
                 }
+
+                DOMElement.removeAttribute(name);
             }
             break;
     }
-
 }
 
 /**
