@@ -1,5 +1,10 @@
 import * as reactifly from '../../src/index';
 import { setupScratch, teardown } from '../_util/helpers';
+import chai, { expect } from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+
+chai.use(sinonChai);
 
 describe('context', () =>
 {
@@ -28,7 +33,9 @@ describe('context', () =>
 		{
 			render()
 			{
-				return `<div>{this.props.a}</div>`;
+				receivedContext = this.props.contextData;
+
+				return `<div>{this.props.contextData.a}</div>`;
 			}
 		}
 
@@ -38,108 +45,135 @@ describe('context', () =>
 			<Provider value={CONTEXT}>
 				<div>
 					<Consumer>
-						{data =>
-						{
+						{ data => {
+							
 							receivedContext = data;
-							return <Inner {...data} />;
+							
+							return (<Inner contextData={data} />);
 						}}
 					</Consumer>
 				</div>
 			</Provider>
-		`, { CONTEXT: CONTEXT, Consumer: Consumer, Inner: Inner });
+		`, { Provider: Provider, CONTEXT: CONTEXT, Consumer: Consumer, Inner: Inner });
 
 		// initial render does not invoke anything but render():
-		expect(Inner.prototype.render).to.have.been.calledWithMatch(CONTEXT);
+		expect(Inner.prototype.render).to.have.been.calledWithMatch({contextData: CONTEXT});
 		expect(receivedContext).to.equal(CONTEXT);
 		expect(scratch.innerHTML).to.equal('<div><div>a</div></div>');
 	});
 
-	/*// This optimization helps
+	// This optimization helps
 	// to prevent a Provider from rerendering the children, this means
 	// we only propagate to children.
 	// Strict equal vnode optimization
 	it('skips referentially equal children to Provider', () =>
 	{
 		const { Provider, Consumer } = reactifly.createContext();
+
 		let set,
 			renders = 0;
+		
 		const Layout = ({ children }) =>
 		{
 			renders++;
+
 			return children;
 		};
+		
 		class State extends reactifly.Component
 		{
+			Provider = Provider;
+
 			constructor(props)
 			{
 				super(props);
+
 				this.state = { i: 0 };
+
 				set = this.setState.bind(this);
+
 			}
 			render()
 			{
-				const { children } = this.props;
-				return <Provider value={this.state}>{children}</Provider>;
+				return `<Provider value={this.state}>{this.props.children}</Provider>`;
 			}
 		}
-		const App = () => (
+
+		const App = () => 
+		{
+			reactifly.bind({State: State, Layout: Layout, Consumer: Consumer});
+
+			return `
 			<State>
 				<Layout>
-					<Consumer>{({ i }) => <p>{i}</p>}</Consumer>
+					<Consumer>
+					{
+						({ i }) => (<p>{i}</p>)
+					}
+					</Consumer>
 				</Layout>
-			</State>
-		);
-		render(<App />, scratch);
+			</State>`;
+		};
+
+		root.render(App);
 		expect(renders).to.equal(1);
 		set({ i: 2 });
-		rerender();
 		expect(renders).to.equal(1);
 	});
 
 	it('should preserve provider context through nesting providers', done =>
 	{
 		const { Provider, Consumer } = reactifly.createContext();
+
 		const CONTEXT = { a: 'a' };
+
 		const CHILD_CONTEXT = { b: 'b' };
 
 		let parentContext, childContext;
 
 		class Inner extends reactifly.Component
 		{
-			render(props)
+			render()
 			{
-				return (
+				return `
 					<div>
-						{props.a} - {props.b}
+						{this.props.a} - {this.props.b}
 					</div>
-				);
+				`;
 			}
 		}
 
 		sinon.spy(Inner.prototype, 'render');
 
-		render(
+		let bindings =
+		{
+			Provider: Provider,
+			Consumer: Consumer,
+			Inner: Inner
+		};
+
+		root.render(`
 			<Provider value={CONTEXT}>
 				<Consumer>
-					{data =>
 					{
-						parentContext = data;
-						return (
+						data => (
+
 							<Provider value={CHILD_CONTEXT}>
 								<Consumer>
-									{childData =>
-									{
-										childContext = childData;
-										return <Inner {...data} {...childData} />;
-									}}
+									{childData => {
+											
+											childContext = childData;
+
+											return (<Inner {...data} {...childData} />);
+										}
+									}
 								</Consumer>
 							</Provider>
-						);
-					}}
+						)
+					}
 				</Consumer>
-			</Provider>,
-			scratch
-		);
+			</Provider>
+		`, bindings);
 
 		// initial render does not invoke anything but render():
 		expect(Inner.prototype.render).to.have.been.calledWithMatch({
@@ -156,6 +190,10 @@ describe('context', () =>
 			done();
 		}, 0);
 	});
+
+	/*
+
+	
 
 	it('should preserve provider context between different providers', () =>
 	{

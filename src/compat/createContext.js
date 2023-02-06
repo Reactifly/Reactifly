@@ -46,7 +46,9 @@ export function createContext(defaultValue)
             throw new Error('Context.Consumers must return a function as their child.');
         }
 
-        return callback(context[contextId] ? context[contextId].props.value : defaultValue);
+        let ret = callback(context[contextId] ? context[contextId].props.value : defaultValue);
+
+        return !is_array(ret) ? [ret] : ret;
     };
 
     function Provider(props)
