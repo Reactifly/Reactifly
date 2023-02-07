@@ -1,4 +1,4 @@
-import Tokenizer from './Tokenizer';
+import {Tokenizer} from './Tokenizer';
 import { createElement } from '../vdom/element';
 import { Fragment } from '../compat/Fragment';
 import { sandbox } from './sandbox';
@@ -170,9 +170,9 @@ Parser.prototype.parse = function()
         return CACHE_STR[this.input];
     }
 
-    var array = (new Tokenizer(this.input)).tokenize();
+    var funcString = this.genChildren((new Tokenizer).tokenize(this.input) );
 
-    var funcString = this.genChildren([array]);
+    console.log(funcString);
 
     if (useCache)
     {
@@ -274,7 +274,7 @@ Parser.prototype.genChildren = function(children, obj, join)
 {
     if (obj)
     {
-        if (obj.isVoidTag || !obj.children.length)
+        if (obj.isVoidTag || !obj.children || !obj.children.length)
         {
             return 'null';
         }
@@ -282,23 +282,23 @@ Parser.prototype.genChildren = function(children, obj, join)
 
     var ret = [];
 
-    for (var i = 0, el; el = children[i++];)
+    for (var i = 0; i < children.length; i++)
     {
+        let el = children[i];
+
         if (el.type === '#jsx')
         {
-            if (Array.isArray(el.nodeValue))
-            {
-                ret[ret.length] = this.genChildren(el.nodeValue, null, ' ');
-            }
-            else
-            {
-                ret[ret.length] = el.nodeValue;
-            }
+            ret[ret.length] = el.value;
+        }
+        else if (el.type === '#jsxFunc')
+        {
+            ret[ret.length] = el.open + this.genChildren(el.children, null, ' ') + el.close;
         }
         else if (el.type === '#text')
         {
-            ret[ret.length] = JSON.stringify(el.nodeValue)
+            ret[ret.length] = JSON.stringify(el.value)
         }
+
         else if (el)
         {
             ret[ret.length] = this.genTag(el)
